@@ -1,0 +1,17 @@
+
+;--------------------------------------
+; Code equates
+;--------------------------------------
+
+FALSE               = $00
+TRUE                = $01
+
+unitINCHES          = $00
+unitFEET            = $01
+unitYARDS           = $02
+
+skillNOVICE         = $00
+skillAMATEUR        = $01
+skillPRO            = $02
+
+;--------------------------------------

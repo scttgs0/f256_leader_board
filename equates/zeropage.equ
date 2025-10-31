@@ -1,0 +1,30 @@
+
+;--------------------------------------
+; Zero-page equates
+;--------------------------------------
+
+
+;--------------------------------------
+
+JIFFYCLOCK              = $0086
+
+InputFlags              = $0087         ; [2 bytes]
+
+InputType               = $0089         ; [2 bytes] Joystick/Keyboard for Player 1
+itJoystick          = 0
+itKeyboard          = 1
+KEYCHAR                 = $008B         ; last key pressed
+CONSOL                  = $008C         ; state of OPTION,SELECT,START
+
+zpSource                = $008D         ; [long] Starting address for the source data
+zpDest                  = $0090         ; [long] Starting address for the destination block
+
+RND_MIN                 = $0093
+RND_SEC                 = $0094
+RND_RESULT              = $0095         ; [2 bytes]
+
+irq_pending             = $0097
+
+;--------------------------------------
+
+event_data              = $00A0
