@@ -533,11 +533,11 @@ InitBitmap      .proc
 ;   switch to system map
                 stz IOPAGE_CTRL
 
-                lda #<ScreenRAM         ; Set the destination address
+                lda #<screenRAM         ; Set the destination address
                 sta BITMAP2_ADDR
-                lda #>ScreenRAM
+                lda #>screenRAM
                 sta BITMAP2_ADDR+1
-                lda #`ScreenRAM
+                lda #`screenRAM
                 sta BITMAP2_ADDR+2
 
                 lda #bmcEnable|bmcLUT0

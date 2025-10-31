@@ -1,0 +1,154 @@
+
+;======================================
+;
+;======================================
+RenderPlayfield .proc
+                jsr ResetPlayfield      ; fill playfield with water
+                jsr DrawClouds          ; render clouds
+                jsr DrawMountains       ; render mountains
+
+                rts
+                .endproc
+
+
+;======================================
+;
+;======================================
+DrawClouds      .proc
+_dest           = zpCD
+_width          = zpD0
+_src            = zpD4
+_layerOffset    = zpCF
+_scrnTop        = $8000
+;---
+
+                ldx #30
+                stx _width              ; number of cloud glyphs to render
+
+;   entry point for the scoreboard view... which expands to the full screen width
+_ENTRY1         .frsRandomByte
+                and #$1F
+                cmp #30                 ; >=30 (width of playfield)?... and also the cloud stamps
+                bcs _ENTRY1             ;   yes... try again
+
+                sta _layerOffset        ; cloud layer offset
+
+                ldx #<glyphClouds
+                stx _src
+                ldx #>glyphClouds
+                stx _src+1
+
+                tax                     ; offset=0?
+                beq _1                  ;   yes, skip
+
+;   advance to the next glyph
+_next1          lda _src
+                clc
+                adc #<$0040             ; +64 (bytes/lines/glyph)
+                sta _src
+                lda _src+1
+                adc #>$0040
+                sta _src+1
+
+                dex
+                bne _next1
+
+_1              lda #<_scrnTop
+                sta _dest
+                lda #>_scrnTop
+                sta _dest+1
+
+;   render a single cloud glyph line (1 of 8 lines)
+_next2          ldx #$07
+
+_next3          ldy #$00
+                lda (_src),Y
+                sta (_dest),Y
+                iny
+                lda (_src),Y
+                sta (_dest),Y
+                iny
+                lda (_src),Y
+                sta (_dest),Y
+                iny
+                lda (_src),Y
+                sta (_dest),Y
+                iny
+                lda (_src),Y
+                sta (_dest),Y
+                iny
+                lda (_src),Y
+                sta (_dest),Y
+                iny
+                lda (_src),Y
+                sta (_dest),Y
+                iny
+                lda (_src),Y
+                sta (_dest),Y
+
+;   advance to the next line of the glyph
+                lda _src
+                clc
+                adc #$08
+                sta _src
+                lda _src+1
+                adc #$00
+                sta _src+1
+
+;   advance to the next scanline
+_2              lda _dest
+                clc
+                adc #<$0140             ; +320
+                sta _dest
+                lda _dest+1
+                adc #>$0140
+                sta _dest+1
+
+                dex
+                bpl _next3
+
+;   back up 8 scanlines to prepare for the next glyph
+                lda _dest
+                sec
+                sbc #<$09F8             ; -2552 (320*8-8)
+                sta _dest
+                lda _dest+1
+                sbc #>$09F8
+                sta _dest+1
+
+;   advance to the next cloud glyph
+                inc _layerOffset
+                lda _layerOffset
+                cmp #30                 ; <30?
+                bcc _3                  ;   yes
+
+;   end of cloud layer reached... wrap around to the beginning
+                lda #$00
+                sta _layerOffset
+
+                lda #<glyphClouds       ; wrap back to the left-edge of the cloud layer
+                sta _src
+                lda #>glyphClouds
+                sta _src+1
+
+_3              dec _width              ; completed all the cloud glyphs?
+                bne _next2              ;   no
+
+                rts
+                .endproc
+
+
+;======================================
+;
+;======================================
+DrawMountains   .proc
+                rts
+                .endproc
+
+
+;======================================
+;
+;======================================
+ResetPlayfield   .proc
+                rts
+                .endproc

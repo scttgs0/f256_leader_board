@@ -50,6 +50,7 @@ BOOT            ldx #$FF
 ;--------------------------------------
 
                 .include "hud.asm"
+                .include "playfield.asm"
 
 
 ;--------------------------------------
@@ -59,6 +60,7 @@ BOOT            ldx #$FF
 ;--------------------------------------
 START           .proc
                 jsr RenderHUD
+                jsr RenderPlayfield
 
 _endless        bra _endless
                 .endproc
@@ -66,6 +68,11 @@ _endless        bra _endless
 
 ;--------------------------------------
 ;--------------------------------------
+
+palette         .include "data/PALETTE.inc"
+end_palette
+
+                .include "data/CLOUDS.inc"
 
                 .include "platform_f256.asm"
                 .include "interrupts.asm"
@@ -98,6 +105,9 @@ INIT            .proc
 
                 jsr InitTextPalette
                 jsr ClearScreen
+
+                jsr InitGfxPalette
+                jsr InitBitmap
 
                 rts
                 .endproc
