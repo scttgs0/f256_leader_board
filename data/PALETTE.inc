@@ -9,13 +9,13 @@ PfColor4        .dword $007a4416    ;       mountain
 PfColor5        .dword $00a49dff    ;       mountain
 PfColor6        .dword $00b9b650    ;       mountain
 PfColor7        .dword $002c2492    ; [08]  water      
-PfColor8        .dword $005868fc    ;       water
-PfColor9        .dword $00dc241c    ;       water
-PfColor10       .dword $00ebd77e    ; [0B]  mud
-PfColor11       .dword $00610000    ;       mud
-PfColor12       .dword $00480800    ; [0D]  grass
-PfColor13       .dword $00002000    ;       grass
-PfColor14       .dword $00002020    ;       grass
+PfColor8        .dword $003f5eac    ;       water
+PfColor9        .dword $00788fc9    ;       water
+PfColor10       .dword $007a4416    ; [0B]  mud
+PfColor11       .dword $005c0f17    ;       mud
+PfColor12       .dword $000f6118    ; [0D]  grass
+PfColor13       .dword $001e7027    ;       grass
+PfColor14       .dword $003c7d12    ;       grass
 
 SprColor0       .dword $00201c00    ; [10]
 SprColor1       .dword $0053b8da

@@ -51,6 +51,7 @@ BOOT            ldx #$FF
 
                 .include "hud.asm"
                 .include "playfield.asm"
+                .include "sodpatch.asm"
 
 
 ;--------------------------------------
@@ -61,6 +62,7 @@ BOOT            ldx #$FF
 START           .proc
                 jsr RenderHUD
                 jsr RenderPlayfield
+                jsr RenderSodPatch
 
 _endless        bra _endless
                 .endproc
@@ -74,6 +76,7 @@ end_palette
 
                 .include "data/CLOUDS.inc"
                 .include "data/MOUNTAINS.inc"
+                .include "data/SODPATCH.inc"
 
                 .include "platform_f256.asm"
                 .include "interrupts.asm"
