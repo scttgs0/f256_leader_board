@@ -4,11 +4,11 @@ BkColor         .dword $00000000    ; [00]
 PfColor0        .dword $00e4e4e4    ; [01]  cloud
 PfColor1        .dword $00a49dff    ;       cloud
 PfColor2        .dword $00d3d3d3    ;       cloud
-PfColor3        .dword $00088814    ; [04]  mountain
-PfColor4        .dword $00462075    ;       mountain
-PfColor5        .dword $00300400    ;       mountain
-PfColor6        .dword $000000e2    ;       mountain
-PfColor7        .dword $00400000    ; [08]  water      
+PfColor3        .dword $00040404    ; [04]  mountain
+PfColor4        .dword $007a4416    ;       mountain
+PfColor5        .dword $00a49dff    ;       mountain
+PfColor6        .dword $00b9b650    ;       mountain
+PfColor7        .dword $002c2492    ; [08]  water      
 PfColor8        .dword $005868fc    ;       water
 PfColor9        .dword $00dc241c    ;       water
 PfColor10       .dword $00ebd77e    ; [0B]  mud

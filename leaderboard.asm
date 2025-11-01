@@ -73,6 +73,7 @@ palette         .include "data/PALETTE.inc"
 end_palette
 
                 .include "data/CLOUDS.inc"
+                .include "data/MOUNTAINS.inc"
 
                 .include "platform_f256.asm"
                 .include "interrupts.asm"
