@@ -19,8 +19,26 @@ _dest           = zpCD
 _width          = zpD0
 _src            = zpD4
 _layerOffset    = zpCF
-_scrnTop        = $8000
+_scrnCloud      = screen16K
 ;---
+
+;   preserve IOPAGE control
+                lda IOPAGE_CTRL
+                pha
+
+;   switch to system map
+                stz IOPAGE_CTRL
+
+;   ensure edit mode
+                lda MMU_CTRL
+                pha                     ; preserve
+                ora #mmuEditMode
+                sta MMU_CTRL
+
+                lda #$10                ; [8000:9FFF]->[2_0000:2_1FFF]
+                sta MMU_Block4
+                inc A                   ; [A000:BFFF]->[2_2000:2_3FFF]
+                sta MMU_Block5
 
                 ldx #30
                 stx _width              ; number of cloud glyphs to render
@@ -53,9 +71,9 @@ _next1          lda _src
                 dex
                 bne _next1
 
-_1              lda #<_scrnTop
+_1              lda #<_scrnCloud
                 sta _dest
-                lda #>_scrnTop
+                lda #>_scrnCloud
                 sta _dest+1
 
 ;   render a single cloud glyph line (1 of 8 lines)
@@ -134,6 +152,14 @@ _2              lda _dest
 _3              dec _width              ; completed all the cloud glyphs?
                 bne _next2              ;   no
 
+;   restore MMU control
+                pla
+                sta MMU_CTRL
+
+;   restore IOPAGE control
+                pla
+                sta IOPAGE_CTRL
+
                 rts
                 .endproc
 
@@ -146,7 +172,7 @@ _dest           = zpCD
 _width          = zpD0
 _src            = zpD4
 _layerOffset    = zpCF
-_scrnMountain   = $8000+320*8
+_scrnMountain   = screen16K+320*8
 ;---
 
                 ldx #30
@@ -268,6 +294,82 @@ _3              dec _width              ; completed all the mountain glyphs?
 ;======================================
 ;
 ;======================================
-ResetPlayfield   .proc
+ResetPlayfield  .proc
+zpIndex1        = zpD0
+;---
+
+                pha
+                phx
+                phy
+
+;   preserve IOPAGE control
+                lda IOPAGE_CTRL
+                pha
+
+;   switch to system map
+                stz IOPAGE_CTRL
+
+;   ensure edit mode
+                lda MMU_CTRL
+                pha                     ; preserve
+                ora #mmuEditMode
+                sta MMU_CTRL
+
+                lda #$10                ; [8000:9FFF]->[2_0000:2_1FFF]
+                sta MMU_Block4
+                inc A                   ; [A000:BFFF]->[2_2000:2_3FFF]
+                sta MMU_Block5
+
+                lda #<screen16K         ; Set the destination address ($8000)
+                sta zpDest
+                lda #>screen16K
+                sta zpDest+1
+
+                lda #$05                ; quantity of buffer fills (16k/interation)
+                sta zpIndex1
+
+                lda #$00
+_next2          ldx #$40                ; quantity of pages (16k total)
+                ldy #$00
+_next1          sta (zpDest),Y
+
+                dey
+                bne _next1
+
+                inc zpDest+1
+
+                dex
+                bne _next1
+
+                dec zpIndex1
+                beq _XIT
+
+                inc MMU_Block4          ; +$4000
+                inc MMU_Block4
+                inc MMU_Block5          ; +$4000
+                inc MMU_Block5
+
+;   reset to the top of the screen buffer
+                pha
+                lda #<screen16K         ; Set the source address
+                sta zpDest
+                lda #>screen16K         ; Set the source address
+                sta zpDest+1
+                pla
+
+                bra _next2
+
+_XIT
+;   restore MMU control
+                pla
+                sta MMU_CTRL
+
+;   restore IOPAGE control
+                pla
+                sta IOPAGE_CTRL
+
+                ply
+                plx
+                pla
                 rts
                 .endproc
