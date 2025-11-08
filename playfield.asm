@@ -293,6 +293,9 @@ _3              dec _width              ; completed all the mountain glyphs?
 
 ;======================================
 ;
+;--------------------------------------
+;  80 bytes black [$F0:13F]
+; 240 bytes blue  [$00:EF]
 ;======================================
 ResetPlayfield  .proc
 zpIndex1        = zpD0
@@ -325,39 +328,62 @@ zpIndex1        = zpD0
                 lda #>screen16K
                 sta zpDest+1
 
-                lda #$05                ; quantity of buffer fills (16k/interation)
+                lda #$08                ; quantity of buffer fills (8k/interation)
                 sta zpIndex1
 
-                lda #$00
-_next2          ldx #$40                ; quantity of pages (16k total)
-                ldy #$00
-_next1          sta (zpDest),Y
+_nextBlock      ldx #$1A                ; 26 lines (26*320=$2080)
+
+_nextLine       lda #$08                ; WATER
+                ldy #$EF
+_nextWater      sta (zpDest),Y
 
                 dey
-                bne _next1
+                bne _nextWater
 
-                inc zpDest+1
+                sta (zpDest),Y
+
+                lda zpDest
+                clc
+                adc #<240
+                sta zpDest
+                lda zpDest+1
+                adc #>240
+                sta zpDest+1
+
+                lda #$00                ; BLACK (HUD)
+                ldy #$4F
+_nextHUD        sta (zpDest),Y
+
+                dey
+                bpl _nextHUD
+
+                lda zpDest
+                clc
+                adc #<80
+                sta zpDest
+                lda zpDest+1
+                adc #>80
+                sta zpDest+1
 
                 dex
-                bne _next1
+                bne _nextLine
 
                 dec zpIndex1
                 beq _XIT
 
-                inc MMU_Block4          ; +$4000
-                inc MMU_Block4
-                inc MMU_Block5          ; +$4000
-                inc MMU_Block5
+                inc MMU_Block4          ; +$2000
+                inc MMU_Block5          ; +$2000
 
 ;   reset to the top of the screen buffer
-                pha
-                lda #<screen16K         ; Set the source address
+                lda zpDest
+                sec
+                sbc #<$2000
                 sta zpDest
-                lda #>screen16K         ; Set the source address
+                lda zpDest+1
+                sbc #>$2000
                 sta zpDest+1
-                pla
 
-                bra _next2
+                bra _nextBlock
 
 _XIT
 ;   restore MMU control

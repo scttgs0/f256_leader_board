@@ -54,31 +54,39 @@ _next2          ldx #$0D
 
 _next3          ldy #$00
                 lda (_src),Y
+                beq _1a
                 sta (_dest),Y
-                iny
+_1a             iny
                 lda (_src),Y
+                beq _1b
                 sta (_dest),Y
-                iny
+_1b             iny
                 lda (_src),Y
+                beq _1c
                 sta (_dest),Y
-                iny
+_1c             iny
                 lda (_src),Y
+                beq _1d
                 sta (_dest),Y
-                iny
+_1d             iny
                 lda (_src),Y
+                beq _1e
                 sta (_dest),Y
-                iny
+_1e             iny
                 lda (_src),Y
+                beq _1f
                 sta (_dest),Y
-                iny
+_1f             iny
                 lda (_src),Y
+                beq _1g
                 sta (_dest),Y
-                iny
+_1g             iny
                 lda (_src),Y
+                beq _2
                 sta (_dest),Y
 
 ;   advance to the next line of the glyph
-                lda _src
+_2             lda _src
                 clc
                 adc #$08
                 sta _src
@@ -87,7 +95,7 @@ _next3          ldy #$00
                 sta _src+1
 
 ;   advance to the next scanline
-_2              lda _dest
+                lda _dest
                 clc
                 adc #<$0140             ; +320
                 sta _dest
