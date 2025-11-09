@@ -376,15 +376,16 @@ InitGfxPalette  .proc
                 lda #$01
                 sta IOPAGE_CTRL
 
-                ldy #$3F
-_next1          lda Palette,Y
+                ldy #$C0
+_next1          dey
+                lda Palette,Y
                 sta GRPH_LUT0_PTR,Y
 
-                lda Palette+$40,Y
-                sta GRPH_LUT1_PTR,Y
+                ;;lda Palette+$40,Y
+                ;;sta GRPH_LUT1_PTR,Y
 
-                dey
-                bpl _next1
+                cpy #$00
+                bne _next1
 
 ;   restore IOPAGE control
                 pla
@@ -476,13 +477,10 @@ InitSprites     .proc
 ;   switch to system map
                 stz IOPAGE_CTRL
 
-;   set player sprites (sprite-00 & sprint-01)
-                .frsSpriteInit SPR_PLAYER, scEnable|scLUT0|scDEPTH0|scSIZE_16, 0
-                .frsSpriteInit SPR_PLAYER, scEnable|scLUT0|scDEPTH0|scSIZE_16, 1
-
-;   set bomb sprites (sprite-02 & sprint-03)
-                .frsSpriteInit SPR_PLAYER, scEnable|scLUT0|scDEPTH0|scSIZE_16, 2
-                .frsSpriteInit SPR_PLAYER, scEnable|scLUT0|scDEPTH0|scSIZE_16, 3
+;   set player sprites (sprite-00 & sprint-01 & sprint-02)
+                .frsSpriteInit anim2cell00, scEnable|scLUT0|scDEPTH0|scSIZE_24, 0
+                .frsSpriteInit anim0cell00, scEnable|scLUT0|scDEPTH1|scSIZE_32, 1
+                .frsSpriteInit anim0cell00+$400, scEnable|scLUT0|scDEPTH1|scSIZE_32, 2
 
 ;   restore IOPAGE control
                 pla

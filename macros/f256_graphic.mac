@@ -1,28 +1,65 @@
 
 ; SPDX-FileName: f256_graphic.mac
-; SPDX-FileCopyrightText: Copyright 2023, Scott Giese
+; SPDX-FileCopyrightText: Copyright 2023-2025, Scott Giese
 ; SPDX-License-Identifier: GPL-3.0-or-later
 
 
+;======================================
 frsGraphics     .macro
                 pha
+
+; - - - - - - - - - - - - - - - - - - -
+;   switch to system map
+                lda IOPAGE_CTRL
+                pha                     ; preserve
+                stz IOPAGE_CTRL
+; - - - - - - - - - - - - - - - - - - -
 
                 lda #\1
                 sta MASTER_CTRL_L
                 lda #\2
                 sta MASTER_CTRL_H
 
+; - - - - - - - - - - - - - - - - - - -
+                pla                     ; restore
+                sta IOPAGE_CTRL
+; - - - - - - - - - - - - - - - - - - -
+
                 pla
                 .endmacro
 
+
+;======================================
 frsBorder_off   .macro
+
+; - - - - - - - - - - - - - - - - - - -
+;   switch to system map
+                lda IOPAGE_CTRL
+                pha                     ; preserve
+                stz IOPAGE_CTRL
+; - - - - - - - - - - - - - - - - - - -
+
                 stz BORDER_CTRL
                 stz BORDER_SIZE_X
                 stz BORDER_SIZE_Y
+
+; - - - - - - - - - - - - - - - - - - -
+                pla                     ; restore
+                sta IOPAGE_CTRL
+; - - - - - - - - - - - - - - - - - - -
                 .endmacro
 
+
+;======================================
 frsBorder_on    .macro color,xSize,ySize
                 pha
+
+; - - - - - - - - - - - - - - - - - - -
+;   switch to system map
+                lda IOPAGE_CTRL
+                pha                     ; preserve
+                stz IOPAGE_CTRL
+; - - - - - - - - - - - - - - - - - - -
 
                 lda #$01
                 sta BORDER_CTRL
@@ -39,6 +76,11 @@ frsBorder_on    .macro color,xSize,ySize
                 sta BORDER_COLOR_G
                 lda \color&$FF
                 sta BORDER_COLOR_B
+
+; - - - - - - - - - - - - - - - - - - -
+                pla                     ; restore
+                sta IOPAGE_CTRL
+; - - - - - - - - - - - - - - - - - - -
 
                 pla
                 .endmacro

@@ -17,16 +17,16 @@ PfColor12       .dword $000f6118    ; [0D]  grass
 PfColor13       .dword $001e7027    ;       grass
 PfColor14       .dword $003c7d12    ;       grass
 
-SprColor0       .dword $00201c00    ; [10]
-SprColor1       .dword $0053b8da
-SprColor2       .dword $00fc901c
-SprColor3       .dword $00fc801c
-SprColor4       .dword $00f85054
-SprColor5       .dword $00cc3ccc
-SprColor6       .dword $00c048dc
+SprColor0       .dword $00f2b04c    ; [10]
+SprColor1       .dword $00d1d1d1
+SprColor2       .dword $008f4c0a    ; [12]
+SprColor3       .dword $006d0a0a
+SprColor4       .dword $006d0a0a    ; [14]
+SprColor5       .dword $000ad1f2
+SprColor6       .dword $00c048dc    ; [16]
 SprColor7       .dword $00a050d8
 
-palColor0       .dword $005868fc    ; [18]
+palColor0       .dword $00080808    ; [18]
 palColor1       .dword $006864fc
 palColor2       .dword $004898d8
 palColor3       .dword $0054a838
@@ -43,7 +43,7 @@ palColorD       .dword $00ff1000
 palColorE       .dword $00006100
 palColorF       .dword $00ff00ff
 
-                .dword $0059483c
+                .dword $0059483c    ; [28]
                 .dword $00006161
                 .dword $004040ff
                 .dword $00814020
@@ -51,7 +51,10 @@ palColorF       .dword $00ff00ff
                 .dword $00505050
                 .dword $0059503c
                 .dword $00ff2020
-                .dword $005d5500
+
+;--------------------------------------
+
+                .dword $005d5500    ; [30]
                 .dword $00615944
                 .dword $0061594c
                 .dword $00ff3000

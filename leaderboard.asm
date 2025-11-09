@@ -6,6 +6,7 @@
                 .include "macros/f256_graphic.mac"
                 .include "macros/f256_mouse.mac"
                 .include "macros/f256_random.mac"
+                .include "macros/f256_sprite.mac"
                 .include "macros/f256_text.mac"
 
 
@@ -70,6 +71,8 @@ _endless        bra _endless
 
 ;--------------------------------------
 ;--------------------------------------
+                .align $100
+;--------------------------------------
 
 palette         .include "data/PALETTE.inc"
 end_palette
@@ -112,6 +115,22 @@ INIT            .proc
 
                 jsr InitGfxPalette
                 jsr InitBitmap
+                jsr InitSprites
+
+                .frsSpriteSetX $86,0    ; club
+                .frsSpriteSetY $D2,0
+
+                .frsSpriteSetX $70,1    ; player top
+                .frsSpriteSetY $B6,1
+                .frsSpriteSetX $70,2    ; player bottom
+                .frsSpriteSetY $D6,2
 
                 rts
                 .endproc
+
+
+;--------------------------------------
+;--------------------------------------
+
+                .include "data/ANIM0_DRIVER_32.inc"
+                .include "data/ANIM0_CLUB_24.inc"

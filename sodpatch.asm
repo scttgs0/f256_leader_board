@@ -15,7 +15,7 @@ _scrnSod        = screen16K
 _dest           = zpCD
 _width          = zpD0
 _src            = zpD4
-_scrnSodPatch   = screen16K+$0650
+_scrnSodPatch   = screen16K+$0790
 ;---
 
 ;   preserve IOPAGE control
