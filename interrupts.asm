@@ -1,4 +1,10 @@
 
+clockSecs       .byte $00               ; BCD
+clockMins       .byte $00               ; BCD
+clockHour       .byte $00               ; BCD
+clockControl    .byte $01
+
+
 ;~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ;~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ; Main IRQ Handler

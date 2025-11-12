@@ -6,6 +6,10 @@
 FALSE               = $00
 TRUE                = $01
 
+stagePLAY           = $01
+stageTEEOFF         = $02
+stageCONFIG         = $03
+
 unitINCHES          = $00
 unitFEET            = $01
 unitYARDS           = $02
@@ -14,10 +18,28 @@ skillNOVICE         = $00
 skillAMATEUR        = $01
 skillPRO            = $02
 
+COLOR_BLUE          = $01
+COLOR_RUST          = $02
+COLOR_GREEN         = $03
+COLOR_BLACK         = $00
+
+;--------------------------------------
+
+xPosBallShadow      = $0290
+;;xPosMissile0        = $0290             ; ball shadow
+xPosBall            = $0291
+;;xPosMissile1        = $0291             ; ball
+xPosAimTarget       = $0292
+;;xPosMissile2        = $0292             ; aim target
+
+yPosBallShadow      = $0294
+;;yPosMissile0        = $0294             ; ball shadow
+yPosBall            = $0295
+;;yPosMissile1        = $0295             ; ball
+
 ;--------------------------------------
 
 screenRAM               = $2_0000
 screen16K               = $8000         ; 2 slots [$8000:$BFFF]
 
 ;--------------------------------------
-

@@ -22,6 +22,12 @@ _layerOffset    = zpCF
 _scrnCloud      = screen16K
 ;---
 
+                ldx #30
+                stx _width              ; number of cloud glyphs to render
+
+; - - - - - - - - - - - - - - - - - - -
+;   entry point for the scoreboard view... which expands to the full screen width
+_ENTRY1         
 ;   preserve IOPAGE control
                 lda IOPAGE_CTRL
                 pha
@@ -40,11 +46,8 @@ _scrnCloud      = screen16K
                 inc A                   ; [A000:BFFF]->[2_2000:2_3FFF]
                 sta MMU_Block5
 
-                ldx #30
-                stx _width              ; number of cloud glyphs to render
-
-;   entry point for the scoreboard view... which expands to the full screen width
-_ENTRY1         .frsRandomByte
+; - - - - - - - - - - - - - - - - - - -
+                .frsRandomByte
                 and #$1F
                 cmp #30                 ; >=30 (width of playfield)?... and also the cloud stamps
                 bcs _ENTRY1             ;   yes... try again
@@ -152,6 +155,7 @@ _2              lda _dest
 _3              dec _width              ; completed all the cloud glyphs?
                 bne _next2              ;   no
 
+; - - - - - - - - - - - - - - - - - - -
 ;   restore MMU control
                 pla
                 sta MMU_CTRL
@@ -178,8 +182,28 @@ _scrnMountain   = screen16K+320*8
                 ldx #30
                 stx _width              ; number of mountain glyphs to render
 
+; - - - - - - - - - - - - - - - - - - -
 ;   entry point for the scoreboard view... which expands to the full screen width
-_ENTRY1         .frsRandomByte
+_ENTRY1         ;   preserve IOPAGE control
+                lda IOPAGE_CTRL
+                pha
+
+;   switch to system map
+                stz IOPAGE_CTRL
+
+;   ensure edit mode
+                lda MMU_CTRL
+                pha                     ; preserve
+                ora #mmuEditMode
+                sta MMU_CTRL
+
+                lda #$10                ; [8000:9FFF]->[2_0000:2_1FFF]
+                sta MMU_Block4
+                inc A                   ; [A000:BFFF]->[2_2000:2_3FFF]
+                sta MMU_Block5
+
+; - - - - - - - - - - - - - - - - - - -
+                .frsRandomByte
                 and #$1F
                 cmp #30                 ; >=30 (width of playfield)?... and also the mountain stamps
                 bcs _ENTRY1             ;   yes... try again
@@ -287,6 +311,15 @@ _2              lda _dest
 _3              dec _width              ; completed all the mountain glyphs?
                 bne _next2              ;   no
 
+; - - - - - - - - - - - - - - - - - - -
+;   restore MMU control
+                pla
+                sta MMU_CTRL
+
+;   restore IOPAGE control
+                pla
+                sta IOPAGE_CTRL
+
                 rts
                 .endproc
 
@@ -305,6 +338,7 @@ zpIndex1        = zpD0
                 phx
                 phy
 
+; - - - - - - - - - - - - - - - - - - -
 ;   preserve IOPAGE control
                 lda IOPAGE_CTRL
                 pha
@@ -323,12 +357,13 @@ zpIndex1        = zpD0
                 inc A                   ; [A000:BFFF]->[2_2000:2_3FFF]
                 sta MMU_Block5
 
+; - - - - - - - - - - - - - - - - - - -
                 lda #<screen16K         ; Set the destination address ($8000)
                 sta zpDest
                 lda #>screen16K
                 sta zpDest+1
 
-                lda #$08                ; quantity of buffer fills (8k/interation)
+                lda #$08                ; quantity of buffer fills (8k/iteration)
                 sta zpIndex1
 
 _nextBlock      ldx #$1A                ; 26 lines (26*320=$2080)
@@ -386,6 +421,7 @@ _nextHUD        sta (zpDest),Y
                 bra _nextBlock
 
 _XIT
+; - - - - - - - - - - - - - - - - - - -
 ;   restore MMU control
                 pla
                 sta MMU_CTRL
@@ -394,6 +430,7 @@ _XIT
                 pla
                 sta IOPAGE_CTRL
 
+; - - - - - - - - - - - - - - - - - - -
                 ply
                 plx
                 pla

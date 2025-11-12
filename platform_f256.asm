@@ -1081,9 +1081,9 @@ SetFont         .proc
                 sta IOPAGE_CTRL
 
 ;   Font #0
-FONT0           lda #<GameFont
+FONT0           lda #<gameFont
                 sta zpSource
-                lda #>GameFont
+                lda #>gameFont
                 sta zpSource+1
                 stz zpSource+2
 

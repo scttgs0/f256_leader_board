@@ -50,9 +50,39 @@ BOOT            ldx #$FF
 ;--------------------------------------
 ;--------------------------------------
 
+                ;;.include "glyph.asm"
+                ;;.include "sprites.asm"
+                ;;.include "input.asm"
+                .include "clock.asm"
+                ;;.include "audio.asm"
+
+                ;;.include "main.asm"
+                ;;.include "aim.asm"
+                ;;.include "clubs.asm"
+                ;;.include "gauge.asm"
+
                 .include "hud.asm"
+                .include "hud_mock.asm"
                 .include "playfield.asm"
                 .include "sodpatch.asm"
+                ;;.include "render.asm"
+
+                ;;.include "course.asm"
+                ;;.include "physics.asm"
+                ;;.include "math.asm"
+
+                ;;.include "ball.asm"
+                ;;.include "wind.asm"
+
+                ;;.include "swinganimation.asm"
+                ;;.include "teeoff.asm"
+                ;;.include "putt.asm"
+
+                .include "scoreboard.asm"
+
+                .include "gameconfig.asm"
+
+                .include "mock.asm"
 
 
 ;--------------------------------------
@@ -61,9 +91,13 @@ BOOT            ldx #$FF
 ;--------------------------------------
 ;--------------------------------------
 START           .proc
-                jsr RenderHUD
-                jsr RenderPlayfield
-                jsr RenderSodPatch
+                jsr ClearGameState
+
+                jsr DrawScoreboard
+
+                ;;jsr RenderHUD
+                ;;jsr RenderPlayfield
+                ;;jsr RenderSodPatch
 
 _endless        bra _endless
                 .endproc
@@ -71,14 +105,17 @@ _endless        bra _endless
 
 ;--------------------------------------
 ;--------------------------------------
-                .align $100
-;--------------------------------------
 
+                .align $0100
 palette         .include "data/PALETTE.inc"
 end_palette
 
+                .align $0100
+gameFont        .include "data/FONT.inc"
+
                 .include "data/CLOUDS.inc"
                 .include "data/MOUNTAINS.inc"
+                .include "data/GAMESTATE.inc"
                 .include "data/SODPATCH.inc"
 
                 .include "platform_f256.asm"
@@ -110,6 +147,7 @@ INIT            .proc
                 stz LAYER_ORDER_CTRL_0
                 stz LAYER_ORDER_CTRL_1
 
+                jsr SetFont
                 jsr InitTextPalette
                 jsr ClearScreen
 
@@ -117,13 +155,13 @@ INIT            .proc
                 jsr InitBitmap
                 jsr InitSprites
 
-                .frsSpriteSetX $86,0    ; club
-                .frsSpriteSetY $D2,0
+                ;;.frsSpriteSetX $86,0    ; club
+                ;;.frsSpriteSetY $D2,0
 
-                .frsSpriteSetX $70,1    ; player top
-                .frsSpriteSetY $B6,1
-                .frsSpriteSetX $70,2    ; player bottom
-                .frsSpriteSetY $D6,2
+                ;;.frsSpriteSetX $70,1    ; player top
+                ;;.frsSpriteSetY $B6,1
+                ;;.frsSpriteSetX $70,2    ; player bottom
+                ;;.frsSpriteSetY $D6,2
 
                 rts
                 .endproc

@@ -3,13 +3,37 @@
 ; Zero-page equates
 ;--------------------------------------
 
+zp3D                    = $003D         ; [word]
+zp3F                    = $003F         ; [word]
+
+zp82                    = $0082         ; [word]
+zp84                    = $0084         ; [word]
+
+zpC3                    = $00C3         ; [word]
+zpC5                    = $00C5
 zpCD                    = $00CD         ; [word]
 zpCF                    = $00CF
 
 zpD0                    = $00D0
+zpD1                    = $00D1
+zpD2                    = $00D2
 zpD4                    = $00D4         ; [word]
+zpD7                    = $00D7         ; [word]
+zpDB                    = $00DB         ; [word]
+
+zpF3                    = $00F3         ; [5-bytes]
+
+zpF8                    = $00F8         ; _ptrPolyVertX_LO
+zpF9                    = $00F9
+zpFA                    = $00FA         ; _ptrPolyVertX_HI
+zpFB                    = $00FB
+zpFC                    = $00FC         ; _ptrPolyVertY_LO
+zpFD                    = $00FD
+zpFE                    = $00FE         ; _ptrPolyVertY_HI
+zpFF                    = $00FF
 
 
+;--------------------------------------
 ;--------------------------------------
 
 JIFFYCLOCK              = $0086
