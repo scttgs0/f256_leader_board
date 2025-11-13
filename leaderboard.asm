@@ -93,11 +93,11 @@ BOOT            ldx #$FF
 START           .proc
                 jsr ClearGameState
 
-                jsr DoConfig
+                ;jsr DoConfig
 
-                ;jsr RenderHUD
-                ;jsr RenderPlayfield
-                ;jsr RenderSodPatch
+                jsr RenderHUD
+                jsr RenderPlayfield
+                jsr RenderSodPatch
 
 _endless        bra _endless
                 .endproc
@@ -157,13 +157,13 @@ INIT            .proc
                 jsr InitBitmap
                 jsr InitSprites
 
-                ;.frsSpriteSetX $86,0    ; club
-                ;.frsSpriteSetY $D2,0
+                .frsSpriteSetX $86,0    ; club
+                .frsSpriteSetY $D2,0
 
-                ;.frsSpriteSetX $70,1    ; player top
-                ;.frsSpriteSetY $B6,1
-                ;.frsSpriteSetX $70,2    ; player bottom
-                ;.frsSpriteSetY $D6,2
+                .frsSpriteSetX $70,1    ; player top
+                .frsSpriteSetY $B6,1
+                .frsSpriteSetX $70,2    ; player bottom
+                .frsSpriteSetY $D6,2
 
                 rts
                 .endproc

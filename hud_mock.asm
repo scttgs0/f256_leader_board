@@ -7,14 +7,14 @@ RenderHUD       .proc
                 jsr RenderHUDCourse     ; draw course#
                 jsr RenderHUDPlayers    ; draw player summary
 
-                .frsTextXY 31, 0,$70,RenderHUD._scrnCourse
-                .frsTextXY 39, 0,$10,RenderHUD._scrnCourseVal
+                .frsTextXY 31, 1,$70,RenderHUD._scrnCourse
+                .frsTextXY 38, 1,$10,RenderHUD._scrnCourseVal
 
                 .frsTextXY 31, 2,$70,RenderHUD._scrnHole
-                .frsTextXY 38, 2,$10,RenderHUD._scrnHoleVal
+                .frsTextXY 37, 2,$10,RenderHUD._scrnHoleVal
 
                 .frsTextXY 31, 4,$70,RenderHUD._scrnPAR
-                .frsTextXY 39, 4,$90,RenderHUD._scrnPARVal
+                .frsTextXY 38, 4,$90,RenderHUD._scrnPARVal
 
                 .frsTextXY 31,13,$70,RenderHUD._scrnWinds
 
@@ -27,7 +27,9 @@ RenderHUD       .proc
                 .frsTextXY 31,20,$70,RenderHUD._scrnPowerTop
                 .frsTextXY 31,21,$70,RenderHUD._scrnPowerBot
                 .frsTextXY 33,20,$80,RenderHUD._scrnPower
+                .frsTextXY 30,22,$70,RenderHUD._scrnSnapLeft
                 .frsTextXY 31,22,$70,RenderHUD._scrnSnapTop
+                .frsTextXY 32,22,$70,RenderHUD._scrnSnapRight
                 .frsTextXY 31,23,$70,RenderHUD._scrnSnapBot
                 .frsTextXY 33,22,$30,RenderHUD._scrnSnap
 
@@ -59,6 +61,8 @@ _scrnPowerBot   .null $C8
 _scrnSnap       .null "SNAP"
 _scrnSnapTop    .null $C7
 _scrnSnapBot    .null $C8
+_scrnSnapLeft   .null $C9
+_scrnSnapRight  .null $CA
 
                 .endproc
 
