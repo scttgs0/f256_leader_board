@@ -50,33 +50,33 @@ BOOT            ldx #$FF
 ;--------------------------------------
 ;--------------------------------------
 
-                ;;.include "glyph.asm"
-                ;;.include "sprites.asm"
-                ;;.include "input.asm"
+                .include "glyph.asm"
+                .include "sprites.asm"
+                .include "input.asm"
                 .include "clock.asm"
-                ;;.include "audio.asm"
+                .include "audio.asm"
 
-                ;;.include "main.asm"
-                ;;.include "aim.asm"
-                ;;.include "clubs.asm"
-                ;;.include "gauge.asm"
+                .include "main.asm"
+                .include "aim.asm"
+                .include "clubs.asm"
+                .include "gauge.asm"
 
                 .include "hud.asm"
                 .include "hud_mock.asm"
                 .include "playfield.asm"
                 .include "sodpatch.asm"
-                ;;.include "render.asm"
+                .include "render.asm"
 
-                ;;.include "course.asm"
-                ;;.include "physics.asm"
-                ;;.include "math.asm"
+                .include "course.asm"
+                .include "physics.asm"
+                .include "math.asm"
 
-                ;;.include "ball.asm"
-                ;;.include "wind.asm"
+                .include "ball.asm"
+                .include "wind.asm"
 
-                ;;.include "swinganimation.asm"
-                ;;.include "teeoff.asm"
-                ;;.include "putt.asm"
+                .include "swinganimation.asm"
+                .include "teeoff.asm"
+                .include "putt.asm"
 
                 .include "scoreboard.asm"
 
