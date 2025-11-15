@@ -27,7 +27,7 @@ _scrnCloud      = screen16K
 
 ; - - - - - - - - - - - - - - - - - - -
 ;   entry point for the scoreboard view... which expands to the full screen width
-_ENTRY1         
+_ENTRY1
 ;   preserve IOPAGE control
                 lda IOPAGE_CTRL
                 pha

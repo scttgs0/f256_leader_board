@@ -74,7 +74,9 @@ _demo           ldx #$01
 
 ; - - - - - - - - - - - - - - - - - - -
 _2              jsr GetKeycode
+                ;jsr ProcessEvents
 
+                ;lda KEYCHAR
                 cmp #$2D                ; T-key?
                 bne _3                  ;   no
 

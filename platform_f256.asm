@@ -996,11 +996,6 @@ InitIRQs        .proc
                 sei                     ; disable IRQ
 
 ;   enable IRQ handler
-                ;lda #<vecIRQ_BRK
-                ;sta IRQ_PRIOR
-                ;lda #>vecIRQ_BRK
-                ;sta IRQ_PRIOR+1
-
                 lda #<irqMain
                 sta vecIRQ_BRK
                 lda #>irqMain

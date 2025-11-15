@@ -58,8 +58,7 @@ _XIT            pla                     ; restore
                 plx
                 pla
 
-irqMain_END     ;jmp IRQ_PRIOR
-                rti
+irqMain_END     rti
                 .endproc
 
 
