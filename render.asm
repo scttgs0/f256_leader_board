@@ -38,14 +38,6 @@ FetchFromPolygonBuf .proc
 ;======================================
 ;
 ;======================================
-ConvertToInches .proc
-                rts
-                .endproc
-
-
-;======================================
-;
-;======================================
 SetLINE_ProcessLine .proc
                 rts
                 .endproc
@@ -94,6 +86,7 @@ pixelColor              .byte COLOR_BLACK
 ;   _FILL       draw turf
 ;======================================
 RenderCourse    .proc
+_OUTLINE
                 rts
                 .endproc
 
@@ -147,7 +140,7 @@ QueueWorkNode1  .proc
 ; polygon (a prerequisite for fill)
 ;======================================
 RenderPolyTopEdge .proc
-_BLACK          
+_BLACK
 _COLOR          rts
                 .endproc
 

@@ -95,11 +95,10 @@ START           .proc
 
                 ;jsr DoConfig
 
-                jsr RenderHUD
-                jsr RenderPlayfield
-                jsr RenderSodPatch
+                jsr ProcessStroke
 
-_endless        bra _endless
+_endless        ;jsr ProcessEvents
+                bra _endless
                 .endproc
 
 
@@ -121,6 +120,7 @@ end_gameFont
                 .include "data/SODPATCH.inc"
 
                 .include "platform_f256.asm"
+                ;.include "kernel/facade.asm"
                 .include "interrupts.asm"
 
 
@@ -157,6 +157,18 @@ INIT            .proc
                 jsr InitBitmap
                 jsr InitSprites
 
+                jsr Stage
+
+                ;jsr InitKernel
+
+                rts
+                .endproc
+
+
+;======================================
+;
+;======================================
+Stage           .proc
                 .frsSpriteSetX $86,0    ; club
                 .frsSpriteSetY $D2,0
 
@@ -174,3 +186,4 @@ INIT            .proc
 
                 .include "data/ANIM0_DRIVER_32.inc"
                 .include "data/ANIM0_CLUB_24.inc"
+                .include "data/COURSES.inc"

@@ -18,6 +18,10 @@ skillNOVICE         = $00
 skillAMATEUR        = $01
 skillPRO            = $02
 
+operLINE            = $00
+operSHADOW          = $01
+operSHADOW_BALL     = $02
+
 COLOR_BLUE          = $01
 COLOR_RUST          = $02
 COLOR_GREEN         = $03

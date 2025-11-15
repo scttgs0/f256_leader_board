@@ -167,6 +167,31 @@ Project3DVertex .proc
 ;
 ;======================================
 MultipleWordByPhysicsY .proc
+                lda #$00
+                sta dwordMath+2
+                sta dwordMath+3
+
+                ldy #$10
+_next1          lda dwordMath
+                lsr
+                bcc _1
+
+                clc
+                lda dwordMath+2
+                adc physicsY
+                sta dwordMath+2
+                lda dwordMath+3
+                adc physicsY+1
+                sta dwordMath+3
+
+_1              ror dwordMath+3
+                ror dwordMath+2
+                ror dwordMath+1
+                ror dwordMath
+
+                dey
+                bne _next1
+
                 rts
                 .endproc
 
@@ -189,7 +214,55 @@ isResultNegative        .byte $00
 ;   dwordMath   dword result
 ;======================================
 MultiplyWordByWord .proc
-                rts
+                lda physicsY+1
+                eor dwordMath+1
+                sta isResultNegative
+
+                lda dwordMath+1
+                bpl _1
+
+;   negative value... convert to positive
+                sec
+                lda #<$0000
+                sbc dwordMath
+                sta dwordMath
+                lda #>$0000
+                sbc dwordMath+1
+                sta dwordMath+1
+
+_1              lda physicsY+1
+                bpl _2
+
+;   negative value... convert to positive
+                sec
+                lda #$00
+                sbc physicsY
+                sta physicsY
+                lda #$00
+                sbc physicsY+1
+                sta physicsY+1
+
+_2              jsr MultipleWordByPhysicsY
+
+                lda isResultNegative
+                bpl _XIT
+
+                sec
+                lda #<$0000
+                sbc dwordMath
+                sta dwordMath
+                lda #>$0000
+                sbc dwordMath+1
+                sta dwordMath+1
+
+                lda #<$0000
+                sbc dwordMath+2
+                sta dwordMath+2
+                lda #>$0000
+                sbc dwordMath+3
+                sta dwordMath+3
+
+_XIT            rts
                 .endproc
 
 
@@ -309,14 +382,40 @@ MultipleBy6     .proc
                 stx dwordMath           ; idxActiveHole
                 sty physicsY            ; always 6
 
-                lda #$00                ; hi-byte unused
-                sta dwordMath+1
-                sta physicsY+1
+                stz dwordMath+1         ; hi-byte unused
+                stz physicsY+1
 
                 jsr MultipleWordByPhysicsY
 
                 lda dwordMath           ; word result
                 ldx dwordMath+1
+
+                rts
+                .endproc
+
+
+;======================================
+;
+;======================================
+ConvertToInches .proc
+                stx dwordMath           ; polygon origin X_LO
+                sta dwordMath+1         ; polygon origin X_HI
+
+                tya                     ; preserve
+                pha
+
+                lda #<$000C
+                sta physicsY
+                lda #>$000C
+                sta physicsY+1
+
+                jsr MultiplyWordByWord
+
+                pla                     ; restore
+                tay
+
+                lda dwordMath+1         ; result
+                ldx dwordMath
 
                 rts
                 .endproc

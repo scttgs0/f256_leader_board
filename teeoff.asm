@@ -24,6 +24,13 @@ distanceToPinNatural2   .word $0000     ; unit specified in idxDistanceUnit
 ;
 ;======================================
 ProcessStroke   .proc
+                jsr PrepareCourse
+                jsr RenderHUD
+                jsr RenderPlayfield         ; refresh the course background
+                jsr RenderCourse._OUTLINE   ; draw polygon outlines
+                jsr RenderSodPatch          ; sod patch under the golfer
+                jsr RenderFill              ; draw polygon fills
+
                 rts
                 .endproc
 
