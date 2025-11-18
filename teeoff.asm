@@ -2,6 +2,58 @@
 ;======================================
 ;
 ;======================================
+SetStage2_TeeOff .proc
+                rts
+                .endproc
+
+
+;======================================
+;
+;======================================
+InitStroke      .proc
+                rts
+                .endproc
+
+
+;======================================
+;
+;--------------------------------------
+; on entry:
+;   X           snapValue
+;======================================
+CalcAccuracyPenalty .proc
+                rts
+                .endproc
+
+
+;======================================
+;
+;======================================
+SetTimer6       .proc
+                rts
+                .endproc
+
+
+;======================================
+;
+;======================================
+;   DEBUG: $31f3
+CalcTravelDistanceYards .proc
+                rts
+                .endproc
+
+
+;======================================
+;
+;======================================
+Swing_math_326F .proc
+                rts
+                .endproc
+
+
+;======================================
+;
+;======================================
 ApplyWindAffect .proc
                 rts
                 .endproc
@@ -29,7 +81,10 @@ ProcessStroke   .proc
                 jsr RenderPlayfield         ; refresh the course background
                 jsr RenderCourse._OUTLINE   ; draw polygon outlines
                 jsr RenderSodPatch          ; sod patch under the golfer
-                jsr RenderFill              ; draw polygon fills
+                ;;jsr RenderFill              ; draw polygon fills
+
+                jsr RenderCupOrPin
+                jsr DrawMarkers
 
                 rts
                 .endproc
@@ -63,7 +118,29 @@ RenderHUDCourse .proc
 ;
 ;======================================
 DrawMarkers     .proc
-                rts
+                lda isTeeOffDone        ; at the tee box?
+                beq _1                  ;   yes
+
+                rts                     ;   no, don't draw the tee box markers
+
+; - - - - - - - - - - - - - - - - - - -
+_1              ldx #stageTEEOFF
+                stx nStage
+
+                ldy #$17                ; left marker [6,23]
+                ldx #$06
+                jsr CalcPixelAddr
+
+                lda #$00                ; blue marker
+                jsr PlotChar
+
+                ldx #$17                ; right marker [23,23]
+                ldy #$17
+                jsr CalcPixelAddr
+
+                lda #$00                ; blue marker
+                jmp PlotChar
+
                 .endproc
 
 

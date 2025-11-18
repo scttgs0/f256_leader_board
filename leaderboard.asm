@@ -9,8 +9,29 @@
                 .include "macros/f256_sprite.mac"
                 .include "macros/f256_text.mac"
 
+;--------------------------------------
+;   timers
+;   0   = swing animation, cursor flash
+;   1   = change clubs
+;   5   = snap
+;   6   = ball movement
+;   7   = swing animation
+;   8   = subtract distance
+;   9   = aim target movement
+;   11  = audio 4
+;   12  = audio 3
+;   13  = audio 3
 
 ;--------------------------------------
+;   right-hand rule  *** assumed for this project ***
+;
+;   +Z  +Y
+;   |  /
+;   | /
+;   |/
+;   |______ +X
+
+
 ;--------------------------------------
                 * = $1FE0
 ;--------------------------------------
@@ -118,6 +139,7 @@ end_gameFont
                 .include "data/STATIC.inc"
                 .include "data/GAMESTATE.inc"
                 .include "data/SODPATCH.inc"
+                .include "data/GLYPHS.inc"
 
                 .include "platform_f256.asm"
                 ;.include "kernel/facade.asm"
