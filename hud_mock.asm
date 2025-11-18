@@ -70,14 +70,6 @@ _scrnSnapRight  .null $CA
 ;======================================
 ;
 ;======================================
-RenderHUDPAR    .proc
-                rts
-                .endproc
-
-
-;======================================
-;
-;======================================
 RenderHUDPlayers .proc
                 .frsTextXY 31, 6,$F0,RenderHUDPlayers._scrnName
 
