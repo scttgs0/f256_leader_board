@@ -9,6 +9,7 @@ zp3F                    = $003F         ; [word]
 zp82                    = $0082         ; [word]
 zp84                    = $0084         ; [word]
 
+zpMMU                   = $00C0
 zpC3                    = $00C3         ; [word]
 zpC5                    = $00C5
 zpCD                    = $00CD         ; [word]

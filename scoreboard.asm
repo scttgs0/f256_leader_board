@@ -89,7 +89,6 @@ DrawScoreboardBackground .proc
 _dest           = zpCD
 _width          = zpD0
 _height         = zpD1
-_MMU            = zpD2
 _src            = zpD4
 _layerOffset    = zpCF
 _scrnBackground = screen16K+320*16+32
@@ -110,7 +109,7 @@ _scrnBackground = screen16K+320*16+32
                 sta MMU_CTRL
 
                 lda #$10                ; [8000:9FFF]->[2_0000:2_1FFF]
-                sta _MMU
+                sta zpMMU
                 sta MMU_Block4
                 inc A                   ; [A000:BFFF]->[2_2000:2_3FFF]
                 sta MMU_Block5
@@ -194,9 +193,9 @@ _next3          ldy #$00
                 sbc #>$2000
                 sta _dest+1
 
-                lda _MMU
+                lda zpMMU
                 inc A
-                sta _MMU
+                sta zpMMU
                 sta MMU_Block4
                 inc A
                 sta MMU_Block5
