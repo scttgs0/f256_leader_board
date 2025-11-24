@@ -10,6 +10,11 @@ stagePLAY           = $01
 stageTEEOFF         = $02
 stageCONFIG         = $03
 
+gaugeINACTIVE       = $00
+gaugeASCENDING      = $01
+gaugeDESCENDING     = $02
+gaugeSNAP           = $03
+
 unitINCHES          = $00
 unitFEET            = $01
 unitYARDS           = $02
@@ -18,14 +23,19 @@ skillNOVICE         = $00
 skillAMATEUR        = $01
 skillPRO            = $02
 
-operLINE            = $00
-operSHADOW          = $01
-operSHADOW_BALL     = $02
+xformNORMAL         = $00
+xformDELTA_Z        = $01
+xformAIM_POS        = $02
 
-COLOR_BLUE          = $01
-COLOR_RUST          = $02
-COLOR_GREEN         = $03
+operPIXEL           = $00
+operFILL            = $01
+operPOINT           = $02
+
+COLOR_BLUE          = $08
+COLOR_RUST          = $0B
+COLOR_GREEN         = $0D
 COLOR_BLACK         = $00
+COLOR_WHITE         = $20
 
 ;--------------------------------------
 
@@ -45,5 +55,8 @@ yPosBall            = $0295
 
 screenRAM               = $2_0000
 screen16K               = $8000         ; 2 slots [$8000:$BFFF]
+
+scrnTop                 = screen16K
+;;scrnBottom              = $B000
 
 ;--------------------------------------

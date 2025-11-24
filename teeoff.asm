@@ -37,7 +37,6 @@ SetTimer6       .proc
 ;======================================
 ;
 ;======================================
-;   DEBUG: $31f3
 CalcTravelDistanceYards .proc
                 rts
                 .endproc
@@ -76,12 +75,17 @@ distanceToPinNatural2   .word $0000     ; unit specified in idxDistanceUnit
 ;
 ;======================================
 ProcessStroke   .proc
+                jsr PlayNextHole
+
                 jsr PrepareCourse
                 jsr RenderHUD
                 jsr RenderPlayfield         ; refresh the course background
+
+                ;jsr MainLoop         ; HACK:
+
                 jsr RenderCourse._OUTLINE   ; draw polygon outlines
                 jsr RenderSodPatch          ; sod patch under the golfer
-                ;;jsr RenderFill              ; draw polygon fills
+                jsr RenderFill              ; draw polygon fills
 
                 jsr RenderCupOrPin
                 jsr DrawMarkers
@@ -104,14 +108,6 @@ playerIsReady           .fill 4,$00
 
 xPosCup                 .word $0000
 yPosCup                 .word $0000
-
-
-;======================================
-;
-;======================================
-RenderHUDCourse .proc
-                rts
-                .endproc
 
 
 ;======================================

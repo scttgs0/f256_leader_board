@@ -166,25 +166,25 @@ unused_9D72             .word $0000
 unused_9D74             .byte $00
 unused_9D75             .byte $00
 flags_9D76              .byte $00
-nodeOperation           .byte $00       ; 0=operLINE, 1=operSHADOW, 2=operSHADOW_BALL
+nodeOperation           .byte $00       ; 0=operPIXEL, 1=operFILL, 2=operSHADOW_BALL
 isSwapped               .byte FALSE
 
-lineNode0_VertY_LO      .byte $00
-lineNode1_VertY_LO      .byte $00
+lineNode0_VertX_flags   .byte $00       ; 1=xMax, 2=xMin
+lineNode1_VertX_flags   .byte $00       ; 1=xMax, 2=xMin
 
-renderCourse3_tempA     .byte $00
-renderCourse3_tempB     .byte $00
-renderCourse3_tempC     .byte $00
+rc3_lineNode0_deltaZ    .byte $00
+rc3_lineNode1_deltaZ    .byte $00
+rc3_lineNodeN_deltaZ    .byte $00
 
-processLineResult       .byte $00
+accumDistance           .byte $00
 renderLineX             .byte $00
-lineNode1_VertY_HI      .byte $00
+lineNode1_isClipped     .byte FALSE
 flagsBall_9D81          .byte $00
 unused_9D82             .byte $00
 flagsBall_9D83          .byte $00
 const_0x700             .word $0000
-lineNode0_VertY_HI      .byte $00
-polygonOperation        .byte $00
+lineNode0_isClipped     .byte FALSE
+polygonOperation        .byte $00       ; 0=OUTLINE, 1=FILL
 
 windDirThisHole_LO      .byte $00
 windDirThisHole_LO_9D89 .byte $00

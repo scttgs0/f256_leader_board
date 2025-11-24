@@ -78,7 +78,7 @@ bufPolyF_VertY_HI   .fill 16,$00
 
 bufCourseWorkVertX  .fill 32,$00
 bufCourseWorkVertZ  .fill 32,$00
-bufCourseWorkVertY  .fill 32,$00
+bufCourseWorkFlags  .fill 32,$00
 
 ;--------------------------------------
 

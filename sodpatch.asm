@@ -32,6 +32,7 @@ _scrnSodPatch   = screen16K+$0790
                 sta MMU_CTRL
 
                 lda #$17                ; [8000:9FFF]->[2_E000:2_FFFF]
+                sta zpMMU
                 sta MMU_Block4
                 inc A                   ; [A000:BFFF]->[3_0000:3_1FFF]
                 sta MMU_Block5

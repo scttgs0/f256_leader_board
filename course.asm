@@ -1,6 +1,9 @@
 
 ;======================================
-;
+; load course data.
+; convert vertices from relative -> absolute.
+; populate vertex buffers.
+; calculate cup location.
 ;--------------------------------------
 ; on entry:
 ;   idxActiveHole
@@ -206,7 +209,8 @@ idxPolygon              .byte $00
 polygonOriginXa         .word $0000
 polygonOriginYa         .word $0000
 
-                        .byte $00,$00,$00,$00
+                        .byte $00,$00
+                        .byte $00,$00
 
 idxPolyVertPtr          .byte $00
 polyVertexCount         .byte $00
@@ -258,6 +262,16 @@ GetPtrHoleInfo  .proc
 ;
 ;======================================
 GetPtrHoleWindDirection .proc
+                jsr GetCourseOffset._18 ; 18-byte course data; result in Y:X
+
+                txa                     ; Y:X +tableStart
+                clc
+                adc #<tblCourseHoleWindDirection
+                tax
+                tya
+                adc #>tblCourseHoleWindDirection
+                tay
+
                 rts
                 .endproc
 
@@ -266,6 +280,16 @@ GetPtrHoleWindDirection .proc
 ;
 ;======================================
 GetPtrHoleWindVelocity .proc
+                jsr GetCourseOffset._18 ; 18-byte course data; result in Y:X
+
+                txa                     ; Y:X +tableStart
+                clc
+                adc #<tblCourseHoleWindVelocity
+                tax
+                tya
+                adc #>tblCourseHoleWindVelocity
+                tay
+
                 rts
                 .endproc
 
@@ -274,6 +298,16 @@ GetPtrHoleWindVelocity .proc
 ;
 ;======================================
 GetPtrHolePAR   .proc
+                jsr GetCourseOffset._18  ; 18=byte course data; result in Y:X
+
+                txa                     ; Y:X +tableStart
+                clc
+                adc #<tblCourseHolePAR
+                tax
+                tya
+                adc #>tblCourseHolePAR
+                tay
+
                 rts
                 .endproc
 
@@ -370,8 +404,7 @@ _ptr            = zpFB
                 clc
                 adc idxPolygon
                 sta _ptr
-                lda #$00
-                sta _ptr+1
+                stz _ptr+1
 
                 rts
                 .endproc
@@ -427,14 +460,135 @@ _1              tax                     ; X=courseStartIndex_LO
 
 
 ;--------------------------------------
-; convert vertices to inches.
-; calculate the tee location.
+; convert vertices to inches and transform.
+; transform the cup location.
 ;--------------------------------------
 ; on entry:
 ;   Y:A         playerWindDirection
 ;--------------------------------------
 ProcessCourse   .proc
-                rts
+_ptrPolyVertX_LO    = zpF8
+_ptrPolyVertX_HI    = zpFA
+_ptrPolyVertY_LO    = zpFC
+_ptrPolyVertY_HI    = zpFE
+;---
+
+                jsr PhysicsCosine_m4000
+                jsr ClearVertexCache
+
+                lda #$00
+                sta idxPolygon
+
+_next1          tay
+                jsr SetCoursePtrs
+
+                lda bufPolyVertCount,Y
+                tay
+                dey
+
+_next2          lda (_ptrPolyVertX_LO),Y
+                tax
+                lda (_ptrPolyVertX_HI),Y
+                jsr ConvertToInches     ; *12; result in A:X
+                pha                     ; preserve hi-byte
+
+                txa                     ; lo-byte
+                clc
+                adc playerVertX_delta
+                sta wordA_course
+                pla                     ; hi-byte
+                adc playerVertX_delta+1
+                sec
+                sbc #>$1800             ; xCenterline
+                sta wordA_course+1
+
+                lda (_ptrPolyVertY_LO),Y
+                tax
+                lda (_ptrPolyVertY_HI),Y
+                jsr ConvertToInches     ; *12; result in A:X
+                pha
+
+                txa                     ; lo-byte
+                sec
+                sbc playerVertY_delta
+                sta wordB_course
+                pla                     ; hi-byte
+                sbc playerVertY_delta+1
+                sta wordB_course+1
+                sty idxPolygonVertex
+
+                jsr CourseTransformA
+
+                ldy idxPolygonVertex
+                lda wordC_course
+                sta (_ptrPolyVertX_LO),Y
+                lda wordC_course+1
+                clc
+                adc #>$1800             ; xCenterline
+                sta (_ptrPolyVertX_HI),Y
+
+                lda wordD_course+1
+                bmi _1
+                bne _2
+
+                lda wordD_course
+                cmp #$FA
+                bcs _2
+
+_1              ldx #$00
+                lda #$FA
+                bne _3
+
+_2              ldx wordD_course+1
+                lda wordD_course
+_3              sta (_ptrPolyVertY_LO),Y
+                txa
+                sta (_ptrPolyVertY_HI),Y
+
+                dey
+                bpl _next2
+
+                inc idxPolygon
+                lda idxPolygon
+                cmp holeInfoPolyCount   ; end reached?
+                bcs _4                  ;   yes
+                jmp _next1              ;   no
+
+; - - - - - - - - - - - - - - - - - - -
+_4              lda xPosCup
+                clc
+                adc playerVertX_delta
+                sta wordA_course
+                lda xPosCup+1
+                adc playerVertX_delta+1
+                sec
+                sbc #>$1800             ; xCenterline
+                sta wordA_course+1
+
+                lda yPosCup
+                sec
+                sbc playerVertY_delta
+                sta wordB_course
+                lda yPosCup+1
+                sbc playerVertY_delta+1
+                sta wordB_course+1
+
+                jsr CourseTransformA
+
+                lda wordC_course
+                sta xPosCup_LO
+                lda wordC_course+1
+                clc
+                adc #>$1800             ; xCenterline
+                sta xPosCup_HI
+
+                lda wordD_course
+                sta holeInfoPuttRadius_LO
+                lda wordD_course+1
+                sta holeInfoPuttRadius_HI
+
+                jmp ClearVertXPtrs
+
                 .endproc
 
 
@@ -454,6 +608,35 @@ wordD_course    .word $0000
 ;   A           idxPolygon
 ;======================================
 SetCoursePtrs   .proc
+_ptrPolyVertX_LO    = zpF8
+_ptrPolyVertX_HI    = zpFA
+_ptrPolyVertY_LO    = zpFC
+_ptrPolyVertY_HI    = zpFE
+;---
+
+                asl                     ; word index
+                tax
+
+                lda ptrPolyVertX_LO,X
+                sta _ptrPolyVertX_LO
+                lda ptrPolyVertX_LO+1,X
+                sta _ptrPolyVertX_LO+1
+
+                lda ptrPolyVertX_HI,X
+                sta _ptrPolyVertX_HI
+                lda ptrPolyVertX_HI+1,X
+                sta _ptrPolyVertX_HI+1
+
+                lda ptrPolyVertY_LO,X
+                sta _ptrPolyVertY_LO
+                lda ptrPolyVertY_LO+1,X
+                sta _ptrPolyVertY_LO+1
+
+                lda ptrPolyVertY_HI,X
+                sta _ptrPolyVertY_HI
+                lda ptrPolyVertY_HI+1,X
+                sta _ptrPolyVertY_HI+1
+
                 rts
                 .endproc
 
@@ -462,29 +645,136 @@ SetCoursePtrs   .proc
 ;
 ;======================================
 ClearVertexCache .proc
+                ldx #$03
+_next1          lda zpF3,X
+                sta data_1D57,X
+
+                dex
+                bpl _next1
+
                 rts
                 .endproc
 
+
+;--------------------------------------
+;--------------------------------------
+
+data_1D57       .byte $00,$00,$00,$00
 
 ;--------------------------------------
 ;
 ;--------------------------------------
 ClearVertXPtrs  .proc
+                ldx #$03
+_next1          lda data_1D57,X
+                sta zpF8,X
+
+                dex
+                bpl _next1
+
+                rts
+                .endproc
+
+;======================================
+;
+;======================================
+CalcPlayerPositionDelta .proc
+                rts
+                .endproc
+
+
+;======================================
+; calculate Sqr(deltaX) + Sqr(deltaY).
+;--------------------------------------
+; Step One of the Pythagorean formula
+;======================================
+calcHypotenuseArea .proc
                 rts
                 .endproc
 
 
 ;======================================
 ;
+;--------------------------------------
+; Step Two of the Pythagorean formula
+;--------------------------------------
+; given:
+;   SQR($097CA440) = $3148
+;--------------------------------------
+; example:
+;   $2294   $A440                     ->$A440 ...   ->$3148
+;   $2296   $097C                     ->$097C       ->$097C
+;   $2298   $A440->$7FFF              ->$497C       ->$3148
+;   $229A   $097C->$0000              ->$0000       ->$0000
+;   wordA          $7FFF       ->$7FFF
+;   wordB          $A440->$12F9->$497C
+;   wordC          $097C->$3739->$0000
+;   wordD
 ;======================================
-RenderCourse4   .proc
+calcSquareRoot  .proc
                 rts
                 .endproc
 
 
 ;======================================
 ;
+;--------------------------------------
+; CARRY is cleared when NOT EQUAL
 ;======================================
-RenderCourse3   .proc
+CompareForEquality .proc
+                rts
+                .endproc
+
+
+;======================================
+; calculate distance to putting green
+;--------------------------------------
+; example:
+; xPosCup               $1800
+; holeInfoCupOffset     $3648
+; $1B61                 $00
+; $9D88                 $00
+; distanceToPinFeet3    $4831
+; distanceToPinYards    $5E01
+;======================================
+CalcDistanceToPuttGreen .proc
+                rts
+                .endproc
+
+
+;--------------------------------------
+;--------------------------------------
+
+hole_windDir_HI         .byte $00
+distanceToPinFeet3      .word $0000     ; HI-byte=feet; LO-byte=inches
+distanceToPinYards      .word $0000
+
+
+;======================================
+;
+;--------------------------------------
+; on entry:
+;   distanceToPinFeet
+;       HI      feet (whole)
+;       LO      inches (fraction)
+; on exit:
+;   distanceToPinNatural
+;   idxDistanceUnit
+;======================================
+ConvertDistance .proc
+                rts
+                .endproc
+
+
+;======================================
+; Convert negative word value by its
+; 2-compliment, making it positive
+;--------------------------------------
+; on entry:
+;   Y:X         word value
+; on exit:
+;   Y:X         converted word value
+;======================================
+Convert2Positive .proc
                 rts
                 .endproc

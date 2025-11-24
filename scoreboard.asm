@@ -245,6 +245,7 @@ _zpFillQty      = zpD0
                 sta MMU_CTRL
 
                 lda #$10                ; [8000:9FFF]->[2_0000:2_1FFF]
+                sta zpMMU
                 sta MMU_Block4
                 inc A                   ; [A000:BFFF]->[2_2000:2_3FFF]
                 sta MMU_Block5
@@ -312,6 +313,7 @@ _nextHUD        sta (zpDest),Y
 _1              dec _zpFillQty
                 beq _XIT
 
+                inc zpMMU
                 inc MMU_Block4          ; +$2000
                 inc MMU_Block5          ; +$2000
 

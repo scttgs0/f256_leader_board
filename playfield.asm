@@ -1,6 +1,138 @@
 
 ;======================================
 ;
+;--------------------------------------
+;  80 bytes black [$F0:13F]
+; 240 bytes blue  [$00:EF]
+;======================================
+ResetPlayfield  .proc
+zpIndex1        = zpD0
+;---
+
+                pha
+                phx
+                phy
+
+; - - - - - - - - - - - - - - - - - - -
+;   preserve IOPAGE control
+                lda IOPAGE_CTRL
+                pha
+
+;   switch to system map
+                stz IOPAGE_CTRL
+
+;   ensure edit mode
+                lda MMU_CTRL
+                pha                     ; preserve
+                ora #mmuEditMode
+                sta MMU_CTRL
+
+                lda #$10                ; [8000:9FFF]->[2_0000:2_1FFF]
+                sta zpMMU
+                sta MMU_Block4
+                inc A                   ; [A000:BFFF]->[2_2000:2_3FFF]
+                sta MMU_Block5
+
+; - - - - - - - - - - - - - - - - - - -
+                lda #<screen16K         ; Set the destination address ($8000)
+                sta zpDest
+                lda #>screen16K
+                sta zpDest+1
+
+                lda #$08                ; quantity of buffer fills (8k/iteration)
+                sta zpIndex1
+
+_nextBlock      ldx #$1A                ; 26 lines (26*320=$2080)
+
+_nextLine       lda #$08                ; WATER
+                ldy #$EF
+_nextWater      sta (zpDest),Y
+
+                dey
+                bne _nextWater
+
+                sta (zpDest),Y
+
+                lda zpDest
+                clc
+                adc #<240
+                sta zpDest
+                lda zpDest+1
+                adc #>240
+                sta zpDest+1
+
+                lda #$00                ; BLACK (HUD)
+                ldy #$4F
+_nextHUD        sta (zpDest),Y
+
+                dey
+                bpl _nextHUD
+
+                lda zpDest
+                clc
+                adc #<80
+                sta zpDest
+                lda zpDest+1
+                adc #>80
+                sta zpDest+1
+
+                dex
+                bne _nextLine
+
+                dec zpIndex1
+                beq _XIT
+
+                inc zpMMU
+                inc MMU_Block4          ; +$2000
+                inc MMU_Block5          ; +$2000
+
+;   reset to the top of the screen buffer
+                lda zpDest
+                sec
+                sbc #<$2000
+                sta zpDest
+                lda zpDest+1
+                sbc #>$2000
+                sta zpDest+1
+
+                bra _nextBlock
+
+_XIT
+; - - - - - - - - - - - - - - - - - - -
+;   restore MMU control
+                pla
+                sta MMU_CTRL
+
+;   restore IOPAGE control
+                pla
+                sta IOPAGE_CTRL
+
+; - - - - - - - - - - - - - - - - - - -
+                ply
+                plx
+                pla
+                rts
+                .endproc
+
+
+;======================================
+;
+;======================================
+AdvNextScanline .proc
+                rts
+                .endproc
+
+
+;======================================
+;
+;======================================
+BackSwingAnim   .proc
+                rts
+                .endproc
+
+
+;======================================
+;
 ;======================================
 RenderPlayfield .proc
                 jsr ResetPlayfield      ; fill playfield with water
@@ -42,6 +174,7 @@ _ENTRY1
                 sta MMU_CTRL
 
                 lda #$10                ; [8000:9FFF]->[2_0000:2_1FFF]
+                sta zpMMU
                 sta MMU_Block4
                 inc A                   ; [A000:BFFF]->[2_2000:2_3FFF]
                 sta MMU_Block5
@@ -184,7 +317,8 @@ _scrnMountain   = screen16K+320*8
 
 ; - - - - - - - - - - - - - - - - - - -
 ;   entry point for the scoreboard view... which expands to the full screen width
-_ENTRY1         ;   preserve IOPAGE control
+_ENTRY1
+;   preserve IOPAGE control
                 lda IOPAGE_CTRL
                 pha
 
@@ -198,6 +332,7 @@ _ENTRY1         ;   preserve IOPAGE control
                 sta MMU_CTRL
 
                 lda #$10                ; [8000:9FFF]->[2_0000:2_1FFF]
+                sta zpMMU
                 sta MMU_Block4
                 inc A                   ; [A000:BFFF]->[2_2000:2_3FFF]
                 sta MMU_Block5
@@ -320,119 +455,5 @@ _3              dec _width              ; completed all the mountain glyphs?
                 pla
                 sta IOPAGE_CTRL
 
-                rts
-                .endproc
-
-
-;======================================
-;
-;--------------------------------------
-;  80 bytes black [$F0:13F]
-; 240 bytes blue  [$00:EF]
-;======================================
-ResetPlayfield  .proc
-zpIndex1        = zpD0
-;---
-
-                pha
-                phx
-                phy
-
-; - - - - - - - - - - - - - - - - - - -
-;   preserve IOPAGE control
-                lda IOPAGE_CTRL
-                pha
-
-;   switch to system map
-                stz IOPAGE_CTRL
-
-;   ensure edit mode
-                lda MMU_CTRL
-                pha                     ; preserve
-                ora #mmuEditMode
-                sta MMU_CTRL
-
-                lda #$10                ; [8000:9FFF]->[2_0000:2_1FFF]
-                sta MMU_Block4
-                inc A                   ; [A000:BFFF]->[2_2000:2_3FFF]
-                sta MMU_Block5
-
-; - - - - - - - - - - - - - - - - - - -
-                lda #<screen16K         ; Set the destination address ($8000)
-                sta zpDest
-                lda #>screen16K
-                sta zpDest+1
-
-                lda #$08                ; quantity of buffer fills (8k/iteration)
-                sta zpIndex1
-
-_nextBlock      ldx #$1A                ; 26 lines (26*320=$2080)
-
-_nextLine       lda #$08                ; WATER
-                ldy #$EF
-_nextWater      sta (zpDest),Y
-
-                dey
-                bne _nextWater
-
-                sta (zpDest),Y
-
-                lda zpDest
-                clc
-                adc #<240
-                sta zpDest
-                lda zpDest+1
-                adc #>240
-                sta zpDest+1
-
-                lda #$00                ; BLACK (HUD)
-                ldy #$4F
-_nextHUD        sta (zpDest),Y
-
-                dey
-                bpl _nextHUD
-
-                lda zpDest
-                clc
-                adc #<80
-                sta zpDest
-                lda zpDest+1
-                adc #>80
-                sta zpDest+1
-
-                dex
-                bne _nextLine
-
-                dec zpIndex1
-                beq _XIT
-
-                inc MMU_Block4          ; +$2000
-                inc MMU_Block5          ; +$2000
-
-;   reset to the top of the screen buffer
-                lda zpDest
-                sec
-                sbc #<$2000
-                sta zpDest
-                lda zpDest+1
-                sbc #>$2000
-                sta zpDest+1
-
-                bra _nextBlock
-
-_XIT
-; - - - - - - - - - - - - - - - - - - -
-;   restore MMU control
-                pla
-                sta MMU_CTRL
-
-;   restore IOPAGE control
-                pla
-                sta IOPAGE_CTRL
-
-; - - - - - - - - - - - - - - - - - - -
-                ply
-                plx
-                pla
                 rts
                 .endproc

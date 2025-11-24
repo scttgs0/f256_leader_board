@@ -8,12 +8,12 @@ PfColor3        .dword $00040404    ; [04]  mountain
 PfColor4        .dword $007a4416    ;       mountain
 PfColor5        .dword $00a49dff    ;       mountain
 PfColor6        .dword $00b9b650    ;       mountain
-PfColor7        .dword $002c2492    ; [08]  water      
+PfColor7        .dword $002c2492    ; [08]  water
 PfColor8        .dword $003f5eac    ;       water
 PfColor9        .dword $00788fc9    ;       water
 PfColor10       .dword $007a4416    ; [0B]  mud
 PfColor11       .dword $005c0f17    ;       mud
-PfColor12       .dword $000f6118    ; [0D]  grass
+PfColor12       .dword $00378840    ; [0D]  grass
 PfColor13       .dword $001e7027    ;       grass
 PfColor14       .dword $003c7d12    ;       grass
 
@@ -34,7 +34,7 @@ palColor4       .dword $001cb814
 palColor5       .dword $0008ac1c
 palColor6       .dword $00649028
 palColor7       .dword $00ac9838
-palColor8       .dword $00bc7430    ; [20]
+palColor8       .dword $00ffffff    ; [20]
 palColor9       .dword $00484000
 palColorA       .dword $00e200e2
 palColorB       .dword $00404040
