@@ -191,13 +191,30 @@ INIT            .proc
 ;
 ;======================================
 Stage           .proc
+; club animation [$00]
                 .frsSpriteSetX $86,0    ; club
                 .frsSpriteSetY $D2,0
+; club animation [$01]
+                ;.frsSpriteSetX $7E,0    ; club
+                ;.frsSpriteSetY $D2,0
+; club animation [$02]
+                ;.frsSpriteSetX $7E,0    ; club
+                ;.frsSpriteSetY $D1,0
+; club animation [$03]
+                ;.frsSpriteSetX $70,0    ; club
+                ;.frsSpriteSetY $CA,0
+; club animation [$04]
+                ;.frsSpriteSetX $60,0    ; club
+                ;.frsSpriteSetY $C2,0
 
+; player animation [$00:1F]
                 .frsSpriteSetX $70,1    ; player top
                 .frsSpriteSetY $B6,1
                 .frsSpriteSetX $70,2    ; player bottom
                 .frsSpriteSetY $D6,2
+
+                .frsSpriteSetX $96,10   ; aim target
+                .frsSpriteSetY $A2,10
 
                 rts
                 .endproc

@@ -478,9 +478,29 @@ InitSprites     .proc
                 stz IOPAGE_CTRL
 
 ;   set player sprites (sprite-00 & sprint-01 & sprint-02)
+;   player animation [00]
                 .frsSpriteInit anim2cell00, scEnable|scLUT0|scDEPTH0|scSIZE_24, 0
                 .frsSpriteInit anim0cell00, scEnable|scLUT0|scDEPTH1|scSIZE_32, 1
                 .frsSpriteInit anim0cell00+$400, scEnable|scLUT0|scDEPTH1|scSIZE_32, 2
+;   player animation [01]
+                ;.frsSpriteInit anim2cell01, scEnable|scLUT0|scDEPTH0|scSIZE_24, 0
+                ;.frsSpriteInit anim0cell01, scEnable|scLUT0|scDEPTH1|scSIZE_32, 1
+                ;.frsSpriteInit anim0cell01+$400, scEnable|scLUT0|scDEPTH1|scSIZE_32, 2
+;   player animation [02]
+                ;.frsSpriteInit anim2cell02, scEnable|scLUT0|scDEPTH0|scSIZE_24, 0
+                ;.frsSpriteInit anim0cell02, scEnable|scLUT0|scDEPTH1|scSIZE_32, 1
+                ;.frsSpriteInit anim0cell02+$400, scEnable|scLUT0|scDEPTH1|scSIZE_32, 2
+;   player animation [03]
+                ;.frsSpriteInit anim2cell03, scEnable|scLUT0|scDEPTH0|scSIZE_24, 0
+                ;.frsSpriteInit anim0cell03, scEnable|scLUT0|scDEPTH1|scSIZE_32, 1
+                ;.frsSpriteInit anim0cell03+$400, scEnable|scLUT0|scDEPTH1|scSIZE_32, 2
+;   player animation [04]
+                ;.frsSpriteInit anim2cell04, scEnable|scLUT0|scDEPTH0|scSIZE_24, 0
+                ;.frsSpriteInit anim0cell04, scEnable|scLUT0|scDEPTH1|scSIZE_32, 1
+                ;.frsSpriteInit anim0cell04+$400, scEnable|scLUT0|scDEPTH1|scSIZE_32, 2
+
+;   set aim target (sprite-10)
+                .frsSpriteInit glyphTarget, scEnable|scLUT0|scDEPTH0|scSIZE_8, 10
 
 ;   restore IOPAGE control
                 pla
