@@ -41,6 +41,24 @@ glyphType       .byte $00
 ;======================================
 ;
 ;======================================
+RenderHUDCourse .proc
+                ldx #stagePLAY
+                stx nStage
+
+                ldx idxActiveCourse
+                ldy tblCourseIndexes,X
+                iny
+                tya
+                ora #$30
+                sta RenderHUD._scrnCourseVal
+
+                rts
+                .endproc
+
+
+;======================================
+;
+;======================================
 ;RenderHUDPlayers .proc
 ;                .endproc
 
@@ -85,6 +103,45 @@ CalcValuem10_Div10_x3 .proc
 ;
 ;======================================
 RenderHUDPAR    .proc
+_tens_digit     = zpD0
+;---
+
+                lda #stagePLAY
+                sta nStage
+
+; - - - - - - - - - - - - - - - - - - -
+;   draw Hole #
+                ldx idxActiveHole
+                inx                     ; convert to 1-based value
+
+                txa
+                cmp #$0A                ; >10?
+                bcc _1                  ;   no
+
+                sbc #$0A                ; get ones-digit
+
+                ldx #'1'
+                .byte $2C               ; consume the following LDX operation
+_1              ldx #' '                ; space
+                stx RenderHUD._scrnHoleVal   ; tens-digit
+                ora #'0'
+                sta RenderHUD._scrnHoleVal+1 ; ones-digit
+
+; - - - - - - - - - - - - - - - - - - -
+;   draw PAR value
+                ldy #$01                ; [39,1]
+                ldx #$27
+                jsr CalcPixelAddr
+
+                jsr GetPtrHolePAR
+                stx _setAddrPAR+1
+                sty _setAddrPAR+2
+
+                ldx idxActiveHole
+_setAddrPAR     lda $FFFF,X             ; [smc]
+                ora #'0'
+                sta RenderHUD._scrnPARVal
+
                 rts
                 .endproc
 

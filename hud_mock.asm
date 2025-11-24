@@ -3,8 +3,8 @@
 ;
 ;======================================
 RenderHUD       .proc
-                jsr RenderHUDPAR        ; draw hole# and PAR
                 jsr RenderHUDCourse     ; draw course#
+                jsr RenderHUDPAR        ; draw hole# and PAR
                 jsr RenderHUDPlayers    ; draw player summary
 
                 .frsTextXY 31, 1,$70,RenderHUD._scrnCourse
@@ -38,11 +38,11 @@ RenderHUD       .proc
 ;--------------------------------------
 
 _scrnHole       .null "HOLE #"
-_scrnHoleVal    .null " 2"
+_scrnHoleVal    .null "##"
 _scrnPAR        .null "PAR"
-_scrnPARVal     .null "4"
+_scrnPARVal     .null "#"
 _scrnCourse     .null "COURSE"
-_scrnCourseVal  .null "1"
+_scrnCourseVal  .null "#"
 
 _scrnWinds      .null "WINDS"
 
