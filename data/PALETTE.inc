@@ -17,16 +17,24 @@ PfColor12       .dword $00378840    ; [0D]  grass
 PfColor13       .dword $001e7027    ;       grass
 PfColor14       .dword $003c7d12    ;       grass
 
-SprColor0       .dword $00f2b04c    ; [10]
-SprColor1       .dword $00d1d1d1
-SprColor2       .dword $008f4c0a    ; [12]
-SprColor3       .dword $006d0a0a
-SprColor4       .dword $006d0a0a    ; [14]
-SprColor5       .dword $000ad1f2
-SprColor6       .dword $00c048dc    ; [16]
-SprColor7       .dword $00a050d8
+SprColor0       .dword $00f2b04c    ; [10]  player
+SprColor1       .dword $00d1d1d1    ;       player
+SprColor2       .dword $008f4c0a    ;       player
+SprColor3       .dword $006d0a0a    ;       player
+SprColor4       .dword $006d0a0a    ;       player
+SprColor5       .dword $000ad1f2    ;       player
+SprColor6       .dword $00c048dc    ;       player
+SprColor7       .dword $006d0a0a    ; [17]  player
+SprColor8       .dword $00222222    ;       club
+SprColor9       .dword $00216161    ;       club
+SprColorA       .dword $004040ff    ; [1A]  gauge
+SprColorB       .dword $00814020    ;       gauge
+SprColorC       .dword $00ff2000    ;       gauge
+SprColorD       .dword $00505050    ;       gauge
+SprColorE       .dword $00eeeeee    ; [1E]  ball
+SprColorF       .dword $00cccccc    ; [1F]  aim target
 
-palColor0       .dword $00080808    ; [18]
+palColor0       .dword $00080808    ; [20]
 palColor1       .dword $006864fc
 palColor2       .dword $004898d8
 palColor3       .dword $0054a838
@@ -34,7 +42,8 @@ palColor4       .dword $001cb814
 palColor5       .dword $0008ac1c
 palColor6       .dword $00649028
 palColor7       .dword $00ac9838
-palColor8       .dword $00ffffff    ; [20]
+
+palColor8       .dword $00ffffff    ; [28]
 palColor9       .dword $00484000
 palColorA       .dword $00e200e2
 palColorB       .dword $00404040
@@ -42,15 +51,6 @@ palColorC       .dword $00504038
 palColorD       .dword $00ff1000
 palColorE       .dword $00006100
 palColorF       .dword $00ff00ff
-
-                .dword $0059483c    ; [28]
-                .dword $00006161
-                .dword $004040ff
-                .dword $00814020
-                .dword $00ff2000
-                .dword $00505050
-                .dword $0059503c
-                .dword $00ff2020
 
 ;--------------------------------------
 
