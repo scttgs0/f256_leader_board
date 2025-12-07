@@ -35,7 +35,7 @@ COLOR_BLUE          = $08
 COLOR_RUST          = $0B
 COLOR_GREEN         = $0D
 COLOR_BLACK         = $00
-COLOR_WHITE         = $20
+COLOR_WHITE         = $28
 
 ;--------------------------------------
 

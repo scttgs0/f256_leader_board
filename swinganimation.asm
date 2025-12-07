@@ -26,6 +26,7 @@ PreserveScreenPatch .proc
 ;--------------------------------------
 ;--------------------------------------
 ;   used during interrupt
+
 clubAnimPtr     .word $0000             ; keyframe table pointer (loaded into $D7)
 tblClubPatch    .byte $00,$00,$00       ; screen values being preserved (largest block is 21-bytes)
                 .byte $00,$00,$00
