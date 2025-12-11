@@ -2,6 +2,5 @@
 ReadSectors
 
 SetInterrupts
-SetNameBufPtr
 
 SetTimer

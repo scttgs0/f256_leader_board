@@ -74,10 +74,8 @@ _demo           ldx #$01
 
 ; - - - - - - - - - - - - - - - - - - -
 _2              jsr GetKeycode
-                ;jsr ProcessEvents
 
-                ;lda KEYCHAR
-                cmp #$2D                ; T-key?
+                cmp #$74                ; T-key?
                 bne _3                  ;   no
 
 ;   /// T - Time Counter ///
@@ -87,12 +85,12 @@ _2              jsr GetKeycode
                 jmp AskPlayerQty
 
 ; - - - - - - - - - - - - - - - - - - -
-_3              cmp #$3A                ; D-key?
+_3              cmp #$64                ; D-key?
                 bne _4                  ;   no
                 jmp _demo
 
 ; - - - - - - - - - - - - - - - - - - -
-_4              cmp #$4C                ; SHIFT-RETURN-key?
+_4              cmp #$94                ; SHIFT-RETURN-key?
                 bne _5                  ;   no
 
 ;   /// SHIFT-ENTER - Load Supplement ///
@@ -100,7 +98,7 @@ _4              cmp #$4C                ; SHIFT-RETURN-key?
                 jmp AskPlayerQty
 
 ; - - - - - - - - - - - - - - - - - - -
-_5              cmp #$0A                ; P-key?
+_5              cmp #$70                ; P-key?
                 bne _6                  ;   no
 
 ;   /// P - Replay ///
@@ -109,7 +107,7 @@ _5              cmp #$0A                ; P-key?
                 jmp DoConfig._ENTRY2
 
 ; - - - - - - - - - - - - - - - - - - -
-_6              cmp #$28                ; R-key?
+_6              cmp #$72                ; R-key?
                 bne _7                  ;   no
 
 ;   /// R - Driving Range ///
@@ -128,16 +126,16 @@ _6              cmp #$28                ; R-key?
 
 ; - - - - - - - - - - - - - - - - - - -
 _7              tax
-                cmp #$1F                ; 1-key?
+                cmp #$31                ; 1-key?
                 beq _10                 ;   yes
 
-                cmp #$1E                ; 2-key?
+                cmp #$32                ; 2-key?
                 beq _9                  ;   yes
 
-                cmp #$1A                ; 3-key?
+                cmp #$33                ; 3-key?
                 beq _8                  ;   yes
 
-                cmp #$18                ; 4-key?
+                cmp #$34                ; 4-key?
                 bne _next1              ;   no, try again
 
                 lda #$03
@@ -173,6 +171,7 @@ _next1          sta inputBuffer,X
                 dex
                 bpl _next1
 
+                jsr EnableCursor
 _flashCursor    jsr DrawCursor
 
                 lda #$0F                ; duration
@@ -187,13 +186,13 @@ _nextInput      lda timerIsActive       ; timer 0 active?
                 cmp #$FF                ; any key pressed?
                 beq _nextInput          ;   no
 
-                cmp #$1C                ; ESC-key?
+                cmp #$BC                ; RUNSTOP-key?
                 bne _1                  ;   no
 
                 rts                     ;   yes
 
 ; - - - - - - - - - - - - - - - - - - -
-_1              cmp #$0C                ; ENTER-key?
+_1              cmp #$94                ; ENTER-key?
                 beq _2                  ;   yes
 
                 jmp _4                  ;   no
@@ -314,7 +313,7 @@ _2              lda inputBuffer+2
 _error2         jmp _error
 
 ; - - - - - - - - - - - - - - - - - - -
-_4              cmp #$34                ; DELETE-key?
+_4              cmp #$92                ; DELETE-key?
                 bne _5                  ;   no
 
 ;   /// DELETE-key ///
@@ -472,6 +471,29 @@ _next1          sta GameState_BASE,X
                 inx
                 bne _next1
 
+;   HACK:
+                ; lda #$06
+                ; sta idxActiveHole
+                ; lda #$00
+                ; sta idxActiveCourse
+                ; lda #$00
+                ; sta tblCourseIndexes
+                ; lda #unitYARDS
+                ; sta playerDistUnit
+                ; lda #skillPRO
+                ; sta tblPlayerAbility
+
+                ; putting mode
+                ; lda #TRUE
+                ; sta isTeeOffDone
+                ; lda #unitFEET
+                ; sta playerDistUnit
+                ; lda #>$0016
+                ; sta playerVertY_delta
+                ; lda #<$0016
+                ; sta playerVertY_delta+1
+;   HACK: end
+
                 rts
                 .endproc
 
@@ -512,11 +534,16 @@ _next2          sta playerStrokes,X     ; [$491B + X]
 ;
 ;======================================
 ResetHW         .proc
-                ;!!stz HPOSP0
-                ;!!stz HPOSP1
-                ;!!stz HPOSP2
-                ;!!stz HPOSP3
+                jsr ClearSprites
 
+                rts
+                .endproc
+
+
+;======================================
+;
+;======================================
+InitScreenHW    .proc
                 rts
                 .endproc
 
@@ -527,13 +554,13 @@ ResetHW         .proc
 ProcessESC      .proc
                 jsr GetKeycode
 
-                cmp #$1C                ; ESC-key?
+                cmp #$BC                ; RUNSTOP-key?
                 beq _1                  ;   yes
 
                 rts                     ;   no
 
 ; - - - - - - - - - - - - - - - - - - -
-;   /// ESC-key ///
+;   /// RUNSTOP-key ///
 _1              pla
                 pla
                 pla
@@ -833,33 +860,31 @@ _next1          lda #$00                ; space
 
                 jsr PromptPlayer
 
+                jsr EnableCursor
 _flashCursor    jsr DrawCursor
 
-                lda #$0F                ; duration
-                ldx #$00                ; timer 0
-                jsr SetTimer
-
-_nextInput      lda timerIsActive       ; timer 0 active?
-                beq _flashCursor        ;   no
-
-                jsr GetKeycode
+_nextInput      jsr GetKeycode
 
                 cmp #$FF                ; any key pressed?
                 beq _nextInput          ;   no
 
-                cmp #$1C                ; ESC-key?
+                cmp #$BC                ; RUNSTOP-key?
                 bne _1                  ;   no
 
-;   /// ESC-key ///
-                pla                     ;   yes
+;   /// RUNSTOP-key ///
+                pla                     ;   yes, consume the return address
                 pla
+
+                jsr DisableCursor
                 jmp DoConfig._ENTRY1
 
 ; - - - - - - - - - - - - - - - - - - -
-_1              cmp #$0C                ; ENTER-key?
+_1              cmp #$94                ; ENTER-key?
                 bne _3                  ;   no
 
 ;   /// ENTER-key ///
+                jsr DisableCursor
+
                 ldx idxPlayer
                 jsr SetNameBufPtr       ; result _ptrName [$F9:FA]
 
@@ -885,35 +910,38 @@ _next2          lda inputBuffer,Y
 _2              jmp _nextPlayer
 
 ; - - - - - - - - - - - - - - - - - - -
-_3              cmp #$34                ; DELETE-key?
+_3              cmp #$92                ; DELETE-key?
                 bne _4                  ;   no
 
 ;   /// DELETE-key ///
                 lda idxInputBuffer
                 beq _nextInput
 
+                dec idxInputBuffer
+                ldx idxInputBuffer
+                lda #' '                ; space
+                sta inputBuffer,X
+
+                lda idxInputBuffer
                 clc
                 adc #$10
                 tax
+                ldy #$09                ; [16+,9]
 
-                ldy #$0A                ; [???,10]
-                jsr CalcPixelAddr
+                lda #>inputBuffer
+                sta zpSource+1
+                lda idxInputBuffer
+                clc
+                adc #<inputBuffer
+                sta zpSource
 
-                lda #$00                ; space
-                jsr PlotChar
-
-                dec idxInputBuffer
-                ldx idxInputBuffer
-                lda #$00                ; space
-                sta inputBuffer,X
+                lda #$F0                ; color
+                jsr PrintText
 
                 jmp _flashCursor
 
 ; - - - - - - - - - - - - - - - - - - -
-_4              and #$3F                ; clear SHIFT|CTRL
-                tax
-
-                lda tblRaw2Ascii,X      ; convert to ascii
+_4              lda KEYCHAR             ; get ascii
                 bpl _5
 
 _nextInput2     jmp _nextInput
@@ -925,27 +953,28 @@ _5              sta charToPlot
                 cmp #$08                ; end reached?
                 beq _nextInput2         ;   yes, ignore input. Loop back as we're expecting an ENTER or DELETE
 
-                clc
-                adc #$10                ; x-coordinate
-                tax
-
-                ldy #$0A                ; [16+,10]
-                jsr CalcPixelAddr
-
                 lda charToPlot
-                sec
-                sbc #$20                ; convert to screen code
-
-                jsr PlotChar
-
-                lda charToPlot
-                sec
-                sbc #$20                ; convert to screen code
-
                 ldx idxInputBuffer
                 sta inputBuffer,X
 
+                lda idxInputBuffer
+                clc
+                adc #$10
+                tax
+                ldy #$09                ; [16+,9]
+
+                lda #>inputBuffer
+                sta zpSource+1
+                lda idxInputBuffer
+                clc
+                adc #<inputBuffer
+                sta zpSource
+
+                lda #$F0                ; color
+                jsr PrintText
+
                 inc idxInputBuffer
+
                 jmp _flashCursor
 
                 .endproc
@@ -954,7 +983,7 @@ _5              sta charToPlot
 ;--------------------------------------
 ;--------------------------------------
 
-inputBuffer    .fill 8,$00
+inputBuffer     .fill 9,$00
 
 tblPlayerAbility
                 .byte $00,$00,$00,$00
@@ -982,7 +1011,7 @@ AskAbilityLevel .proc
 
 _next1          jsr GetKeycode
 
-                cmp #$0A                ; P-key?
+                cmp #$70                ; P-key?
                 bne _1                  ;   no
 
 ;   /// P - Professional ///
@@ -990,7 +1019,7 @@ _next1          jsr GetKeycode
                 jmp _3
 
 ; - - - - - - - - - - - - - - - - - - -
-_1              cmp #$3F                ; A-key?
+_1              cmp #$61                ; A-key?
                 bne _2                  ;   no
 
 ;   /// A - Amateur ///
@@ -998,7 +1027,7 @@ _1              cmp #$3F                ; A-key?
                 jmp _3
 
 ; - - - - - - - - - - - - - - - - - - -
-_2              cmp #$23                ; N-key?
+_2              cmp #$6E                ; N-key?
                 bne _4                  ;   no
 
 ;   /// N - Novice ///
@@ -1009,10 +1038,10 @@ _3              ldx idxPlayer
                 rts
 
 ; - - - - - - - - - - - - - - - - - - -
-_4              cmp #$1C                ; ESC-key?
+_4              cmp #$BC                ; RUNSTOP-key?
                 bne _next1              ;   no, try again
 
-;   /// ESC-key ///
+;   /// RUNSTOP-key ///
                 pla                     ;   yes
                 pla
                 pla
@@ -1034,25 +1063,25 @@ AskGameLength   .proc
 
 _next1          jsr GetKeycode
 
-                cmp #$1C                ; ESC-key?
+                cmp #$BC                ; RUNSTOP-key?
                 bne _1                  ;   no
 
-;   /// ESC-key ///
+;   /// RUNSTOP-key ///
                 pla
                 pla
                 jmp DoConfig._ENTRY1
 
 ; - - - - - - - - - - - - - - - - - - -
-_1              cmp #$5F                ; SHIFT-1-key?
+_1              cmp #$31                ; SHIFT-1-key?
                 beq _4                  ;   yes
 
-                cmp #$5E                ; SHIFT-2-key?
+                cmp #$32                ; SHIFT-2-key?
                 beq _3                  ;   yes
 
-                cmp #$5A                ; SHIFT-3-key?
+                cmp #$33                ; SHIFT-3-key?
                 beq _2                  ;   yes
 
-                cmp #$58                ; SHIFT-4-key?
+                cmp #$34                ; SHIFT-4-key?
                 bne _next1              ;   no, try again
 
                 lda #$03                ; 72-holes
@@ -1086,7 +1115,7 @@ _next1          jsr DrawDialog
 
 _next2          jsr GetKeycode
 
-                cmp #$1C                ; ESC-key?
+                cmp #$BC                ; RUNSTOP-key?
                 bne _1                  ;   no
 
                 pla                     ;   yes
@@ -1094,16 +1123,16 @@ _next2          jsr GetKeycode
                 jmp DoConfig._ENTRY1
 
 ; - - - - - - - - - - - - - - - - - - -
-_1              cmp #$1F                ; 1-key?
+_1              cmp #$31                ; 1-key?
                 beq _4                  ;   yes
 
-                cmp #$1E                ; 2-key?
+                cmp #$32                ; 2-key?
                 beq _3                  ;   yes
 
-                cmp #$1A                ; 3-key?
+                cmp #$33                ; 3-key?
                 beq _2                  ;   yes
 
-                cmp #$18                ; 4-key?
+                cmp #$34                ; 4-key?
                 bne _next2              ;   no, try again
 
                 lda #$03
@@ -1169,25 +1198,38 @@ DoRTS5          rts
 ;======================================
 ;
 ;======================================
+EnableCursor    .proc
+                .frsCursor TRUE
+                rts
+                .endproc
+
+
+;======================================
+;
+;======================================
+DisableCursor   .proc
+                .frsCursor FALSE
+                rts
+                .endproc
+
+
+;======================================
+;
+;======================================
 DrawCursor      .proc
                 lda idxInputBuffer
                 clc
                 adc #$10
-                tax
 
-                ldy #$0A                ; [16+,10]
-                jsr CalcPixelAddr
+                sta CURSOR_X
+                stz CURSOR_X+1
+                lda #$09
+                sta CURSOR_Y
+                stz CURSOR_Y+1
 
-                inc cursorFlash
-                lda cursorFlash
-                and #$01                ; odd = solid
-                beq _1
+                stz DEBOUNCE
 
-                lda #$00                ; off (space)
-                .byte $2C               ; consume the following LDA operation
-_1              lda #$3E                ; on (solid block)
-                jmp PlotChar
-
+                rts
                 .endproc
 
 
@@ -1255,7 +1297,7 @@ _msgCredits3    .null 'l                               l'
 _msgCredits4    .null 'l           CREATED BY          l'
 _msgCredits5    .null 'l     BRUCE AND ROGER CARVER    l'
                 .null 'l                               l'
-_msgCredits6    .null 'l     FOENIX ADAPTATION 2025    l'
+_msgCredits6    .null 'l      F256 ADAPTATION 2025     l'
 _msgCredits7    .null 'lkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkm'
             .enc "none"
 

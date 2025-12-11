@@ -31,6 +31,23 @@
 ;   |/
 ;   |______ +X
 
+;--------------------------------------
+;   keycodes (raw/ascii)
+;   esc             $92/$08     [crap] same as backspc, use RUNSTOP instead
+;   run/stop        $BC/$03
+;   up-arrow        $B6/$10
+;   down-arrow      $B7/$0E
+;   left-arrow      $B8/$02
+;   right-arrow     $B9/$06
+;   right-alt       $05/--
+;   F2              $81/--
+;   return          $94/$0D
+;   delete          $92/$08
+;   oem [K]         $06/--
+;   a-z             [$61:$7A]/[$61:$7A]
+;   A-Z             [$61:$7A]/[$41:$5A]
+;   1-4             [$31:$34]/[$31:$34]
+;   Shft,1-4        [$31:$34]/[$21,$40,$23,$24]
 
 ;--------------------------------------
                 * = $1FE0
@@ -87,6 +104,7 @@ BOOT            ldx #$FF
                 .include "playfield.asm"
                 .include "sodpatch.asm"
                 .include "render.asm"
+                .include "clipping.asm"
 
                 .include "course.asm"
                 .include "physics.asm"
@@ -114,12 +132,30 @@ BOOT            ldx #$FF
 START           .proc
                 jsr ClearGameState
 
+;   zero all player names
+                ldx #$1F
+                lda #$00
+_next1          sta playerNames,X
+
+                dex
+                bpl _next1
+
+;   initialize all skill levels
+                ldx #$03
+                lda #skillPRO           ; professional
+_next2          sta tblPlayerAbility,X
+
+                dex
+                bpl _next2
+
+                jmp NewGame
+
                 ;jsr DoConfig
 
-                jsr ProcessStroke
+                ;jsr ProcessStroke
 
-_endless        ;jsr ProcessEvents
-                bra _endless
+;_endless        jsr ProcessEvents
+;                bra _endless
                 .endproc
 
 
@@ -142,7 +178,7 @@ end_gameFont
                 .include "data/GLYPHS.inc"
 
                 .include "platform_f256.asm"
-                ;.include "kernel/facade.asm"
+                .include "kernel/facade.asm"
                 .include "interrupts.asm"
 
 
@@ -150,13 +186,11 @@ end_gameFont
 ;
 ;======================================
 INIT            .proc
-                sei
+                jsr InitKernel
 
-                jsr InitCPUVectors
                 jsr InitMMU
-                jsr InitIRQs
-
-                cli
+                ;jsr InitCPUVectors
+                ;jsr InitIRQs
 
                 jsr RandomSeedQuick
 
@@ -181,8 +215,6 @@ INIT            .proc
 
                 jsr Stage
 
-                ;jsr InitKernel
-
                 rts
                 .endproc
 
@@ -191,31 +223,6 @@ INIT            .proc
 ;
 ;======================================
 Stage           .proc
-; club animation [$00]
-                .frsSpriteSetX $86,0    ; club
-                .frsSpriteSetY $D2,0
-; club animation [$01]
-                ;.frsSpriteSetX $7E,0    ; club
-                ;.frsSpriteSetY $D2,0
-; club animation [$02]
-                ;.frsSpriteSetX $7E,0    ; club
-                ;.frsSpriteSetY $D1,0
-; club animation [$03]
-                ;.frsSpriteSetX $70,0    ; club
-                ;.frsSpriteSetY $CA,0
-; club animation [$04]
-                ;.frsSpriteSetX $60,0    ; club
-                ;.frsSpriteSetY $C2,0
-
-; player animation [$00:1F]
-                .frsSpriteSetX $70,1    ; player top
-                .frsSpriteSetY $B6,1
-                .frsSpriteSetX $70,2    ; player bottom
-                .frsSpriteSetY $D6,2
-
-                .frsSpriteSetX $96,10   ; aim target
-                .frsSpriteSetY $A2,10
-
                 rts
                 .endproc
 
@@ -224,5 +231,6 @@ Stage           .proc
 ;--------------------------------------
 
                 .include "data/ANIM0_DRIVER_32.inc"
+                .include "data/ANIM1_PUTT_32.inc"
                 .include "data/ANIM0_CLUB_24.inc"
                 .include "data/COURSES.inc"

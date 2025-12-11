@@ -344,3 +344,63 @@ _XIT
                 pla
                 rts
                 .endproc
+
+
+;======================================
+;
+;======================================
+SetStrokesPtr   .proc
+                pha
+
+                lda #>playerStrokes
+                sta zpF9+1
+                lda #<playerStrokes
+
+                ldy #$12
+                sty _setLength+1
+
+; - - - - - - - - - - - - - - - - - - -
+;   entry point for a different buffer and entry length
+_ENTRY1         cpx #$00                ; player index = 0?
+                beq _1                  ;   yes
+
+                clc
+_setLength      adc #$12                ; [smc] length per entry... bufferLO+(8|18)
+                pha                     ; preserve accum
+
+                lda zpF9+1
+                adc #$00
+                sta zpF9+1
+
+                pla                     ; restore accum
+
+                dex
+                jmp _ENTRY1
+
+; - - - - - - - - - - - - - - - - - - -
+_1              sta zpF9
+
+                pla
+                rts
+                .endproc
+
+
+;======================================
+;
+;--------------------------------------
+; on exit:
+;   zpF9:FA     pointer
+;======================================
+SetNameBufPtr   .proc
+                pha                     ; =$0C (enter)
+
+                lda #>playerNames
+                sta zpFA
+                lda #<playerNames
+
+;   set zpF9 to point to playerNames table
+                ldy #$08                ; max length
+                sty SetStrokesPtr._setLength+1
+                jmp SetStrokesPtr._ENTRY1
+
+                .endproc
