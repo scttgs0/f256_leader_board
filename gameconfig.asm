@@ -174,14 +174,7 @@ _next1          sta inputBuffer,X
                 jsr EnableCursor
 _flashCursor    jsr DrawCursor
 
-                lda #$0F                ; duration
-                ldx #$00                ; timer 0
-                jsr SetTimer
-
-_nextInput      lda timerIsActive       ; timer 0 active?
-                beq _flashCursor        ;   no
-
-                jsr GetKeycode
+_nextInput      jsr GetKeycode
 
                 cmp #$FF                ; any key pressed?
                 beq _nextInput          ;   no
@@ -189,12 +182,13 @@ _nextInput      lda timerIsActive       ; timer 0 active?
                 cmp #$BC                ; RUNSTOP-key?
                 bne _1                  ;   no
 
+                jsr DisableCursor
+
                 rts                     ;   yes
 
 ; - - - - - - - - - - - - - - - - - - -
 _1              cmp #$94                ; ENTER-key?
                 beq _2                  ;   yes
-
                 jmp _4                  ;   no
 
 ; - - - - - - - - - - - - - - - - - - -
@@ -204,30 +198,26 @@ _error          jsr DrawDialog
                 ldx #$07                ; error in time entry
                 jsr AskForConfig
 
-                lda #$80                ; duration
-                ldx #$00                ; timer 0
-                jsr SetTimer
-
-;   wait for timer
-_wait1          lda timerIsActive       ; timer 0 active?
-                bne _wait1              ;   yes
+                jsr DisableCursor
 
                 rts
 
 ; - - - - - - - - - - - - - - - - - - -
 ;   /// ENTER-key ///
-_2              lda inputBuffer+2
-                cmp #$1A                ; colon?
+_2              jsr DisableCursor
+
+                lda inputBuffer+2
+                cmp #':'                ; colon?
                 bne _error              ;   no, invalid
 
                 lda inputBuffer+5
-                cmp #$1A                ; colon?
+                cmp #':'                ; colon?
                 bne _error              ;   no, invalid
 
 ;   hour, tens-digit
                 lda inputBuffer
                 sec
-                sbc #$10                ; convert to decimal
+                sbc #'0'                ; convert to decimal
 
                 cmp #$0A                ; >=10?
                 bcs _error              ;   yes, invalid
@@ -241,7 +231,7 @@ _2              lda inputBuffer+2
 ;   hour, ones-digit
                 lda inputBuffer+1
                 sec
-                sbc #$10                ; convert to decimal
+                sbc #'0'                ; convert to decimal
 
                 cmp #$0A                ; >=10?
                 bcs _error              ;   yes, invalid
@@ -252,7 +242,7 @@ _2              lda inputBuffer+2
 ;   minute, tens-digit
                 lda inputBuffer+3
                 sec
-                sbc #$10                ; convert to decimal
+                sbc #'0'                ; convert to decimal
 
                 cmp #$0A                ; >=10?
                 bcs _error              ;   yes, invalid
@@ -266,7 +256,7 @@ _2              lda inputBuffer+2
 ;   minute, ones-digit
                 lda inputBuffer+4
                 sec
-                sbc #$10                ; convert to decimal
+                sbc #'0'                ; convert to decimal
 
                 cmp #$0A                ; >=10?
                 bcs _error              ;   yes, invalid
@@ -277,7 +267,7 @@ _2              lda inputBuffer+2
 ;   seconds, tens-digit
                 lda inputBuffer+6
                 sec
-                sbc #$10                ; convert to decimal
+                sbc #'0'                ; convert to decimal
 
                 cmp #$0A                ; >=10?
                 bcs _error2             ;   yes, invalid
@@ -291,7 +281,7 @@ _2              lda inputBuffer+2
 ;   seconds, ones-digit
                 lda inputBuffer+7
                 sec
-                sbc #$10                ; convert to decimal
+                sbc #'0'                ; convert to decimal
 
                 cmp #$0A                ; >=10?
                 bcs _error2             ;   yes, invalid
@@ -320,28 +310,31 @@ _4              cmp #$92                ; DELETE-key?
                 lda idxInputBuffer
                 beq _nextInput2
 
+                dec idxInputBuffer
+                ldx idxInputBuffer
+                lda #' '                ; space
+                sta inputBuffer,X
+
+                lda idxInputBuffer
                 clc
                 adc #$10
                 tax
+                ldy #$09                ; [16+,9]
 
-                ldy #$0A                ; [???,10]
-                jsr CalcPixelAddr
+                lda #>inputBuffer
+                sta zpSource+1
+                lda idxInputBuffer
+                clc
+                adc #<inputBuffer
+                sta zpSource
 
-                lda #$00                ; space
-                jsr PlotChar
-
-                dec idxInputBuffer
-                ldx idxInputBuffer
-                lda #$00                ; space
-                sta inputBuffer,X
+                lda #$F0                ; color
+                jsr PrintText
 
                 jmp _flashCursor
 
 ; - - - - - - - - - - - - - - - - - - -
-_5              and #$3F                ; clear SHIFT|CTRL
-                tax
-
-                lda tblRaw2Ascii,X      ; convert to ascii
+_5              lda KEYCHAR             ; get ascii
                 bpl _6
 
 _nextInput2     jmp _nextInput
@@ -358,25 +351,28 @@ _7              sta charToPlot
                 cmp #$08                ; end reached?
                 beq _nextInput2         ;   yes, ignore input. Loop back as we're expecting an ENTER or DELETE
 
-                clc
-                adc #$10                ; x-coordinate
-                tax
-
-                ldy #$0A                ; [16+,10]
-                jsr CalcPixelAddr
-
                 lda charToPlot
-                sec
-                sbc #$20                ; convert to screen code
-                jsr PlotChar
-
                 ldx idxInputBuffer
-                lda charToPlot
-                sec
-                sbc #$20                ; convert to screen code
                 sta inputBuffer,X
 
+                lda idxInputBuffer
+                clc
+                adc #$10
+                tax
+                ldy #$09                ; [16+,9]
+
+                lda #>inputBuffer
+                sta zpSource+1
+                lda idxInputBuffer
+                clc
+                adc #<inputBuffer
+                sta zpSource
+
+                lda #$F0                ; color
+                jsr PrintText
+
                 inc idxInputBuffer
+
                 jmp _flashCursor
 
                 .endproc
