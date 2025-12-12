@@ -79,14 +79,13 @@ _1              lda timerIsActive+9     ; timer 9 active?
 
                 jsr ReadJoystick
 
-                lda #$04
-                bit joystick            ; left deflection?
+                lda #joyLEFT            ; left deflection?
+                bit joystick
                 beq _3                  ;   no
 
                 lda aimPosition
                 sec
                 sbc #<$0001
-                nop                     ; removed: sbc const_1
                 sta aimPosition
                 lda aimPosition_HI
                 sbc #>$0001
@@ -126,8 +125,8 @@ _2              lda aimPosition_HI
 
 ; - - - - - - - - - - - - - - - - - - -
 ;   reposition the aim target right
-_3              lda #$08
-                bit joystick            ; right deflection?
+_3              lda #joyRIGHT           ; right deflection?
+                bit joystick
                 beq _5                  ;   no
 
                 lda aimPosition

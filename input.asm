@@ -32,25 +32,17 @@ vecProcessESC   jmp ProcessESC
 ;
 ;======================================
 ReadJoystick    .proc
-                ;!!lda TRIG0               ; status flag = button state
-                php                     ; preserve button state
+                lda JOYSTICK0           ; on return, A=%xxxB_DDDD
+                eor #$1F                ; flip the bits
+                and #$1F                ; mask bits
 
-                ;!!jsr ReadPortA           ; on return, A=%1100xxxx
-                eor #$0F                ; flip the joystick0 bits
-                and #$1F                ; mask axis bits
-
-                plp                     ; button pushed?
-                bne _1                  ;   no
-
-                ora #$10                ;   yes, set bit-4
 _1              cmp #$00                ; any input?
                 beq _2                  ;   no
 
                 ora joystick
                 sta joystick
 
-                lda #$00
-                sta counterDemo         ; disable demo
+                stz counterDemo         ; disable demo
 
 _2              lda counterDemo         ; demo mode?
                 beq _XIT                ;   no
@@ -66,14 +58,13 @@ _XIT            rts
 ;
 ;======================================
 WaitForButton   .proc
-                lda #$00
-                sta joystick            ; no input
+                stz joystick            ; no input
 
 _next1          jsr vecProcessESC
                 jsr ReadJoystick
 
-                lda #$10
-                bit joystick            ; button down?
+                lda #joyButton0         ; button pushed?
+                bit joystick
                 beq _next1              ;   no
 
                 lda #$20                ; duration
@@ -99,27 +90,26 @@ _XIT1           rts                     ;   no
 
 ; - - - - - - - - - - - - - - - - - - -
 _1              cmp #$01
-                nop                     ; removed: cmp const_1
                 bne _3
 
-;   /// keyframe 0 - AIM ///
+;   /// keyframe 1 - AIM ///
                 lda aimPosition
-                cmp #$30
-                bcs _2
+                cmp #$30                ; >= 48?
+                bcs _2                  ;   yes
 
-                lda #$08
-                sta joystickOverride    ; right deflection
+                lda #joyRIGHT           ; right deflection
+                sta joystickOverride
 
                 rts
 
 ; - - - - - - - - - - - - - - - - - - -
 _2              inc counterDemo
 
-                lda #$10
-                sta joystickOverride    ; button pushed
+                lda #joyButton0         ; button pushed
+                sta joystickOverride
 
-                lda #$25
-                sta _data1
+                lda #$25                ; target = 37
+                sta _targetVal
 
                 rts
 
@@ -145,13 +135,14 @@ _4              cmp #$03
 
 ;   /// keyframe 3 - SNAP ///
 _next2          lda gaugeValue
-                cmp _data1              ; <target value?
+                cmp _targetVal          ; <target value?
                 bcc _XIT1               ;   yes
 
-                lda #$10
-                sta joystickOverride    ; button pushed
+                lda #joyButton0         ; button pushed
+                sta joystickOverride
 
                 inc counterDemo
+
                 rts
 
 ; - - - - - - - - - - - - - - - - - - -
@@ -170,8 +161,8 @@ _6              cmp #$05
                 cmp #$0C                ; pitching wedge?
                 beq _7                  ;   yes
 
-                lda #$02
-                sta joystickOverride    ; down deflection
+                lda #joyDOWN            ; down deflection
+                sta joystickOverride
 
                 rts
 
@@ -181,15 +172,14 @@ _7              inc counterDemo
                 lda #$10
                 sta joystickOverride    ; button pushed
 
-                lda #$24
-                sta _data1
+                lda #$24                ; target = 36
+                sta _targetVal
 
                 rts
 
 ; - - - - - - - - - - - - - - - - - - -
 ;   /// keyframe 6 - STROKE2 ///
-_8              cmp #$06                ; removed: cmp AimTarget._always6+1
-                nop
+_8              cmp #$06
                 beq _next1
 
 ;   /// keyframe 7 - SNAP2 ///
@@ -208,24 +198,24 @@ _9              cmp #$09
 
 ;   /// keyframe 9 - PUTT AIM ///
                 lda aimPosition
-                cmp #$5C
-                bcs _10
+                cmp #$5C                ; >= 92?
+                bcs _10                 ;   yes
 
-                lda #$08
-                sta joystickOverride    ; right deflection
+                lda #joyRIGHT           ; right deflection
+                sta joystickOverride
 
                 rts
 
 ; - - - - - - - - - - - - - - - - - - -
 _10             inc counterDemo
 
-                lda #$10
-                sta joystickOverride    ; button pushed
+                lda #joyButton0         ; button pushed
+                sta joystickOverride
 
 _XIT            rts
 
 ;--------------------------------------
 
-_data1          .byte $00
+_targetVal      .byte $00
 
                 .endproc
