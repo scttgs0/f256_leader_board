@@ -142,7 +142,7 @@ end_gameFont
                 .include "data/GLYPHS.inc"
 
                 .include "platform_f256.asm"
-                ;.include "kernel/facade.asm"
+                .include "kernel/facade.asm"
                 .include "interrupts.asm"
 
 
@@ -150,13 +150,11 @@ end_gameFont
 ;
 ;======================================
 INIT            .proc
-                sei
+                jsr InitKernel
 
-                jsr InitCPUVectors
                 jsr InitMMU
-                jsr InitIRQs
-
-                cli
+                ;jsr InitCPUVectors
+                ;jsr InitIRQs
 
                 jsr RandomSeedQuick
 
@@ -180,8 +178,6 @@ INIT            .proc
                 jsr InitSprites
 
                 jsr Stage
-
-                ;jsr InitKernel
 
                 rts
                 .endproc

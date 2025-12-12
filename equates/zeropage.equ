@@ -58,9 +58,6 @@ RND_RESULT              = $0095         ; [2 bytes]
 irq_pending             = $0097
 
 
-;--------------------------------------
-;--------------------------------------
-                * = $00A0
-;--------------------------------------
-
+                .virtual $00A0
 kernelEvt               .dstruct kernel.event.event_t
+                .endvirtual

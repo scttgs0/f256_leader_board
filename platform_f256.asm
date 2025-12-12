@@ -524,10 +524,20 @@ ClearSprites    .proc
 ;   switch to system map
                 stz IOPAGE_CTRL
 
-                .frsSpriteClear 0
-                .frsSpriteClear 1
-                .frsSpriteClear 2
-                .frsSpriteClear 3
+                .frsSpriteClear 0       ; club
+                .frsSpriteHide 0
+                .frsSpriteClear 1       ; player
+                .frsSpriteHide 1
+                .frsSpriteClear 2       ; player
+                .frsSpriteHide 2
+                .frsSpriteClear 4       ; putter
+                .frsSpriteHide 4
+                .frsSpriteClear 5       ; putter
+                .frsSpriteHide 5
+                .frsSpriteClear 8       ; ball
+                .frsSpriteHide 8
+                .frsSpriteClear 10      ; aim target
+                .frsSpriteHide 10
 
 ;   restore IOPAGE control
                 pla
@@ -585,6 +595,9 @@ ClearScreen     .proc
 v_QtyPages      .var $05                ; 40x30 = $4B0... 4 pages + 176 bytes
 v_EmptyText     .var $20
 v_TextColor     .var $40
+;v_QtyPages      .var $13                ; 80x60 = $12C0... 18 pages + 192 bytes
+;v_EmptyText     .var $C7
+;v_TextColor     .var $10
 ;---
 
                 pha
@@ -669,10 +682,8 @@ PrintText       .proc
                 phy
 
                 sta _color
-                txa
-                sta _x
-                tya
-                sta _y
+                stx _x
+                sty _y
 
 ;   preserve IOPAGE control
                 lda IOPAGE_CTRL
@@ -958,9 +969,7 @@ InitMMU         .proc
                 sei
 
 ;   ensure edit mode
-                lda MMU_CTRL
-                pha                     ; preserve
-                ora #mmuEditMode
+                lda #mmuPage3|mmuEditPage3|mmuEditMode
                 sta MMU_CTRL
 
                 lda #$00                ; [0000:1FFF]
@@ -972,17 +981,15 @@ InitMMU         .proc
                 inc A                   ; [6000:7FFF]
                 sta MMU_Block3
                 inc A                   ; [8000:9FFF]
+                sta zpMMU
                 sta MMU_Block4
                 inc A                   ; [A000:BFFF]
                 sta MMU_Block5
-                inc A                   ; [C000:DFFF]
-                sta MMU_Block6
-                inc A                   ; [E000:FFFF]
-                sta MMU_Block7
 
-;   restore MMU control
-                pla
-                sta MMU_CTRL
+                ;inc A                   ; [C000:DFFF]  play nice with the kernel
+                ;sta MMU_Block6
+                ;inc A                   ; [E000:FFFF]
+                ;sta MMU_Block7
 
                 cli
 
