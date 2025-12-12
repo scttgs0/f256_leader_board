@@ -602,6 +602,9 @@ ClearScreen     .proc
 v_QtyPages      .var $05                ; 40x30 = $4B0... 4 pages + 176 bytes
 v_EmptyText     .var $20
 v_TextColor     .var $40
+;v_QtyPages      .var $13                ; 80x60 = $12C0... 18 pages + 192 bytes
+;v_EmptyText     .var $C7
+;v_TextColor     .var $10
 ;---
 
                 pha
