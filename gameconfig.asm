@@ -102,7 +102,7 @@ _5              cmp #$70                ; P-key?
                 bne _6                  ;   no
 
 ;   /// P - Replay ///
-                pla                     ; consume the return address
+                pla                     ; discard the return address
                 pla
 
                 jmp DoConfig._ENTRY2
@@ -421,7 +421,6 @@ LoadSupplement  .proc
 ;   cache of $0200:0225
 
 cacheVDSLST     .fill 38,$00
-;--------------------------------------
 
 
 ;======================================
@@ -869,7 +868,7 @@ _nextInput      jsr GetKeycode
                 bne _1                  ;   no
 
 ;   /// RUNSTOP-key ///
-                pla                     ;   yes, consume the return address
+                pla                     ;   yes, discard the return address
                 pla
 
                 jsr DisableCursor
@@ -1064,21 +1063,23 @@ _next1          jsr GetKeycode
                 bne _1                  ;   no
 
 ;   /// RUNSTOP-key ///
+                pla                     ; discard the return address
                 pla
-                pla
+
                 jmp DoConfig._ENTRY1
 
 ; - - - - - - - - - - - - - - - - - - -
-_1              cmp #$31                ; SHIFT-1-key?
+_1              lda KEYCHAR
+                cmp #'!'                ; SHIFT-1-key?
                 beq _4                  ;   yes
 
-                cmp #$32                ; SHIFT-2-key?
+                cmp #'@'                ; SHIFT-2-key?
                 beq _3                  ;   yes
 
-                cmp #$33                ; SHIFT-3-key?
+                cmp #'#'                ; SHIFT-3-key?
                 beq _2                  ;   yes
 
-                cmp #$34                ; SHIFT-4-key?
+                cmp #'$'                ; SHIFT-4-key?
                 bne _next1              ;   no, try again
 
                 lda #$03                ; 72-holes
@@ -1120,16 +1121,16 @@ _next2          jsr GetKeycode
                 jmp DoConfig._ENTRY1
 
 ; - - - - - - - - - - - - - - - - - - -
-_1              cmp #$31                ; 1-key?
+_1              cmp #'1'                ; 1-key?
                 beq _4                  ;   yes
 
-                cmp #$32                ; 2-key?
+                cmp #'2'                ; 2-key?
                 beq _3                  ;   yes
 
-                cmp #$33                ; 3-key?
+                cmp #'3'                ; 3-key?
                 beq _2                  ;   yes
 
-                cmp #$34                ; 4-key?
+                cmp #'4'                ; 4-key?
                 bne _next2              ;   no, try again
 
                 lda #$03
@@ -1156,15 +1157,18 @@ _4              lda #$00
 ;
 ;======================================
 PromptPlayer    .proc
-                ldy #$07                ; [24,7]
-                ldx #$18
-                jsr CalcPixelAddr
-
                 lda idxPlayer
                 clc
-                adc #$01
+                adc #'1'
+                sta _playerNum
 
-                jmp PlotCharBCD
+                .frsTextXY $17,$06,$40,PromptPlayer._playerNum
+
+                rts
+
+;--------------------------------------
+
+_playerNum      .null '0'
 
                 .endproc
 
@@ -1173,15 +1177,18 @@ PromptPlayer    .proc
 ;
 ;======================================
 PromptCourse    .proc
-                ldy #$07                ; [23,7]
-                ldx #$17
-                jsr CalcPixelAddr
-
-                lda tempC
+                lda tempC               ; index for course rotation
                 clc
-                adc #$01
+                adc #'1'
+                sta _courseNum
 
-                jmp PlotCharBCD
+                .frsTextXY $17,$06,$40,PromptCourse._courseNum
+
+                rts
+
+;--------------------------------------
+
+_courseNum      .null '0'
 
                 .endproc
 
