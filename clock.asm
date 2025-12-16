@@ -3,14 +3,12 @@
 ;
 ;======================================
 DrawClock       .proc
-                bra _2      ; HACK:
-
                 lda CONSOL
                 and #$01                ; SELECT pressed?
                 bne _1                  ;   no
 
 ;   /// SELECT ///
-                jsr PlayInputAction
+                jsr PlaySoundInputAction
 
                 lda clockControl
                 eor #$01
@@ -28,13 +26,13 @@ _next1          lda #' '                ; space
 
                 .frsTextXY 31,11,$70,DrawClock._clock
 
-                ;lda #$08                ; duration
-                ;ldx #$0D                ; timer 13
-                ;jsr SetTimer
+                lda #$08                ; duration
+                ldx #$0D                ; timer 13
+                jsr SetTimer
 
 ;   wait for timer
-;_wait1          lda timerIsActive+13    ; timer 13 active?
-;                bne _wait1              ;   yes
+_wait1          lda timerIsActive+13    ; timer 13 active?
+                bne _wait1              ;   yes
 
 _1              jsr DoWind
 
