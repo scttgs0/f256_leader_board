@@ -2,5 +2,3 @@
 ReadSectors
 
 SetInterrupts
-
-SetTimer
