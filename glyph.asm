@@ -130,7 +130,7 @@ _dest           = zp3F
                 sta zpMMU               ; [A000:BFFF]->[2_2000:2_3FFF]
 
                 tya                     ; y-coordinate =0?
-                beq _XIT                ;   yes, skip adjustment
+                beq _apply              ;   yes, skip adjustment
 
 ;   adjust address to point to the proper scanline
 _next1          lda _dest
@@ -160,7 +160,7 @@ _cont           dey
 
 ; - - - - - - - - - - - - - - - - - - -
 ;   preserve IOPAGE control
-                lda IOPAGE_CTRL
+_apply          lda IOPAGE_CTRL
                 pha
 
 ;   switch to system map
@@ -171,8 +171,8 @@ _cont           dey
                 pha                     ; preserve
                 ora #mmuEditMode
                 sta MMU_CTRL
-; - - - - - - - - - - - - - - - - - - -
 
+; - - - - - - - - - - - - - - - - - - -
 ;   set the MMU
                 lda zpMMU
                 sta MMU_Block4
@@ -190,7 +190,7 @@ _cont           dey
 
 ; - - - - - - - - - - - - - - - - - - -
 
-_XIT            rts
+                rts
                 .endproc
 
 
@@ -200,9 +200,7 @@ _XIT            rts
 ; on entry:
 ;   A           single BCD-digit
 ;======================================
-PlotCharBCD     .proc
-                rts
-                .endproc
+PlotCharBCD     ora '0'
 
                 ;[fall-through]
 
