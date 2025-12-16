@@ -8,7 +8,7 @@
 
 ; Kernel Calls
 ; Populate the kernel.arg.* variables appropriately, and
-; then JSR to one of the velctors below:
+; then JSR to one of the vectors below:
 
 kernel      .namespace
 

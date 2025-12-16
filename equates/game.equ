@@ -40,16 +40,11 @@ COLOR_WHITE         = $28
 ;--------------------------------------
 
 xPosBallShadow      = $0290
-;;xPosMissile0        = $0290             ; ball shadow
 xPosBall            = $0291
-;;xPosMissile1        = $0291             ; ball
 xPosAimTarget       = $0292
-;;xPosMissile2        = $0292             ; aim target
 
 yPosBallShadow      = $0294
-;;yPosMissile0        = $0294             ; ball shadow
 yPosBall            = $0295
-;;yPosMissile1        = $0295             ; ball
 
 ;--------------------------------------
 

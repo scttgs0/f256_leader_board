@@ -306,9 +306,9 @@ _3              dec _width              ; completed all the cloud glyphs?
 ;======================================
 DrawMountains   .proc
 _dest           = zpCD
+_layerOffset    = zpCF
 _width          = zpD0
 _src            = zpD4
-_layerOffset    = zpCF
 _scrnMountain   = screen16K+320*8
 ;---
 

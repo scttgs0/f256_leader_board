@@ -87,7 +87,7 @@ _1g             iny
                 sta (_dest),Y
 
 ;   advance to the next line of the glyph
-_2             lda _src
+_2              lda _src
                 clc
                 adc #$08
                 sta _src
