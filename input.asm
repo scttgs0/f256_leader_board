@@ -14,7 +14,7 @@ GetKeycode      .proc
                 lda #$FF                ; reset
                 sta KEYCODE
 
-                jsr PlayInputAction
+                jsr PlaySoundInputAction
 
                 pla                     ; restore keycode
 
@@ -218,4 +218,22 @@ _XIT            rts
 
 _targetVal      .byte $00
 
+                .endproc
+
+
+;======================================
+;
+;--------------------------------------
+; on entry:
+;   A           duration
+;   X           index [0:15]
+;======================================
+SetTimer        .proc
+                sta timerDuration,X
+                sta timerRemaining,X
+
+                lda #TRUE
+                sta timerIsActive,X
+
+                rts
                 .endproc
