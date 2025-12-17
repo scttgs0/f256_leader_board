@@ -355,8 +355,9 @@ RenderHUDCourse .proc
 ;======================================
 ;
 ;======================================
-;RenderHUDPlayers .proc
+RenderHUDPlayers .proc
                 jsr RenderHUDActivePlayer  ; '>'-mark for the active player
+                bra _hack    ; HACK:
 
                 lda #stagePLAY
                 sta nStage
@@ -397,8 +398,57 @@ _2              jsr DoNothing4
                 dec idxPlayer
                 bpl _nextplayer
 
+;//////////////////////
+
+_hack           .frsTextXY 31,5,$F0,RenderHUDPlayers._scrnName
+
+                .frsTextXY 30,6,$F0,RenderHUDPlayers._scrnP1Active
+                .frsTextXY 31,6,$10,RenderHUDPlayers._scrnP1
+                .frsTextXY 34,6,$10,RenderHUDPlayers._scrnP1Strokes
+                .frsTextXY 38,6,$30,RenderHUDPlayers._scrnP1Delta
+
+                .frsTextXY 30,7,$F0,RenderHUDPlayers._scrnP2Active
+                .frsTextXY 31,7,$F0,RenderHUDPlayers._scrnP2
+                .frsTextXY 34,7,$10,RenderHUDPlayers._scrnP2Strokes
+                .frsTextXY 38,7,$80,RenderHUDPlayers._scrnP2Delta
+
+                .frsTextXY 30,8,$F0,RenderHUDPlayers._scrnP3Active
+                .frsTextXY 31,8,$10,RenderHUDPlayers._scrnP3
+                .frsTextXY 34,8,$10,RenderHUDPlayers._scrnP3Strokes
+                .frsTextXY 38,8,$F0,RenderHUDPlayers._scrnP3Delta
+
+                .frsTextXY 30,9,$F0,RenderHUDPlayers._scrnP4Active
+                .frsTextXY 31,9,$10,RenderHUDPlayers._scrnP4
+                .frsTextXY 34,9,$10,RenderHUDPlayers._scrnP4Strokes
+                .frsTextXY 38,9,$10,RenderHUDPlayers._scrnP4Delta
+
                 rts
-;                .endproc
+
+;--------------------------------------
+
+_scrnName       .null "ADAM    "
+
+_scrnP1Active   .null " "
+_scrnP1         .null "1"
+_scrnP1Strokes  .null "1"
+_scrnP1Delta    .null "-1"
+
+_scrnP2Active   .null " "
+_scrnP2         .null "2"
+_scrnP2Strokes  .null "1"
+_scrnP2Delta    .null " E"
+
+_scrnP3Active   .null " "
+_scrnP3         .null "3"
+_scrnP3Strokes  .null "1"
+_scrnP3Delta    .null "+1"
+
+_scrnP4Active   .null " "
+_scrnP4         .null "4"
+_scrnP4Strokes  .null " "
+_scrnP4Delta    .null "  "
+
+                .endproc
 
 
 ;======================================
@@ -407,8 +457,15 @@ _2              jsr DoNothing4
 RenderHUDActivePlayer .proc
 _idxChar        = zpD0
 _ptrName        = zpF9
-_glyphCHEVRON   = $1E
+_glyphCHEVRON   = $FA
 ;---
+
+;   clear all active player markers
+                lda #' '
+                sta RenderHUDPlayers._scrnP1Active
+                sta RenderHUDPlayers._scrnP2Active
+                sta RenderHUDPlayers._scrnP3Active
+                sta RenderHUDPlayers._scrnP4Active
 
                 lda isDrivingRange      ; at driving range?
                 beq _1                  ;   no
@@ -423,16 +480,16 @@ _1              lda #stageCONFIG
                 ldx activePlayer
                 jsr SetNameBufPtr       ; result _ptrName [$F9:FA]
 
-                ldy #$04                ; [31,4]
-                ldx #$1F
-                jsr CalcPixelAddr
+                lda #<RenderHUDPlayers._scrnName
+                sta zpDest
+                lda #>RenderHUDPlayers._scrnName
+                sta zpDest+1
 
                 lda #$00
                 sta _idxChar
-
 _next1          tay
                 lda (_ptrName),Y
-                jsr PlotChar
+                sta (zpDest),Y
 
                 inc _idxChar
                 lda _idxChar
@@ -441,17 +498,29 @@ _next1          tay
 
 ; - - - - - - - - - - - - - - - - - - -
 ;   render active player chevron-mark
+                ldx #_glyphCHEVRON
                 lda activePlayer
-                clc
-                adc #$05                ; line # [5:8]
-                tay
+                cmp #$00
+                bne _2
 
-                ldx #$1E                ; [30,5+]
-                jsr CalcPixelAddr
+                stx RenderHUDPlayers._scrnP1Active
+                bra _XIT
 
-                lda #_glyphCHEVRON
-                jmp PlotChar
+_2              cmp #$01
+                bne _3
 
+                stx RenderHUDPlayers._scrnP2Active
+                bra _XIT
+
+_3              cmp #$02
+                bne _4
+
+                stx RenderHUDPlayers._scrnP3Active
+                bra _XIT
+
+_4              stx RenderHUDPlayers._scrnP4Active
+
+_XIT            rts
                 .endproc
 
 
