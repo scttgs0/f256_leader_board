@@ -392,7 +392,7 @@ _1              sta zpF9
 ;   zpF9:FA     pointer
 ;======================================
 SetNameBufPtr   .proc
-                pha                     ; =$0C (enter)
+                pha                     ; =$0C (enter), needed due to bypass of SetStrokePtr
 
                 lda #>playerNames
                 sta zpFA
