@@ -9,7 +9,15 @@ GetKeycode      .proc
                 cmp #$FF                ; any key pressed?
                 beq _XIT                ;   no
 
-                pha                     ; preserve keycode
+                cmp #$06                ; meta-key?
+                bcs _1                  ;   no
+
+                lda #$FF                ;   yes, reset and exit
+                sta KEYCODE
+
+                bra _XIT
+
+_1              pha                     ; preserve keycode
 
                 lda #$FF                ; reset
                 sta KEYCODE
