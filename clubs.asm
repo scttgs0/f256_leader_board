@@ -15,19 +15,19 @@ GetUserInput    .proc
 
                 txa
                 clc
-                adc xPosDeltaMissile0
+                adc xPosDeltaBall
                 sta xPosBallShadow
 
                 tya
                 clc
-                adc yPosDeltaMissile0
+                adc yPosDeltaBall
                 sta yPosBallShadow
 
                 lda #TRUE
                 sta isSwingInProgress
 
-                jsr ClearMissile0
-                jmp ClearMissile2
+                ;;jsr ClearMissile0       ; clear the aim target
+                jmp ClearAimTarget
 
 ; - - - - - - - - - - - - - - - - - - -
 _XIT            rts
@@ -80,8 +80,7 @@ _3              inc activeClub
 _4              jsr DrawClub
 
 ;   set delay timer to introduce a pause before allowing further club changes
-                ;lda #$18                ; duration
-                lda #$01                ; duration
+                lda #$18                ; duration
                 ldx #$01                ; timer 1
                 jsr SetTimer
 
