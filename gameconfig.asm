@@ -38,7 +38,7 @@ BeginConfig     .proc
 ;
 ;======================================
 AskPlayerQty    .proc
-                jsr StartPokeyTimers
+_next1          jsr StartPokeyTimers
 
 ;   clock + 10 seconds (BCD)
                 lda clockSecs
@@ -53,7 +53,7 @@ AskPlayerQty    .proc
 _1              cld
                 sta zpD4
 
-_next1          lda clockSecs
+_next2          lda clockSecs
                 cmp zpD4                ; 10 seconds elapsed?
                 bne _2                  ;   no
 
@@ -68,7 +68,7 @@ _demo           ldx #$01
                 stx tblCourseIndexes
                 stx idxActiveCourse
 
-                pla
+                pla                     ; discard (DoConfig) return address
                 pla
                 rts
 
@@ -82,7 +82,7 @@ _2              jsr GetKeycode
                 jsr SetCurrentTime
                 jsr DrawDialog
                 jsr BeginConfig
-                jmp AskPlayerQty
+                jmp _next1
 
 ; - - - - - - - - - - - - - - - - - - -
 _3              cmp #$64                ; D-key?
@@ -95,16 +95,15 @@ _4              cmp #$94                ; SHIFT-RETURN-key?
 
 ;   /// SHIFT-ENTER - Load Supplement ///
                 jsr LoadSupplement
-                jmp AskPlayerQty
+                jmp _next1
 
 ; - - - - - - - - - - - - - - - - - - -
 _5              cmp #$70                ; P-key?
                 bne _6                  ;   no
 
 ;   /// P - Replay ///
-                pla                     ; discard the return address
+                pla                     ; discard (DoConfig) return address
                 pla
-
                 jmp DoConfig._ENTRY2
 
 ; - - - - - - - - - - - - - - - - - - -
@@ -121,7 +120,7 @@ _6              cmp #$72                ; R-key?
                 sta idxActiveCourse
                 sta numPlayers
 
-                pla
+                pla                     ; discard (DoConfig) return address
                 pla
                 rts
 
@@ -137,7 +136,7 @@ _7              tax
                 beq _8                  ;   yes
 
                 cmp #$34                ; 4-key?
-                bne _next1              ;   no, try again
+                bne _next2              ;   no, try again
 
                 lda #$03
                 .byte $2C               ; consume the following LDA operation
@@ -551,17 +550,17 @@ ProcessESC      .proc
                 jsr GetKeycode
 
                 cmp #$BC                ; RUNSTOP-key?
-                beq _1                  ;   yes
+                ;;beq _1                  ;   yes       HACK: avoid issue (see below)
 
                 rts                     ;   no
 
 ; - - - - - - - - - - - - - - - - - - -
-;   /// RUNSTOP-key ///
-_1              pla
+;   /// RUNSTOP-key ///     ; HACK: this can cause problems because we have hacked the call structure
+_1              pla                     ; discard (PuttControl) return address
                 pla
+                pla                     ; ??
                 pla
-                pla
-                pla
+                pla                     ; ??
                 pla
 
                 jsr ClearAllPlayers
@@ -698,7 +697,7 @@ _next2          lda playerInUse,X       ; is player being used?
                 dex
                 bpl _next2
 
-                pla
+                pla                     ; discard (PlayNextHole) return address
                 pla
                 jmp GoNextHole
 
@@ -868,7 +867,7 @@ _nextInput      jsr GetKeycode
                 bne _1                  ;   no
 
 ;   /// RUNSTOP-key ///
-                pla                     ;   yes, discard the return address
+                pla                     ;   yes, discard (DoConfig) return address
                 pla
 
                 jsr DisableCursor
@@ -1038,9 +1037,9 @@ _4              cmp #$BC                ; RUNSTOP-key?
                 bne _next1              ;   no, try again
 
 ;   /// RUNSTOP-key ///
-                pla                     ;   yes
+                pla                     ; discard (AskPlayerNames) return address
                 pla
-                pla
+                pla                     ; discard (DoConfig) return address
                 pla
                 jmp DoConfig._ENTRY1
 
@@ -1063,7 +1062,7 @@ _next1          jsr GetKeycode
                 bne _1                  ;   no
 
 ;   /// RUNSTOP-key ///
-                pla                     ; discard the return address
+                pla                     ; discard (DoConfig) return address
                 pla
 
                 jmp DoConfig._ENTRY1
@@ -1116,7 +1115,7 @@ _next2          jsr GetKeycode
                 cmp #$BC                ; RUNSTOP-key?
                 bne _1                  ;   no
 
-                pla                     ;   yes
+                pla                     ;   yes, discard (DoConfig) return address
                 pla
                 jmp DoConfig._ENTRY1
 
