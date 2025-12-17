@@ -19,6 +19,8 @@ InitKernel      .proc
                 lda #>kernelEvt
                 sta kernel.args.events+1
 
+                ;;jsr ScheduleFrameEvent
+
                 rts
                 .endproc
 
@@ -31,6 +33,40 @@ RestoreKernel   .proc
                 sta kernel.args.events
                 lda preserveKernelEvt+1
                 sta kernel.args.events+1
+
+                rts
+                .endproc
+
+
+;======================================
+;
+;======================================
+ScheduleFrameEvent .proc
+;   determine the current frame #
+                lda #kernel.args.timer.FRAMES|kernel.args.timer.QUERY
+                sta kernel.args.timer.units
+
+                jsr kernel.Clock.SetTimer
+                bcs _err
+
+;   schedule a notification for the next frame
+                adc #$01
+                sta kernel.args.timer.absolute
+
+                lda #kernel.args.timer.FRAMES
+                sta kernel.args.timer.units
+
+                lda #$55
+                sta kernel.args.timer.cookie
+
+                jsr kernel.Clock.SetTimer
+                bcs _err
+
+                rts
+
+; - - - - - - - - - - - - - - - - - - -
+_err            lda #TRUE
+                sta ProcessEvents._outOfTokens
 
                 rts
                 .endproc
@@ -56,6 +92,9 @@ _nextEvent      jsr kernel.NextEvent
 
                 cmp #kernel.event.key.RELEASED
                 beq _keyUp
+
+                ;;cmp #kernel.event.timer.EXPIRED
+                ;;beq _timer
                 bra _nextEvent
 
 ; - - - - - - - - - - - - - - - - - - -
@@ -92,5 +131,25 @@ _noDebounce     lda #$FF
 
 ; - - - - - - - - - - - - - - - - - - -
 
+;;_timer          jsr ScheduleFrameEvent
+;;                jsr DoTimers
+;;                bra _nextEvent
+
+; - - - - - - - - - - - - - - - - - - -
+
+;;_XIT1           lda _outOfTokens
+;;                beq _XIT
+;;
+;;                stz _outOfTokens
+;;
+;;                jsr ScheduleFrameEvent
+;;                bra _nextEvent
+
+; - - - - - - - - - - - - - - - - - - -
 _XIT            rts
+
+;--------------------------------------
+
+;;_outOfTokens    .byte $00
+
                 .endproc

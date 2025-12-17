@@ -6,6 +6,13 @@
 zp3D                    = $003D         ; [word]
 zp3F                    = $003F         ; [word]
 
+;;AIM_BASE        = $0060 ; MISL_BASE
+;;BALL_BASE       = $0060 ; MISL_BASE
+;;SHADOW_BASE     = $0060 ; MISL_BASE
+;;_HPOSM1_Ball    = $0061 ; HPOSM1
+;;_HPOSM2_TargetL = $0062 ; HPOSM2
+;;_HPOSM0_TargetR = $0063 ; HPOSM0
+
 zp82                    = $0082         ; [word]
 zp84                    = $0084         ; [word]
 
@@ -58,6 +65,8 @@ RND_RESULT              = $0095         ; [2 bytes]
 irq_pending             = $0097
 
 DEBOUNCE                = $0098
+
+priorIRQ_BRK            = $009A
 
                 .virtual $00A0
 kernelEvt               .dstruct kernel.event.event_t

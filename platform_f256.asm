@@ -902,10 +902,12 @@ _XIT
 ;   ensure MMU slot 7 is configured
 ;   ensure SEI is active
 ;--------------------------------------
-; preserve      A
+; preserve      A,X,Y
 ;======================================
 InitCPUVectors  .proc
                 pha
+                phx
+                phy
 
 ;   preserve IOPAGE control
                 lda IOPAGE_CTRL
@@ -914,34 +916,46 @@ InitCPUVectors  .proc
 ;   switch to system map
                 stz IOPAGE_CTRL
 
-                sei
+;   capture the kernel IRQ routine address (for chaining)
+                lda #$7F
+                sta MMU_Block7
 
-                lda #<DefaultHandler
-                sta vecABORT
-                lda #>DefaultHandler
-                sta vecABORT+1
+                lda vecIRQ_BRK
+                sta priorIRQ_BRK
+                lda vecIRQ_BRK+1
+                sta priorIRQ_BRK+1
 
-                lda #<DefaultHandler
-                sta vecNMI
-                lda #>DefaultHandler
-                sta vecNMI+1
+                jsr cloneKernelIRQ
 
-                lda #<BOOT
-                sta vecRESET
-                lda #>BOOT
-                sta vecRESET+1
+                lda #$07                ; reset
+                sta MMU_Block7
+
+                ;lda #<DefaultHandler
+                ;sta vecABORT
+                ;lda #>DefaultHandler
+                ;sta vecABORT+1
+
+                ;lda #<DefaultHandler
+                ;sta vecNMI
+                ;lda #>DefaultHandler
+                ;sta vecNMI+1
+
+                ;lda #<BOOT
+                ;sta vecRESET
+                ;lda #>BOOT
+                ;sta vecRESET+1
 
                 lda #<DefaultHandler
                 sta vecIRQ_BRK
                 lda #>DefaultHandler
                 sta vecIRQ_BRK+1
 
-                cli
-
 ;   restore IOPAGE control
                 pla
                 sta IOPAGE_CTRL
 
+                ply
+                plx
                 pla
                 rts
                 .endproc
@@ -951,6 +965,44 @@ InitCPUVectors  .proc
 ; Default IRQ Handler
 ;~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 DefaultHandler  rti
+
+
+;======================================
+;
+;======================================
+cloneKernelIRQ  .proc
+                lda #$07                ; [E000:FFFF]
+                sta MMU_Block5          ; [A000:BFFF]
+
+                lda #<$E000
+                sta zpSource
+                lda #>$E000
+                sta zpSource+1
+
+                lda #<$A000
+                sta zpDest
+                lda #>$A000
+                sta zpDest+1
+
+                ldx #$1F                ; page to clone
+_nextPage       ldy #$00
+_nextClone      lda (zpSource),Y
+                sta (zpDest),Y
+
+                dey
+                bne _nextClone
+
+                inc zpSource+1
+                inc zpDest+1
+
+                dex
+                bpl _nextPage
+
+_XIT            lda #$05                ; reset
+                sta MMU_Block5          ; [A000:BFFF]
+
+                rts
+                .endproc
 
 
 ;======================================
@@ -973,8 +1025,6 @@ InitMMU         .proc
 ;   switch to system map
                 stz IOPAGE_CTRL
 
-                sei
-
 ;   ensure edit mode
                 lda #mmuPage3|mmuEditPage3|mmuEditMode
                 sta MMU_CTRL
@@ -993,12 +1043,11 @@ InitMMU         .proc
                 inc A                   ; [A000:BFFF]
                 sta MMU_Block5
 
-                ;inc A                   ; [C000:DFFF]  play nice with the kernel
-                ;sta MMU_Block6
-                ;inc A                   ; [E000:FFFF]
-                ;sta MMU_Block7
-
-                cli
+;   play nice with the kernel
+                ;!!inc A                   ; [C000:DFFF]
+                ;!!sta MMU_Block6
+                ;!!inc A                   ; [E000:FFFF]
+                ;!!sta MMU_Block7
 
 ;   restore IOPAGE control
                 pla
@@ -1026,8 +1075,6 @@ InitIRQs        .proc
 
 ;   switch to system map
                 stz IOPAGE_CTRL
-
-                sei                     ; disable IRQ
 
 ;   enable IRQ handler
                 lda #<irqMain
@@ -1082,7 +1129,6 @@ InitIRQs        .proc
                 pla
                 sta IOPAGE_CTRL
 
-                cli                     ; enable IRQ
                 pla
                 rts
                 .endproc

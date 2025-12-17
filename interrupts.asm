@@ -1,10 +1,4 @@
 
-clockSecs       .byte $00               ; BCD
-clockMins       .byte $00               ; BCD
-clockHour       .byte $00               ; BCD
-clockControl    .byte $01
-
-
 ;~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ;~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ; Main IRQ Handler
@@ -15,8 +9,6 @@ irqMain         .proc
                 phx
                 phy
 
-                cld
-
 ; - - - - - - - - - - - - - - - - - - -
 ;   switch to system map
                 lda IOPAGE_CTRL
@@ -26,7 +18,7 @@ irqMain         .proc
 
                 lda INT_PENDING_REG0
                 sta irq_pending
-                sta INT_PENDING_REG0
+                ;;sta INT_PENDING_REG0  ; will be reset by the kernel
 
                 ; lda INT_PENDING_REG1
                 ; bit #INT01_VIA1
@@ -58,270 +50,8 @@ _XIT            pla                     ; restore
                 plx
                 pla
 
-irqMain_END     rti
-                .endproc
-
-
-;~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-; Key Notifications
-;--------------------------------------
-;   ESC         $01/$81  press/release
-;   R-Ctrl      $1D/$9D
-;   Space       $39/$B9
-;   F2          $3C/$BC
-;   F3          $3D/$BD
-;   F4          $3E/$BE
-;   Up          $48/$C8
-;   Left        $4B/$CB
-;   Right       $4D/$CD
-;   Down        $50/$D0
-;~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-KeyboardHandler .proc
-KEY_F2          = $3C                   ; Option
-KEY_F3          = $3D                   ; Select
-KEY_F4          = $3E                   ; Start
-KEY_UP          = $48                   ; joystick alternative
-KEY_LEFT        = $4B
-KEY_RIGHT       = $4D
-KEY_DOWN        = $50
-KEY_CTRL        = $1D                   ; fire button
-;---
-
-                pha
-                phx
-                phy
-
-                lda PS2_KEYBD_IN
-                pha
-                sta KEYCHAR
-
-                and #$80                ; is it a key release?
-                bne _1r                 ;   yes
-
-_1              pla                     ;   no
-                pha
-                cmp #KEY_F2
-                bne _2
-
-                lda CONSOL
-                eor #$04
-                sta CONSOL
-
-                jmp _CleanUpXIT
-
-; - - - - - - - - - - - - - - - - - - -
-_1r             pla
-                pha
-                cmp #KEY_F2|$80
-                bne _2r
-
-                lda CONSOL
-                ora #$04
-                sta CONSOL
-
-                jmp _CleanUpXIT
-
-; - - - - - - - - - - - - - - - - - - -
-_2              pla
-                pha
-                cmp #KEY_F3
-                bne _3
-
-                lda CONSOL
-                eor #$02
-                sta CONSOL
-
-                jmp _CleanUpXIT
-
-; - - - - - - - - - - - - - - - - - - -
-_2r             pla
-                pha
-                cmp #KEY_F3|$80
-                bne _3r
-
-                lda CONSOL
-                ora #$02
-                sta CONSOL
-
-                jmp _CleanUpXIT
-
-; - - - - - - - - - - - - - - - - - - -
-_3              pla
-                pha
-                cmp #KEY_F4
-                bne _4
-
-                lda CONSOL
-                eor #$01
-                sta CONSOL
-
-                jmp _CleanUpXIT
-
-; - - - - - - - - - - - - - - - - - - -
-_3r             pla
-                pha
-                cmp #KEY_F4|$80
-                bne _4r
-
-                lda CONSOL
-                ora #$01
-                sta CONSOL
-
-                jmp _CleanUpXIT
-
-; - - - - - - - - - - - - - - - - - - -
-_4              pla
-                pha
-                cmp #KEY_UP
-                bne _5
-
-                lda InputFlags
-                bit #joyUP
-                beq _4a
-
-                eor #joyUP
-                ora #joyDOWN            ; cancel KEY_DOWN
-                sta InputFlags
-
-_4a             lda #itKeyboard
-                sta InputType
-
-                jmp _CleanUpXIT
-
-; - - - - - - - - - - - - - - - - - - -
-_4r             pla
-                pha
-                cmp #KEY_UP|$80
-                bne _5r
-
-                lda InputFlags
-                ora #joyUP
-                sta InputFlags
-
-                jmp _CleanUpXIT
-
-; - - - - - - - - - - - - - - - - - - -
-_5              pla
-                pha
-                cmp #KEY_DOWN
-                bne _6
-
-                lda InputFlags
-                bit #joyDOWN
-                beq _5a
-
-                eor #joyDOWN
-                ora #joyUP              ; cancel KEY_UP
-                sta InputFlags
-
-_5a             lda #itKeyboard
-                sta InputType
-
-                jmp _CleanUpXIT
-
-; - - - - - - - - - - - - - - - - - - -
-_5r             pla
-                pha
-                cmp #KEY_DOWN|$80
-                bne _6r
-
-                lda InputFlags
-                ora #joyDOWN
-                sta InputFlags
-
-                jmp _CleanUpXIT
-
-; - - - - - - - - - - - - - - - - - - -
-_6              pla
-                pha
-                cmp #KEY_LEFT
-                bne _7
-
-                lda InputFlags
-                bit #joyLEFT
-                beq _6a
-
-                eor #joyLEFT
-                ora #joyRIGHT           ; cancel KEY_RIGHT
-                sta InputFlags
-
-_6a             lda #itKeyboard
-                sta InputType
-
-                bra _CleanUpXIT
-
-_6r             pla
-                pha
-                cmp #KEY_LEFT|$80
-                bne _7r
-
-                lda InputFlags
-                ora #joyLEFT
-                sta InputFlags
-
-                bra _CleanUpXIT
-
-_7              pla
-                pha
-                cmp #KEY_RIGHT
-                bne _8
-
-                lda InputFlags
-                bit #joyRIGHT
-                beq _7a
-
-                eor #joyRIGHT
-                ora #joyLEFT            ; cancel KEY_LEFT
-                sta InputFlags
-
-_7a             lda #itKeyboard
-                sta InputType
-
-                bra _CleanUpXIT
-
-_7r             pla
-                pha
-                cmp #KEY_RIGHT|$80
-                bne _8r
-
-                lda InputFlags
-                ora #joyRIGHT
-                sta InputFlags
-
-                bra _CleanUpXIT
-
-_8              pla
-                cmp #KEY_CTRL
-                bne _XIT
-
-                lda InputFlags
-                eor #joyButton0
-                sta InputFlags
-
-                lda #itKeyboard
-                sta InputType
-
-                stz KEYCHAR
-                bra _XIT
-
-_8r             pla
-                cmp #KEY_CTRL|$80
-                bne _XIT
-
-                lda InputFlags
-                ora #joyButton0
-                sta InputFlags
-
-                stz KEYCHAR
-                bra _XIT
-
-_CleanUpXIT     stz KEYCHAR
-                pla
-
-_XIT            ply
-                plx
-                pla
-                rts
+irqMain_END     jmp (priorIRQ_BRK)
+                ;;rti
                 .endproc
 
 
@@ -334,6 +64,8 @@ irqVBIHandler   .proc
                 phy
 
                 inc JIFFYCLOCK          ; increment the jiffy clock each VBI
+
+                jsr DoTimers
 
                 ;;lda #TRUE
                 ;;sta gameGate
@@ -382,4 +114,100 @@ _XIT            ply
                 plx
                 pla
                 rts
+                .endproc
+
+
+;======================================
+;
+;--------------------------------------
+; called from interrupt
+;======================================
+DoTimers        .proc
+                ldx #$0F                ; timer index
+_nextTimer      lda timerIsActive,X     ; timer X active?
+                beq _1                  ;   no
+
+                dec timerRemaining,X    ; tick..., expired?
+                bne _2                  ;   no
+
+                lda #$00                ; make inactive
+                sta timerIsActive,X
+
+                lda timerDuration,X     ; reset ticks
+                sta timerRemaining,X
+
+_1              ;!!cpx audioF2Chaos
+                ;!!bne _2
+
+                ;!!inc unused_9C0E
+                ;!!dec unused_9C0F
+                ;!!inc timerIsActive,X     ; make active
+
+_2              dex
+                bpl _nextTimer
+
+; - - - - - - - - - - - - - - - - - - -
+;   timer loop finished
+
+;   executed each jiffy cycle
+
+                lda windFactor          ; [-$40:-$28]
+                beq _3
+
+                dec windFactor
+
+_3              inx                     ; X=$00
+
+                inc _jiffyCount
+                lda _jiffyCount
+                cmp #70                 ; 70 jiffies = 1 sec
+                bcc _XIT
+
+; - - - - - - - - - - - - - - - - - - -
+;   executed once per second
+
+                stz _jiffyCount         ; reset jiffy counter
+
+                lda clockControl
+                ora #$80
+                sta clockControl
+
+;   adjust clock by one second
+                sed                     ; clock uses BCD
+
+                clc
+                lda clockSecs           ; second++
+                adc #$01
+                sta clockSecs
+
+                cmp #$60                ; <60?
+                bcc _4                  ;   yes
+
+                stz clockSecs           ;   no, reset seconds
+
+                lda clockMins           ; mins++
+                adc #$00
+                sta clockMins
+
+                cmp #$60                ; <60?
+                bcc _4                  ;   yes
+
+                stz clockMins           ;   no, reset minutes
+
+                lda clockHour           ; hour++
+                adc #$00
+                sta clockHour
+
+                cmp #$24                ; <24?
+                bcc _4                  ;   yes
+
+                stz clockHour           ;   no, reset hour
+
+_4              cld
+_XIT            rts
+
+;--------------------------------------
+
+_jiffyCount     .byte $00
+
                 .endproc

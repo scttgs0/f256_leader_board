@@ -10,6 +10,24 @@
                 .include "macros/f256_text.mac"
 
 ;--------------------------------------
+;   f256        atari8
+;   sprint 0                club
+;   sprint 1                golfer top      (driving)
+;   sprint 2                golfer bottom   (driving)
+;   sprint 4                golfer top      (putting)
+;   sprint 5                golfer bottom   (putting)
+;   sprint 8                ball
+;   sprint 9                ball shadow
+;   sprint 10               aim target
+;
+;               sprint 0/1  Golfer left-half (0=front, 1=back)
+;               sprite 2/3  Golfer right-half (2=front, 3=back)
+;               missile 0   Aim target (top,bottom,middle-right) / Ball Shadow
+;               missile 1   Ball (right-side)
+;               missile 2   Aim target (middle-left)
+;               missile 3   Ball (left-side)
+
+;--------------------------------------
 ;   timers
 ;   0   = swing animation, cursor flash
 ;   1   = change clubs
@@ -48,6 +66,7 @@
 ;   A-Z             [$61:$7A]/[$41:$5A]
 ;   1-4             [$31:$34]/[$31:$34]
 ;   Shft,1-4        [$31:$34]/[$21,$40,$23,$24]
+
 
 ;--------------------------------------
                 * = $1FE0
@@ -100,7 +119,6 @@ BOOT            ldx #$FF
                 .include "gauge.asm"
 
                 .include "hud.asm"
-                .include "hud_mock.asm"
                 .include "playfield.asm"
                 .include "sodpatch.asm"
                 .include "render.asm"
@@ -172,14 +190,11 @@ end_gameFont
 
                 .include "data/CLOUDS.inc"
                 .include "data/MOUNTAINS.inc"
-                .include "data/STATIC.inc"
                 .include "data/GAMESTATE.inc"
                 .include "data/SODPATCH.inc"
-                .include "data/GLYPHS.inc"
 
                 .include "platform_f256.asm"
                 .include "kernel/facade.asm"
-                .include "interrupts.asm"
 
 
 ;======================================
@@ -188,9 +203,15 @@ end_gameFont
 INIT            .proc
                 jsr InitKernel
 
+; - - - - - - - - - - - - - - - - - - -
+                sei                     ; disable interrupts
+
                 jsr InitMMU
-                ;jsr InitCPUVectors
-                ;jsr InitIRQs
+                jsr InitCPUVectors
+                jsr InitIRQs
+
+                cli                     ; enable interrupts
+; - - - - - - - - - - - - - - - - - - -
 
                 jsr RandomSeedQuick
 
@@ -234,3 +255,8 @@ Stage           .proc
                 .include "data/ANIM1_PUTT_32.inc"
                 .include "data/ANIM0_CLUB_24.inc"
                 .include "data/COURSES.inc"
+
+                .align $100
+                .include "interrupts.asm"
+                .include "data/GLYPHS.inc"
+                .include "data/STATIC.inc"
