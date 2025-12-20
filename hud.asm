@@ -1,7 +1,7 @@
 
 ;======================================
 ;
-;======================================
+;====================================== ;[[U]]
 RenderHUD       .proc
                 jsr RenderHUDCourse     ; draw course#
                 jsr RenderHUDPAR        ; draw hole# and PAR
@@ -24,13 +24,7 @@ RenderHUD       .proc
                 .frsTextXY 31,18,$30,RenderHUD._scrnYards
                 .frsTextXY 37,18,$90,RenderHUD._scrnDistVal
 
-                .frsTextXY 31,20,$70,RenderHUD._scrnPowerTop
-                .frsTextXY 31,21,$70,RenderHUD._scrnPowerBot
                 .frsTextXY 33,20,$80,RenderHUD._scrnPower
-                .frsTextXY 30,22,$70,RenderHUD._scrnSnapLeft
-                .frsTextXY 31,22,$70,RenderHUD._scrnSnapTop
-                .frsTextXY 32,22,$70,RenderHUD._scrnSnapRight
-                .frsTextXY 31,23,$70,RenderHUD._scrnSnapBot
                 .frsTextXY 33,22,$30,RenderHUD._scrnSnap
 
                 rts
@@ -49,27 +43,20 @@ _scrnWinds      .null "WINDS"
 _scrnClub       .null "CLUB"
 _scrnClubVal    .null "1W"
 
-_scrnYards      .null "YARDS"
-_scrnFeet       .null "FEET"
-_scrnInches     .null "INCHES"
+_scrnYards      .null "YARDS    "
+_scrnFeet       .null "FEET     "
+_scrnInches     .null "INCHES   "
 _scrnDistVal    .null "134"
 
 _scrnPower      .null "POWER"
-_scrnPowerTop   .null $C7
-_scrnPowerBot   .null $C8
-
 _scrnSnap       .null "SNAP"
-_scrnSnapTop    .null $C7
-_scrnSnapBot    .null $C8
-_scrnSnapLeft   .null $C9
-_scrnSnapRight  .null $CA
 
                 .endproc
 
 
 ;======================================
 ;
-;======================================
+;====================================== ;[[F]]
 DrawDistanceToPin_m1 .proc
                 ldx #stagePLAY
                 stx nStage
@@ -83,16 +70,12 @@ DrawDistanceToPin_m1 .proc
 
 ;--------------------------------------
 ;
-;--------------------------------------
+;-------------------------------------- ;[[F]]
 DrawDistanceToPin .proc
 _remainder      = zpD0
 ;---
 
                 jsr DrawDistUnit
-
-                ldy zpD2                ; [37,$D2]... $D2=(17:yards|13:putt) set by DrawDistUnit
-                ldx #$25
-                jsr CalcPixelAddr
 
 ;--------------------------------------
 ;   hundreds-digit
@@ -101,8 +84,10 @@ _remainder      = zpD0
                 cmp #$C8                ; <200 yards?
                 bcc _1                  ;   yes
 
+                ; carry is set
                 sbc #$C8                ; -200
                 clc
+
                 ldx #$02                ; X=hundreds-digit
                 jmp _3
 
@@ -110,8 +95,10 @@ _remainder      = zpD0
 _1              cmp #$64                ; <100 yards?
                 bcc _2                  ;   yes
 
+                ; carry is set
                 sbc #$64                ; -100
                 clc
+
                 ldx #$01                ; X=hundreds-digit
                 jmp _3
 
@@ -128,6 +115,7 @@ _3              stx _hundredsDigit
 _next1          cmp #$0A                ; <10?
                 bcc _4                  ;   yes
 
+                ; carry is set
                 sbc #$0A                ; -10
 
                 inx                     ; ++X=tens-digit
@@ -142,6 +130,7 @@ _4              stx _tensDigit
 
 ; - - - - - - - - - - - - - - - - - - -
 ;   ones-digit
+
                 ldx distanceToPinYards+1    ; [0:2] used as index
                 lda _onesDigit
                 clc
@@ -149,6 +138,7 @@ _4              stx _tensDigit
                 cmp #$0A                ; <10?
                 bcc _5                  ;   yes
 
+                ; carry is set
                 sbc #$0A                ; -10
 
 _5              sta _onesDigit
@@ -161,6 +151,7 @@ _5              sta _onesDigit
                 cmp #$0A                ; <10?
                 bcc _6                  ;   yes
 
+                ; carry is set
                 sbc #$0A                ; -10
 
 _6              sta _tensDigit
@@ -172,31 +163,34 @@ _6              sta _tensDigit
                 adc _extendHundreds,X
                 sta _hundredsDigit
 
-                lda #$80
-                bit PORTA               ; security: unused
-                sta glyphType
-
 ;--------------------------------------
 ;   draw distance to pin
+
+                lda #' '
+                sta RenderHUD._scrnDistVal
+
                 lda _hundredsDigit      ; is there a hundreds-digit?
                 beq _7                  ;   no, skip
 
-                dec glyphType
-                ora #$10                ; convert to glyph #
+                ora #'0'                ; convert to ascii
+                sta RenderHUD._scrnDistVal
 
-_7              jsr PlotChar            ; render
-
+_7              lda #' '
+                sta RenderHUD._scrnDistVal+1
+                
                 lda _tensDigit          ; is there a tens-digit?
-                bne _8                  ;   yes
+                beq _8                  ;   no, skip
 
-                bit glyphType           ;   no
-                bmi _9
+                ora #'0'                ; convert to ascii
+                sta RenderHUD._scrnDistVal+1
 
-_8              ora #$10                ; convert to glyph #
-_9              jsr PlotChar            ; render
+_8              lda _onesDigit
+                ora #'0'                ; convert to ascii
+                sta RenderHUD._scrnDistVal+2
 
-                lda _onesDigit
-                jmp PlotCharBCD         ; render
+                .frsTextXY 37,18,$90,RenderHUD._scrnDistVal
+
+                rts
 
 ;--------------------------------------
 
@@ -204,7 +198,7 @@ _onesDigit      .byte $00
 _tensDigit      .byte $00
 _hundredsDigit  .byte $00
 
-_extendOnes     .byte $00,$06,$02       ; 0,256,512
+_extendOnes     .byte $00,$06,$02       ; +000,+256,+512
 _extendTens     .byte $00,$05,$01
 _extendHundreds .byte $00,$02,$05
 
@@ -213,24 +207,10 @@ _extendHundreds .byte $00,$02,$05
 
 ;======================================
 ;
-;======================================
+;====================================== ;[[F]]
 DrawDistUnit    .proc
                 ldx #stagePLAY
                 stx nStage
-
-                lda idxDistanceUnit
-                clc                     ; *9 (length of each string)
-                rol
-                rol
-                rol
-                clc
-                adc idxDistanceUnit
-                sta zpD0                ; start index
-
-;   calculate the end index
-                clc
-                adc #$09                ; length of each string
-                sta _stopCond+1
 
                 ldx activePlayer
                 lda playerDistUnit,X
@@ -238,41 +218,29 @@ DrawDistUnit    .proc
                 bne _1
 
 ;   yards
-                ldy #$11                ; yards (non-putt)
-                .byte $2C               ; consume the following LDY operation
-_1              ldy #$0D                ; feet/inches (putt)
+                .frsTextXY 31,18,$30,RenderHUD._scrnYards
+                bra _XIT
 
-                sty zpD2                ; [31,$D2]
-                ldx #$1F
-                jsr CalcPixelAddr
+; - - - - - - - - - - - - - - - - - - -
+_1              cmp #unitFEET
+                bne _2
 
-_next1          ldx zpD0
-                lda _distUnit,X
-                jsr PlotChar
+                .frsTextXY 31,18,$30,RenderHUD._scrnFeet
+                bra _XIT
 
-                inc zpD0
-                lda zpD0
-_stopCond       cmp #$94                ; [smc] end reached?
-                bne _next1              ;   no
+; - - - - - - - - - - - - - - - - - - -
+_2              .frsTextXY 31,18,$30,RenderHUD._scrnInches
 
-                rts
-
-;--------------------------------------
-
-
-            .enc "atari-screen"
-_distUnit       .text 'INCHES   '
-                .text 'FEET     '
-                .text 'YARDS    '
-            .enc "none"
-
+_XIT            rts
                 .endproc
 
 
 ;--------------------------------------
+;
+;--------------------------------------
 ; on entry:
 ;   glyphType   '0' or '0-bar' type
-;--------------------------------------
+;-------------------------------------- ;[[F]]
 PlotCharArray   .proc
 _5digits        ldx #$00
                 .byte $2C               ; consume the following LDX operation
@@ -336,7 +304,7 @@ glyphType       .byte $00
 
 ;======================================
 ;
-;======================================
+;====================================== ;[[V]]
 RenderHUDCourse .proc
                 ldx #stagePLAY
                 stx nStage
@@ -345,7 +313,7 @@ RenderHUDCourse .proc
                 ldy tblCourseIndexes,X
                 iny
                 tya
-                ora #$30
+                ora #'0'
                 sta RenderHUD._scrnCourseVal
 
                 rts
@@ -354,7 +322,7 @@ RenderHUDCourse .proc
 
 ;======================================
 ;
-;======================================
+;====================================== ;[[U]]
 RenderHUDPlayers .proc
                 jsr RenderHUDActivePlayer  ; '>'-mark for the active player
                 bra _hack    ; HACK:
@@ -453,7 +421,7 @@ _scrnP4Delta    .null "  "
 
 ;======================================
 ;
-;======================================
+;====================================== ;[[V]]
 RenderHUDActivePlayer .proc
 _idxChar        = zpD0
 _ptrName        = zpF9
@@ -487,6 +455,7 @@ _1              lda #stageCONFIG
 
                 lda #$00
                 sta _idxChar
+
 _next1          tay
                 lda (_ptrName),Y
                 sta (zpDest),Y
@@ -532,7 +501,7 @@ DoNothing4      rts
 
 ;======================================
 ;
-;======================================
+;====================================== ;[[U]]
 RenderStrokeCount .proc
                 ldx #stagePLAY
                 stx nStage
@@ -584,7 +553,7 @@ _3              jsr PlotChar
 ;   wordA
 ;   wordB
 ;   wordC
-;======================================
+;====================================== ;[[F]]
 CalcValuem10_Div10_x3 .proc
                 ldx activePlayer
                 lda playerWindDirection_HI,X
@@ -611,7 +580,7 @@ CalcValuem10_Div10_x3 .proc
 
 ;======================================
 ;
-;======================================
+;====================================== ;[[V]]
 RenderHUDPAR    .proc
 _tens_digit     = zpD0
 ;---
