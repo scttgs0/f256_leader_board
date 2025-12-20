@@ -28,8 +28,8 @@ SprColor7       .dword $006d0a0a    ; [17]  player
 SprColor8       .dword $00222222    ;       club
 SprColor9       .dword $00216161    ;       club
 SprColorA       .dword $004040ff    ; [1A]  gauge
-SprColorB       .dword $00814020    ;       gauge
-SprColorC       .dword $00ff2000    ;       gauge
+SprColorB       .dword $00ff2000    ;       gauge
+SprColorC       .dword $007a7990    ;       gauge
 SprColorD       .dword $00505050    ;       gauge
 SprColorE       .dword $00eeeeee    ; [1E]  ball
 SprColorF       .dword $00cccccc    ; [1F]  aim target

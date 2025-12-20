@@ -195,7 +195,7 @@ playerWindDirection_LO  .fill 4,$00
 
 isDrivingRange          .byte FALSE
 lineNode0_pairDC_DE_2   .byte $00
-yPosNewMissile0         .byte $00
+yPosNewBallShadow       .byte $00
 
 deltaWind_m40_p80       .byte $00
 deltaWind_p00_p50       .byte $00
