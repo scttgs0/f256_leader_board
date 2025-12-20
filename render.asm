@@ -4,7 +4,7 @@
 ;--------------------------------------
 ; on entry:
 ;   idxPolygon
-;======================================
+;====================================== ;[[V]]
 RenderPolygon   .proc
 _ptrPolyVertY_HI    = zpFE
 ;---
@@ -30,8 +30,7 @@ _ptrPolyVertY_HI    = zpFE
                 sta _separation
 
 ;   start with the base layer (height=0)
-_1              ;lda #$00
-                stz polyVertZ_LO
+_1              stz polyVertZ_LO
                 stz polyVertZ_HI
 
                 lda #COLOR_RUST         ; MUD
@@ -64,7 +63,7 @@ _2              lda polyVertZ_LO
                 lda #$18                ; surface layer (24 inches)
                 sta polyVertZ_LO
 
-                jsr PopulateWorkQueue
+                jsr PopulateClipQueue
 
                 lda idxWork             ; work to perform?
                 beq _XIT                ;   no
@@ -94,7 +93,7 @@ _separation     .byte $00
 ;--------------------------------------
 ; on entry:
 ;   idxPolygon
-;======================================
+;====================================== ;[[V]]
 RenderMudLayer  .proc
                 ldy idxPolygon
                 lda bufPolyVertCount,Y
@@ -166,39 +165,7 @@ _XIT            rts
 
 ;======================================
 ;
-;--------------------------------------
-; on entry:
-;   Y           polygon vertex index
-; on exit:
-;   polyVertX_LO/HI
-;   polyVertY_LO/HI
-;======================================
-FetchFromPolygonBuf .proc
-_ptrPolyVertX_LO    = zpF8
-_ptrPolyVertX_HI    = zpFA
-_ptrPolyVertY_LO    = zpFC
-_ptrPolyVertY_HI    = zpFE
-;---
-
-                lda (_ptrPolyVertX_LO),Y
-                tax
-                lda (_ptrPolyVertX_HI),Y
-                stx polyVertX_LO
-                sta polyVertX_HI
-
-                lda (_ptrPolyVertY_LO),Y
-                tax
-                lda (_ptrPolyVertY_HI),Y
-                stx polyVertY_LO
-                sta polyVertY_HI
-
-                rts
-                .endproc
-
-
-;======================================
-;
-;======================================
+;====================================== ;[[V]]
 ProcessLinePIXEL .proc
                 lda #operPIXEL
                 sta nodeOperation
@@ -207,6 +174,18 @@ ProcessLinePIXEL .proc
                 beq ProcessLine
 
                 rts
+                .endproc
+
+
+;======================================
+;
+;====================================== ;[[V]]
+ProcessLineFILL .proc
+                lda #operFILL
+                sta nodeOperation
+
+                jmp ProcessLine
+
                 .endproc
 
 
@@ -220,7 +199,7 @@ ProcessLinePIXEL .proc
 ;   lineNode1_VertZ_LO
 ; on exit:
 ;   accumDistance
-;======================================
+;====================================== ;[[V]]
 ProcessLine     .proc
 ; - - - - - - - - - - - - - - - - - - -
 ;   preserve IOPAGE control
@@ -235,8 +214,9 @@ ProcessLine     .proc
                 pha                     ; preserve
                 ora #mmuEditMode
                 sta MMU_CTRL
-; - - - - - - - - - - - - - - - - - - -
 
+; - - - - - - - - - - - - - - - - - - -
+; entry point for the wind streamer
 _ENTRY_WIND     ldy #$01                ; Y=1 (down/right)
                 sty pl_DeltaX_increment
                 sty pl_DeltaZ_conditional
@@ -361,11 +341,11 @@ _5              tya
 
                 ldx lineNode0_VertX_LO
 _setMaxX        cpx #$F0                ; [smc] xMax (240)
-                bcs _6                  ;   no
+                bcs _6                  ; too big
 
                 ldy lineNode0_VertZ_LO
                 cpy #$C8                ; zMax (200)
-                bcs _6                  ;   no
+                bcs _6                  ; too big
 
                 sta accumDistance
 
@@ -387,7 +367,7 @@ _6              pla                     ; restore Y (accumulated distance)
                 sta IOPAGE_CTRL
 ; - - - - - - - - - - - - - - - - - - -
 
-                rts
+                rts                     ; done
 
 ; - - - - - - - - - - - - - - - - - - -
 _7              jmp _nextPixel
@@ -423,7 +403,7 @@ pixelColor              .byte COLOR_BLACK
 ; Render course polygons
 ;   _OUTLINE    draw mud banks
 ;   _FILL       draw turf
-;======================================
+;====================================== ;[[V]]
 RenderCourse    .proc
 _OUTLINE        lda holeInfoPolyCount
                 sta idxPolygon          ; render back-to-front, start with the far polygon
@@ -447,7 +427,7 @@ _XIT            rts
 
 ;======================================
 ; Render polygon fill
-;======================================
+;====================================== ;[[V]]
 RenderFill      .proc
                 lda holeInfoPolyCount
                 sta idxPolygon
@@ -467,7 +447,7 @@ RenderFill      .proc
 ;   X           xPos
 ;   Y           yPos
 ;   pixelColor
-;--------------------------------------
+;-------------------------------------- ;[[V]]
 RenderPixel     .proc
                 jsr GetPixelPtr
 
@@ -480,272 +460,9 @@ _setAddrPixelByte1
 
 
 ;======================================
-;
-;--------------------------------------
-; 1st pass: compare all xVert for xMax
-;   if xMaxClipped, record highest zVert
-;--------------------------------------
-; 2nd pass: compare all xVert for xMin
-;   if xMinClipped, record highest zVert
-;--------------------------------------
-; if nMatches is odd, insert a new vertex
-;======================================
-PreprocessVoids .proc
-                lda #$01
-                sta _clipFlag           ; expecting isMaxClip
-                sta _deltaMatchPair
-
-                lda #$F0-1              ; xMax (239)
-                sta _vertX
-
-; - - - - - - - - - - - - - - - - - - -
-;   look for matching pairs at the extremes (xMax/xMin)
-_nextPass       lda #$00
-                sta _nMatches
-
-                ldy #$00
-                sty _vertZ              ; zMin (0)
-
-_next2          lda bufCourseWorkVertX,Y
-                cmp _vertX              ; limit match?
-                bne _1                  ;   no
-
-                lda bufCourseWorkFlags,Y
-                and _clipFlag           ; isMaxClip/isMinClip?
-                beq _1                  ;   no
-
-                inc _nMatches
-
-                lda bufCourseWorkVertZ,Y
-                cmp _vertZ              ; higher value?
-                bcc _1                  ;   no
-
-                sta _vertZ              ; found higher value
-
-                tya
-                clc
-                adc _deltaMatchPair
-                sta _idxMatchPair
-
-; - - - - - - - - - - - - - - - - - - -
-_1              iny
-                cpy idxWork             ; end of buffer reached?
-                bcc _next2              ;   no
-
-;   expecting an even number of matches
-                lda _nMatches
-                lsr                     ; even matches?
-                bcc _3                  ;   yes
-
-                ldy idxWork
-                cpy _idxMatchPair       ; are we at the end?
-                beq _insertVertex       ;   yes, no need to insert space
-
-; - - - - - - - - - - - - - - - - - - -
-;   make space for the new vertex
-_makeSpace      dey
-                lda bufCourseWorkVertX,Y
-                pha
-                lda bufCourseWorkVertZ,Y
-                pha
-                lda bufCourseWorkFlags,Y
-
-                iny
-                sta bufCourseWorkFlags,Y
-                pla
-                sta bufCourseWorkVertZ,Y
-                pla
-                sta bufCourseWorkVertX,Y
-
-                dey
-                cpy _idxMatchPair
-                bne _makeSpace
-
-; - - - - - - - - - - - - - - - - - - -
-;   insert new vertex
-_insertVertex   lda #$00                ; not clipped (force skip Z)
-                sta bufCourseWorkFlags,Y
-
-                lda #$C8-1              ; zMax (199) bottom corner
-                sta bufCourseWorkVertZ,Y
-
-                lda _vertX              ; xMin/xMax
-                sta bufCourseWorkVertX,Y
-
-                inc idxWork             ; one more vertex in the buffer
-
-; - - - - - - - - - - - - - - - - - - -
-_3              lda _vertX              ; already processed xMin?
-                beq _XIT                ;   yes
-
-                lda #$00
-                sta _vertX              ; xMin (0)
-                sta _deltaMatchPair     ; 0=current item is larger
-
-                lda #$02
-                sta _clipFlag           ; expecting isMinClip
-
-                jmp _nextPass
-
-; - - - - - - - - - - - - - - - - - - -
-_XIT            rts
-
-;--------------------------------------
-
-_clipFlag       .byte $00               ; 1=isMaxClip, 2=isMinClip
-_deltaMatchPair .byte $00
-
-_vertZ          .byte $00
-_vertX          .byte $00
-
-_idxMatchPair   .byte $00               ; 1=next item is larger, 0=current item is larger
-_nMatches       .byte $00               ; expecting this to be an even number
-
-                .endproc
-
-
-;======================================
-;
-;======================================
-PopulateWorkQueue .proc
-                ldy idxPolygon
-                lda bufPolyVertCount,Y
-                sta polyVertCount
-
-                ldy #$00
-                sty idxWork
-
-; - - - - - - - - - - - - - - - - - - -
-;   vertex 0
-                jsr FetchFromPolygonBuf
-                sty idxPolygonVertex    ; polygon vertex index
-
-                ldx #xformNORMAL
-                jsr VertexTransform
-
-;   last node becomes the first node
-                sta lineNode0_ClipFlags
-_next1          stx lineNode0_VertX_LO
-                sty lineNode0_VertZ_LO
-
-                lda newVertX_HI
-                sta lineNode0_VertX_HI
-                lda newVertZ_HI
-                sta lineNode0_VertZ_HI
-
-; - - - - - - - - - - - - - - - - - - -
-;   vertex 1
-;   last node joins with the first node
-                ldy idxPolygonVertex
-                iny
-                cpy polyVertCount
-                bcc _1
-
-                ldy #$00
-_1              jsr FetchFromPolygonBuf
-                sty idxPolygonVertex    ; polygon vertex index
-
-                ldx #xformNORMAL
-                jsr VertexTransform
-                sta lineNode1_ClipFlags
-                stx lineNode1_VertX_LO
-                sty lineNode1_VertZ_LO
-
-                lda newVertX_HI
-                sta lineNode1_VertX_HI
-                lda newVertZ_HI
-                sta lineNode1_VertZ_HI
-
-; - - - - - - - - - - - - - - - - - - -
-                ;lda #$00
-                stz lineNode1_isClipped ; FALSE
-                stz lineNode0_isClipped ; FALSE
-                stz lineNode1_VertX_flags
-                stz lineNode0_VertX_flags
-                stz isSwapped           ; FALSE
-
-                jsr ProcessClipFlags
-                php                     ; preserve flags
-
-                lda isSwapped           ; requires swap?
-                beq _2                  ;   no
-
-                jsr SwapLineNodes       ; swap the two line nodes back to their original positions
-
-_2              plp                     ; restore flags
-                beq _4
-                jmp _5
-
-; - - - - - - - - - - - - - - - - - - -
-_4              jsr QueueWorkNode0      ; lineNode0 is clipped, add it to the queue
-
-                inc idxWork
-
-                lda lineNode1_isClipped ; lineNode1 clipped?
-                beq _5                  ;   no
-
-                jsr QueueWorkNode1      ; lineNode1 is clipped, add it to the queue
-
-                inc idxWork
-
-; - - - - - - - - - - - - - - - - - - -
-_5              ldy idxPolygonVertex
-                beq _XIT
-
-;   last node becomes the first node
-                lda newClip_flags
-                sta lineNode0_ClipFlags
-
-                ldx newVertX_LO
-                ldy newVertZ_LO
-
-                jmp _next1
-
-; - - - - - - - - - - - - - - - - - - -
-_XIT            rts
-                .endproc
-
-
-;======================================
-;
-;======================================
-QueueWorkNode0  .proc
-                ldy idxWork
-                lda lineNode0_VertX_LO
-                sta bufCourseWorkVertX,Y
-
-                lda lineNode0_VertZ_LO
-                sta bufCourseWorkVertZ,Y
-
-                lda lineNode0_VertX_flags
-                sta bufCourseWorkFlags,Y
-
-                rts
-                .endproc
-
-
-;======================================
-;
-;======================================
-QueueWorkNode1  .proc
-                ldy idxWork
-                lda lineNode1_VertX_LO
-                sta bufCourseWorkVertX,Y
-
-                lda lineNode1_VertZ_LO
-                sta bufCourseWorkVertZ,Y
-
-                lda lineNode1_VertX_flags
-                sta bufCourseWorkFlags,Y
-
-                rts
-                .endproc
-
-
-;======================================
 ; Render black outline on top layer of
 ; polygon (a prerequisite for fill)
-;======================================
+;====================================== ;[[V]]
 RenderPolyTopEdge .proc
 _BLACK          lda #COLOR_BLACK
                 sta pixelColor
@@ -754,7 +471,7 @@ _BLACK          lda #COLOR_BLACK
 _COLOR          ldy #operPIXEL
                 sty nodeOperation
 
-                jsr FetchFromWorkQueue  ; result A:vertZ, X:vertX
+                jsr FetchFromClipQueue  ; result A:vertZ, X:vertX
                 stx lineNode0_VertX_LO
                 sta lineNode0_VertZ_LO
 
@@ -763,7 +480,7 @@ _next1          iny
                 bcc _1                  ;   no
 
                 ldy #$00                ; join with the first node
-_1              jsr FetchFromWorkQueue  ; result A:vertZ, X:vertX
+_1              jsr FetchFromClipQueue  ; result A:vertZ, X:vertX
                 stx lineNode1_VertX_LO
                 sta lineNode1_VertZ_LO
 
@@ -779,13 +496,13 @@ _1              jsr FetchFromWorkQueue  ; result A:vertZ, X:vertX
 
 ;======================================
 ;
-;======================================
+;====================================== ;[[V]]
 RenderPolyFill  .proc
                 ldy #$00
                 lda #COLOR_GREEN
                 sta pixelColor
 
-                jsr FetchFromWorkQueue  ; result A:vertZ, X:vertX
+                jsr FetchFromClipQueue  ; result A:vertZ, X:vertX
                 stx lineNode0_VertX_LO
                 sta lineNode0_VertZ_LO
 
@@ -794,7 +511,7 @@ _next1          iny
                 bcc _1                  ;   no
 
                 ldy #$00                ; join with the first node
-_1              jsr FetchFromWorkQueue  ; result A:vertZ, X:vertX
+_1              jsr FetchFromClipQueue  ; result A:vertZ, X:vertX
                 stx lineNode1_VertX_LO
                 sta lineNode1_VertZ_LO
 
@@ -812,36 +529,6 @@ _1              jsr FetchFromWorkQueue  ; result A:vertZ, X:vertX
 ;
 ;--------------------------------------
 ; on entry:
-;   Y           work queue index
-; on exit:
-;   A           vertZ
-;   X           vertX
-;======================================
-FetchFromWorkQueue .proc
-                lda bufCourseWorkVertX,Y
-                tax
-
-                lda bufCourseWorkVertZ,Y
-                rts
-                .endproc
-
-
-;======================================
-;
-;======================================
-ProcessLineFILL .proc
-                lda #operFILL
-                sta nodeOperation
-
-                jmp ProcessLine
-
-                .endproc
-
-
-;======================================
-;
-;--------------------------------------
-; on entry:
 ;   pl_DistanceX
 ;   accumDistance
 ;   nodeOperation
@@ -849,7 +536,7 @@ ProcessLineFILL .proc
 ;   bufCourseWorkFlags
 ;   lineNode0_VertX_LO
 ;   lineNode0_VertZ_LO
-;======================================
+;====================================== ;[[V]]
 RenderNodes     .proc
                 stz pixelMask           ; clear the mask
 
@@ -956,7 +643,7 @@ _6              lda #COLOR_GREEN
 
 ;======================================
 ;
-;======================================
+;====================================== ;[[V]]
 CalcVertX_flags .proc
                 lda bufCourseWorkVertZ  ; zFirst
                 ldy idxWork             ; # queue entries
@@ -973,12 +660,12 @@ _1              dex                     ; (0) equal
 _2              stx rc3_lineNode0_deltaZ    ; (+1) bigger
 
                 ldy #$00                ; lineNode0
-                jsr FetchFromWorkQueue  ; result A:vertZ, X:vertX
+                jsr FetchFromClipQueue  ; result A:vertZ, X:vertX
                 stx lineNode0_VertX_LO
                 sta lineNode0_VertZ_LO
 
                 iny                     ; lineNode1
-_next1          jsr FetchFromWorkQueue  ; result A:vertZ, X:vertX
+_next1          jsr FetchFromClipQueue  ; result A:vertZ, X:vertX
                 stx lineNode1_VertX_LO
                 ldx #$01
                 sta lineNode1_VertZ_LO
@@ -1122,7 +809,7 @@ _XIT            rts
 ;======================================
 ; Render the cup when on the green,
 ; otherwise render the pin
-;======================================
+;====================================== ;[[F]]
 RenderCupOrPin  .proc
                 ldx activePlayer
                 lda playerDistUnit,X
@@ -1264,7 +951,7 @@ _DRAW           pha
 ;--------------------------------------
 ; on entry:
 ;   X           keyframe #
-;======================================
+;====================================== ;[[V]]
 VertexTransform .proc
                 lda polyVertX_LO
                 sta polyVertX_LO_2
@@ -1283,13 +970,13 @@ VertexTransform .proc
 
 ; - - - - - - - - - - - - - - - - - - -
 ;   operation #0 = normal
-                cpx #$00
+                cpx #xformNORMAL
                 bne _1
                 jmp Project3DVertex
 
 ; - - - - - - - - - - - - - - - - - - -
 ;   operation #2 = aim position
-_1              cpx #$01
+_1              cpx #xformDELTA_Z
                 beq _2
                 jmp ProjectAimPosition
 
@@ -1297,7 +984,6 @@ _1              cpx #$01
 ;   operation #1 = deltaZ
 _2              lda polyVertZ_delta
                 sta polyVertZ_LO_2
-                ;lda #$00
                 stz polyVertZ_HI_2
 
                 jmp Project3DVertex
@@ -1313,7 +999,7 @@ _2              lda polyVertZ_delta
 ;   Y           yPos
 ; on exit:
 ;   Y           =0
-;======================================
+;====================================== ;[[V]]
 GetPixelPtr     .proc
                 lda #$10                ; [8000:9FFF]->[2_0000:2_1FFF]
                 sta zpMMU               ; [A000:BFFF]->[2_2000:2_3FFF]
@@ -1413,7 +1099,7 @@ _addr           .word $0000
 ; on exit:
 ;   Y           =0
 ;   zpFD        pixel pointer
-;======================================
+;====================================== ;[[V]]
 GetPixelPtr_zp  .proc
                 jsr GetPixelPtr
 
@@ -1422,35 +1108,5 @@ GetPixelPtr_zp  .proc
                 lda GetPixelPtr._addr+1
                 sta zpFD+1
 
-                rts
-                .endproc
-
-
-;======================================
-;
-;--------------------------------------
-; on entry:
-;   X           new xPos
-;   Y           new yPos
-; on exit:
-;   zpFD        pixel pointer
-;   pixelMask   new value
-;======================================
-GetPixelPtrMask .proc
-                rts
-                .endproc
-
-
-;======================================
-;
-;--------------------------------------
-; on entry:
-;   X           xPos
-;   Y           yPos
-; on exit:
-;   Y           =0
-;   pixelMask   new value
-;======================================
-GetPixelPtrInvMask .proc
                 rts
                 .endproc
