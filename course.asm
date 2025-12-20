@@ -1,5 +1,349 @@
 
 ;======================================
+;
+;--------------------------------------
+; on entry:
+;   A           idxPolygon
+;====================================== ;[[V]]
+SetCoursePtrs   .proc
+_ptrPolyVertX_LO    = zpF8
+_ptrPolyVertX_HI    = zpFA
+_ptrPolyVertY_LO    = zpFC
+_ptrPolyVertY_HI    = zpFE
+;---
+
+                asl                     ; word index
+                tax
+
+                lda ptrPolyVertX_LO,X
+                sta _ptrPolyVertX_LO
+                lda ptrPolyVertX_LO+1,X
+                sta _ptrPolyVertX_LO+1
+
+                lda ptrPolyVertX_HI,X
+                sta _ptrPolyVertX_HI
+                lda ptrPolyVertX_HI+1,X
+                sta _ptrPolyVertX_HI+1
+
+                lda ptrPolyVertY_LO,X
+                sta _ptrPolyVertY_LO
+                lda ptrPolyVertY_LO+1,X
+                sta _ptrPolyVertY_LO+1
+
+                lda ptrPolyVertY_HI,X
+                sta _ptrPolyVertY_HI
+                lda ptrPolyVertY_HI+1,X
+                sta _ptrPolyVertY_HI+1
+
+                rts
+                .endproc
+
+
+;======================================
+;
+;====================================== ;[[V]]
+GetPtrHoleInfo  .proc
+                jsr GetCourseOffset._36  ; 36-byte course data; result in Y:X
+
+                txa                     ; Y:X +tableStart
+                clc
+                adc #<tblCourseHoleInfo
+                tax
+                tya
+                adc #>tblCourseHoleInfo
+                tay
+
+                rts
+                .endproc
+
+
+;======================================
+;
+;====================================== ;[[V]]
+GetPtrHoleWindDirection .proc
+                jsr GetCourseOffset._18 ; 18-byte course data; result in Y:X
+
+                txa                     ; Y:X +tableStart
+                clc
+                adc #<tblCourseHoleWindDirection
+                tax
+                tya
+                adc #>tblCourseHoleWindDirection
+                tay
+
+                rts
+                .endproc
+
+
+;======================================
+;
+;====================================== ;[[V]]
+GetPtrHoleWindVelocity .proc
+                jsr GetCourseOffset._18 ; 18-byte course data; result in Y:X
+
+                txa                     ; Y:X +tableStart
+                clc
+                adc #<tblCourseHoleWindVelocity
+                tax
+                tya
+                adc #>tblCourseHoleWindVelocity
+                tay
+
+                rts
+                .endproc
+
+
+;======================================
+;
+;====================================== ;[[V]]
+GetPtrHolePAR   .proc
+                jsr GetCourseOffset._18  ; 18=byte course data; result in Y:X
+
+                txa                     ; Y:X +tableStart
+                clc
+                adc #<tblCourseHolePAR
+                tax
+                tya
+                adc #>tblCourseHolePAR
+                tay
+
+                rts
+                .endproc
+
+
+;======================================
+;
+;--------------------------------------
+; on entry:
+;   A           polygon index
+;====================================== ;[[V]]
+GetPtrPolygonOrigin .proc
+_ptr            = zpFB
+;---
+
+                jsr GetPolygonOffset    ; result in _ptr
+
+                asl _ptr                ; *4 (16-bit)
+                rol _ptr+1
+                asl _ptr
+                rol _ptr+1
+
+                jsr GetCourseOffset._432 ; 432-byte course data; result in Y:X
+
+                txa                     ; Y:X +offset (16-bit)
+                clc
+                adc _ptr
+                tax
+                tya
+                adc _ptr+1
+                tay
+
+                txa                     ; Y:X +tableStart
+                clc
+                adc #<tblPolygonOrigins
+                sta _ptr
+                tya
+                adc #>tblPolygonOrigins
+                sta _ptr+1
+
+                rts
+                .endproc
+
+
+;======================================
+;
+;--------------------------------------
+; on entry:
+;   A           polygon index
+;====================================== ;[[V]]
+GetPtrPolygon   .proc
+_tmpptr         = zpFB
+_ptr            = zpFD
+;---
+
+                jsr GetPolygonOffset    ; result in _tmpptr
+
+                asl _tmpptr             ; *2 (16-bit)
+                rol _tmpptr+1
+
+                jsr GetCourseOffset._216 ; 216-byte course data; result in Y:X
+
+                txa                     ; Y:X +offset (16-bit)
+                clc
+                adc _tmpptr
+                tax
+                tya
+                adc _tmpptr+1
+                tay
+
+                txa                     ; Y:X +tableStart
+                clc
+                adc #<tblCoursePolygons
+                sta _ptr
+                tya
+                adc #>tblCoursePolygons
+                sta _ptr+1
+
+                rts
+                .endproc
+
+
+;======================================
+;
+;====================================== ;[[V]]
+GetPolygonOffset .proc
+_ptr            = zpFB
+;---
+
+                ldx idxActiveHole
+                ldy #$06
+                jsr MultipleBy6         ; 6 polygons per hole; result in X:A; X is ignored
+
+                clc
+                adc idxPolygon
+                sta _ptr
+                stz _ptr+1
+
+                rts
+                .endproc
+
+
+;======================================
+; calculate the array offset for the
+; start of the specified course
+;====================================== ;[[V]]
+GetCourseOffset .proc
+_18             lda #18                 ; 18 bytes per course
+                .byte $2C               ; consume the following LDA operation
+_36             lda #36                 ; 36 bytes per course
+                .byte $2C               ; consume
+_216            lda #216                ; 216 bytes per course
+                ldx #$00                ; zero HI byte
+                jmp _process
+
+; - - - - - - - - - - - - - - - - - - -
+_432            lda #<432               ; 432 bytes per course
+                ldx #>432
+
+_process        sta _set_LO+1
+                stx _set_HI+1
+
+                ldx idxActiveCourse
+                lda tblCourseIndexes,X
+                tax                     ; X=course #
+
+                lda #$00
+                pha                     ; HI-byte on the STACK
+
+_next1          dex                     ; done?
+                bmi _1                  ;   yes
+
+                clc
+_set_LO         adc #$00                ; [smc]
+                tay                     ; Y=courseStartIndex_LO
+
+                pla
+_set_HI         adc #$00                ; [smc]
+                pha                     ; HI-byte on the STACK
+
+                tya                     ; A=courseStartIndex_LO
+                jmp _next1
+
+; - - - - - - - - - - - - - - - - - - -
+_1              tax                     ; X=courseStartIndex_LO
+                pla
+                tay                     ; Y=courseStartIndex_HI
+                rts
+                .endproc
+
+
+;======================================
+;
+;--------------------------------------
+; on entry:
+;   Y           polygon vertex index
+; on exit:
+;   polyVertX_LO/HI
+;   polyVertY_LO/HI
+;====================================== ;[[V]]
+FetchFromPolygonBuf .proc
+_ptrPolyVertX_LO    = zpF8
+_ptrPolyVertX_HI    = zpFA
+_ptrPolyVertY_LO    = zpFC
+_ptrPolyVertY_HI    = zpFE
+;---
+
+                lda (_ptrPolyVertX_LO),Y
+                tax
+                lda (_ptrPolyVertX_HI),Y
+                stx polyVertX_LO
+                sta polyVertX_HI
+
+                lda (_ptrPolyVertY_LO),Y
+                tax
+                lda (_ptrPolyVertY_HI),Y
+                stx polyVertY_LO
+                sta polyVertY_HI
+
+                rts
+                .endproc
+
+
+;======================================
+;
+;====================================== ;[[V]]
+ClonePolygonOrigin .proc
+                lda polygonOriginXa
+                sta polygonOriginXb
+                lda polygonOriginXa+1
+                sta polygonOriginXb+1
+
+                lda polygonOriginYa
+                sta polygonOriginYb
+                lda polygonOriginYa+1
+                sta polygonOriginYb+1
+
+                rts
+                .endproc
+
+
+;======================================
+;
+;====================================== ;[[V]]
+ClearVertexCache .proc
+                ldx #$03
+_next1          lda zpF3,X
+                sta data_1D57,X
+
+                dex
+                bpl _next1
+
+                rts
+                .endproc
+
+
+;--------------------------------------
+;--------------------------------------
+
+data_1D57       .byte $00,$00,$00,$00
+
+
+;--------------------------------------
+;
+;-------------------------------------- ;[[F]]
+ClearVertXPtrs  .proc
+                ldx #$03
+_next1          lda data_1D57,X
+                sta zpF8,X
+
+                dex
+                bpl _next1
+
+                rts
+                .endproc
+
+
+;======================================
 ; load course data.
 ; convert vertices from relative -> absolute.
 ; populate vertex buffers.
@@ -7,7 +351,7 @@
 ;--------------------------------------
 ; on entry:
 ;   idxActiveHole
-;======================================
+;====================================== ;[[V]]
 PrepareCourse   .proc
 _srcInfo        = zpFB
 _srcOrigin      = zpFB
@@ -33,7 +377,6 @@ _vertex_HI      = tempA
                 lda (_srcInfo),Y
                 sta holeInfoPuttRadius_LO
 
-                ;;lda #$00
                 stz idxPolygon
 
 ; - - - - - - - - - - - - - - - - - - -
@@ -222,250 +565,13 @@ tempA                   .byte $00
 windDirThisHole_HI      .byte $00
 
 
-;======================================
-;
-;======================================
-ClonePolygonOrigin .proc
-                lda polygonOriginXa
-                sta polygonOriginXb
-                lda polygonOriginXa+1
-                sta polygonOriginXb+1
-
-                lda polygonOriginYa
-                sta polygonOriginYb
-                lda polygonOriginYa+1
-                sta polygonOriginYb+1
-
-                rts
-                .endproc
-
-
-;======================================
-;
-;======================================
-GetPtrHoleInfo  .proc
-                jsr GetCourseOffset._36  ; 36-byte course data; result in Y:X
-
-                txa                     ; Y:X +tableStart
-                clc
-                adc #<tblCourseHoleInfo
-                tax
-                tya
-                adc #>tblCourseHoleInfo
-                tay
-
-                rts
-                .endproc
-
-
-;======================================
-;
-;======================================
-GetPtrHoleWindDirection .proc
-                jsr GetCourseOffset._18 ; 18-byte course data; result in Y:X
-
-                txa                     ; Y:X +tableStart
-                clc
-                adc #<tblCourseHoleWindDirection
-                tax
-                tya
-                adc #>tblCourseHoleWindDirection
-                tay
-
-                rts
-                .endproc
-
-
-;======================================
-;
-;======================================
-GetPtrHoleWindVelocity .proc
-                jsr GetCourseOffset._18 ; 18-byte course data; result in Y:X
-
-                txa                     ; Y:X +tableStart
-                clc
-                adc #<tblCourseHoleWindVelocity
-                tax
-                tya
-                adc #>tblCourseHoleWindVelocity
-                tay
-
-                rts
-                .endproc
-
-
-;======================================
-;
-;======================================
-GetPtrHolePAR   .proc
-                jsr GetCourseOffset._18  ; 18=byte course data; result in Y:X
-
-                txa                     ; Y:X +tableStart
-                clc
-                adc #<tblCourseHolePAR
-                tax
-                tya
-                adc #>tblCourseHolePAR
-                tay
-
-                rts
-                .endproc
-
-
-;======================================
-;
-;--------------------------------------
-; on entry:
-;   A           polygon index
-;======================================
-GetPtrPolygonOrigin .proc
-_ptr            = zpFB
-;---
-
-                jsr GetPolygonOffset    ; result in _ptr
-
-                asl _ptr                ; *4 (16-bit)
-                rol _ptr+1
-                asl _ptr
-                rol _ptr+1
-
-                jsr GetCourseOffset._432 ; 432-byte course data; result in Y:X
-
-                txa                     ; Y:X +offset (16-bit)
-                clc
-                adc _ptr
-                tax
-                tya
-                adc _ptr+1
-                tay
-
-                txa                     ; Y:X +tableStart
-                clc
-                adc #<tblPolygonOrigins
-                sta _ptr
-                tya
-                adc #>tblPolygonOrigins
-                sta _ptr+1
-
-                rts
-                .endproc
-
-
-;======================================
-;
-;--------------------------------------
-; on entry:
-;   A           polygon index
-;======================================
-GetPtrPolygon   .proc
-_tmpptr         = zpFB
-_ptr            = zpFD
-;---
-
-                jsr GetPolygonOffset    ; result in _tmpptr
-
-                asl _tmpptr             ; *2 (16-bit)
-                rol _tmpptr+1
-
-                jsr GetCourseOffset._216 ; 216-byte course data; result in Y:X
-
-                txa                     ; Y:X +offset (16-bit)
-                clc
-                adc _tmpptr
-                tax
-                tya
-                adc _tmpptr+1
-                tay
-
-                txa                     ; Y:X +tableStart
-                clc
-                adc #<tblCoursePolygons
-                sta _ptr
-                tya
-                adc #>tblCoursePolygons
-                sta _ptr+1
-
-                rts
-                .endproc
-
-
-;======================================
-;
-;======================================
-GetPolygonOffset .proc
-_ptr            = zpFB
-;---
-
-                ldx idxActiveHole
-                ldy #$06
-
-                jsr MultipleBy6         ; 6 polygons per hole; result in X:A; X is ignored
-
-                clc
-                adc idxPolygon
-                sta _ptr
-                stz _ptr+1
-
-                rts
-                .endproc
-
-
-;======================================
-; calculate the array offset for the
-; start of the specified course
-;======================================
-GetCourseOffset .proc
-_18             lda #18                 ; 18 bytes per course
-                .byte $2C               ; consume the following LDA operation
-_36             lda #36                 ; 36 bytes per course
-                .byte $2C               ; consume
-_216            lda #216                ; 216 bytes per course
-                ldx #$00                ; zero HI byte
-                jmp _process
-
-; - - - - - - - - - - - - - - - - - - -
-_432            lda #<432               ; 432 bytes per course
-                ldx #>432
-
-_process        sta _set_LO+1
-                stx _set_HI+1
-
-                ldx idxActiveCourse
-                lda tblCourseIndexes,X
-                tax                     ; X=course #
-
-                lda #$00
-                pha                     ; HI-byte on the STACK
-
-_next1          dex                     ; done?
-                bmi _1                  ;   yes
-
-                clc
-_set_LO         adc #$00                ; [smc]
-                tay                     ; Y=courseStartIndex_LO
-
-                pla
-_set_HI         adc #$00                ; [smc]
-                pha                     ; HI-byte on the STACK
-
-                tya                     ; A=courseStartIndex_LO
-                jmp _next1
-
-; - - - - - - - - - - - - - - - - - - -
-_1              tax                     ; X=courseStartIndex_LO
-                pla
-                tay                     ; Y=courseStartIndex_HI
-                rts
-                .endproc
-
-
 ;--------------------------------------
 ; convert vertices to inches and transform.
 ; transform the cup location.
 ;--------------------------------------
 ; on entry:
 ;   Y:A         playerWindDirection
-;--------------------------------------
+;-------------------------------------- ;[[V]]
 ProcessCourse   .proc
 _ptrPolyVertX_LO    = zpF8
 _ptrPolyVertX_HI    = zpFA
@@ -603,125 +709,43 @@ wordD_course    .word $0000
 
 ;======================================
 ;
-;--------------------------------------
-; on entry:
-;   A           idxPolygon
-;======================================
-SetCoursePtrs   .proc
-_ptrPolyVertX_LO    = zpF8
-_ptrPolyVertX_HI    = zpFA
-_ptrPolyVertY_LO    = zpFC
-_ptrPolyVertY_HI    = zpFE
-;---
-
-                asl                     ; word index
-                tax
-
-                lda ptrPolyVertX_LO,X
-                sta _ptrPolyVertX_LO
-                lda ptrPolyVertX_LO+1,X
-                sta _ptrPolyVertX_LO+1
-
-                lda ptrPolyVertX_HI,X
-                sta _ptrPolyVertX_HI
-                lda ptrPolyVertX_HI+1,X
-                sta _ptrPolyVertX_HI+1
-
-                lda ptrPolyVertY_LO,X
-                sta _ptrPolyVertY_LO
-                lda ptrPolyVertY_LO+1,X
-                sta _ptrPolyVertY_LO+1
-
-                lda ptrPolyVertY_HI,X
-                sta _ptrPolyVertY_HI
-                lda ptrPolyVertY_HI+1,X
-                sta _ptrPolyVertY_HI+1
-
-                rts
-                .endproc
-
-
-;======================================
-;
-;======================================
-ClearVertexCache .proc
-                ldx #$03
-_next1          lda zpF3,X
-                sta data_1D57,X
-
-                dex
-                bpl _next1
-
-                rts
-                .endproc
-
-
-;--------------------------------------
-;--------------------------------------
-
-data_1D57       .byte $00,$00,$00,$00
-
-;--------------------------------------
-;
-;--------------------------------------
-ClearVertXPtrs  .proc
-                ldx #$03
-_next1          lda data_1D57,X
-                sta zpF8,X
-
-                dex
-                bpl _next1
-
-                rts
-                .endproc
-
-;======================================
-;
-;======================================
+;====================================== ;[[F]]
 CalcPlayerPositionDelta .proc
-                rts
-                .endproc
+                ldx activePlayer
+                lda playerWindDirection_HI,X
+                sta windDirThisHole_HI
+                lda playerWindDirection_LO,X
+                sta windDirThisHole_LO
 
+                ldx #<$0500             ; player yPos
+                ldy #>$0500
+                jsr CalcPolyVertXY_delta
 
-;======================================
-; calculate Sqr(deltaX) + Sqr(deltaY).
-;--------------------------------------
-; Step One of the Pythagorean formula
-;======================================
-calcHypotenuseArea .proc
-                rts
-                .endproc
+                lda #<$1800             ; player xPos (inches)
+                clc
+                adc polyVertX_delta
+                tax
+                lda #>$1800
+                adc polyVertX_delta+1
+                tay
 
+                txa
+                ldx activePlayer
+                sec
+                sbc playerVertX_LO,X
+                sta playerVertX_delta
+                tya
+                sbc playerVertX_HI,X
+                sta playerVertX_delta+1
 
-;======================================
-;
-;--------------------------------------
-; Step Two of the Pythagorean formula
-;--------------------------------------
-; given:
-;   SQR($097CA440) = $3148
-;--------------------------------------
-; example:
-;   $2294   $A440                     ->$A440 ...   ->$3148
-;   $2296   $097C                     ->$097C       ->$097C
-;   $2298   $A440->$7FFF              ->$497C       ->$3148
-;   $229A   $097C->$0000              ->$0000       ->$0000
-;   wordA          $7FFF       ->$7FFF
-;   wordB          $A440->$12F9->$497C
-;   wordC          $097C->$3739->$0000
-;   wordD
-;======================================
-calcSquareRoot  .proc
-                rts
-                .endproc
+                lda playerVertY_LO,X
+                sec
+                sbc polyVertY_delta
+                sta playerVertY_delta
+                lda playerVertY_HI,X
+                sbc polyVertY_delta+1
+                sta playerVertY_delta+1
 
-
-;======================================
-;
-;--------------------------------------
-; CARRY is cleared when NOT EQUAL
-;======================================
-CompareForEquality .proc
                 rts
                 .endproc
 
@@ -736,8 +760,39 @@ CompareForEquality .proc
 ; $9D88                 $00
 ; distanceToPinFeet3    $4831
 ; distanceToPinYards    $5E01
-;======================================
+;====================================== ;[[F]]
 CalcDistanceToPuttGreen .proc
+;   putting green leading edge is PuttRadius distance in front of the pin location
+                ldx xPosCup_LO
+                lda xPosCup_HI
+                stx wordA_course
+                sta wordA_course+1
+
+                ldx holeInfoPuttRadius_LO
+                lda holeInfoPuttRadius_HI
+                stx wordB_course
+                sta wordB_course+1
+
+;   distance formula
+                jsr calcHypotenuseArea  ; dword result
+                jsr calcSquareRoot      ; word result in Y:X
+
+                jsr ApplyWindAffect
+
+                lda windDirThisHole_HI
+                sta hole_windDir_HI
+                lda windDirThisHole_LO
+                sta hole_windDir_LO
+
+                jsr ConvertDistance     ; convert into distanceToPinNatural
+
+                ldx #$03                ; two words
+_next1          lda distanceToPinFeet,X
+                sta distanceToPinFeet3,X
+
+                dex
+                bpl _next1
+
                 rts
                 .endproc
 
@@ -760,8 +815,54 @@ distanceToPinYards      .word $0000
 ; on exit:
 ;   distanceToPinNatural
 ;   idxDistanceUnit
-;======================================
+;====================================== ;[[F]]
 ConvertDistance .proc
+                lda distanceToPinFeet+1 ; <1 foot?
+                beq _toInches           ;   yes
+
+                cmp #$03                ; <3 feet (<1 yard)?
+                bcc _toFeet             ;   yes
+
+                lda #unitYARDS
+                ldx #<$0024             ; 36 inches/yard
+                ldy #>$0024
+_convert        stx wordA_3CBC          ; conversion factor
+                sty wordA_3CBC+1
+                sta idxDistanceUnit
+
+                lda distanceToPinFeet   ; distance value to convert
+                sta wordB_3CBE
+                lda distanceToPinFeet+1
+                sta wordB_3CBE+1
+
+                jsr DivideWordBbyWordA  ; result in wordB+wordC[remainder]
+
+                ldx wordB_3CBE          ; save result
+                stx distanceToPinNatural
+                ldy wordB_3CBE+1
+                sty distanceToPinNatural+1
+
+                rts
+
+; - - - - - - - - - - - - - - - - - - -
+_toFeet         lda #unitFEET
+                ldx #<$000C             ; 12 inches/feet
+                ldy #>$000C
+                jmp _convert
+
+; - - - - - - - - - - - - - - - - - - -
+_toInches       lda distanceToPinFeet
+                cmp #$18                ; >=24 inches?
+                bcs _toFeet             ;   yes
+
+                ldx distanceToPinFeet   ;   no
+                stx distanceToPinNatural
+                ldy distanceToPinFeet+1
+                sty distanceToPinNatural+1
+
+                lda #unitINCHES         ; switch to inches
+                sta idxDistanceUnit
+
                 rts
                 .endproc
 
@@ -774,7 +875,19 @@ ConvertDistance .proc
 ;   Y:X         word value
 ; on exit:
 ;   Y:X         converted word value
-;======================================
+;====================================== ;[[F]]
 Convert2Positive .proc
-                rts
+                bpl _XIT
+
+                txa
+                eor #$FF
+                adc #<$0001
+                tax
+
+                tya
+                eor #$FF
+                adc #>$0001
+                tay
+
+_XIT            rts
                 .endproc
