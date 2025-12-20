@@ -1,7 +1,7 @@
 
 ;======================================
 ;
-;======================================
+;====================================== ;[[V]]
 DoConfig        .proc
                 jsr ResetHW
                 jsr DrawScoreboard
@@ -11,6 +11,7 @@ _ENTRY1         jsr DrawDialog
                 jsr SetTimer0._32
 
                 jsr BeginConfig
+
                 jsr AskPlayerQty
                 jsr AskPlayerNames
                 jsr AskGameLength
@@ -23,7 +24,7 @@ _ENTRY2         jmp ClearScore
 
 ;======================================
 ;
-;======================================
+;====================================== ;[[V]]
 BeginConfig     .proc
                 ldx #stageCONFIG
                 stx nStage
@@ -36,7 +37,7 @@ BeginConfig     .proc
 
 ;======================================
 ;
-;======================================
+;====================================== ;[[V]]
 AskPlayerQty    .proc
 _next1          jsr StartPokeyTimers
 
@@ -153,7 +154,7 @@ _10             lda #$00
 
 ;======================================
 ;
-;======================================
+;====================================== ;[[V]]
 SetCurrentTime  .proc
                 jsr DrawDialog
                 jsr SetTimer0._32
@@ -380,7 +381,7 @@ _7              sta charToPlot
 
 ;======================================
 ;
-;======================================
+;====================================== ;[[U]]
 LoadSupplement  .proc
                 jsr ResetHW
 
@@ -424,7 +425,7 @@ cacheVDSLST     .fill 38,$00
 
 ;======================================
 ;
-;======================================
+;====================================== ;[[U]]
 StartPokeyTimers .proc
                 ;!!sta STIMER
 
@@ -434,7 +435,7 @@ StartPokeyTimers .proc
 
 ;======================================
 ;
-;======================================
+;====================================== ;[[F]]
 InitPlayers     .proc
                 ldx numPlayers
 _next1          lda #$00
@@ -456,7 +457,7 @@ _next1          lda #$00
 
 ;======================================
 ;
-;======================================
+;====================================== ;[[F]]
 ClearGameState  .proc
                 ldx #$00
                 txa
@@ -495,7 +496,7 @@ _next1          sta GameState_BASE,X
 
 ;--------------------------------------
 ;
-;--------------------------------------
+;-------------------------------------- ;[[F]]
 ClearScore      .proc
 ;   assign initial honor ranks based on player index
                 ldx #$03
@@ -507,15 +508,15 @@ _next1          txa
                 bpl _next1
 
 ;   clear strokes, scores, and round history
-                ldx #$7F                ; [$499A == playerHonorA-1]
+                ldx #$7F                ; [$2EF9 == playerHonorA-1]
                 .byte $2C               ; consume the following LDX operation
 ; - - - - - - - - - - - - - - - - - - -
 ;   clear strokes and scores, but leave the round history intact
 _preservehistory
-                ldx #$57                ; [$4972 == playerScoreRoundA_LO-1]
+                ldx #$57                ; [$2ED1 == playerScoreRoundA_LO-1]
 
                 lda #$00
-_next2          sta playerStrokes,X     ; [$491B + X]
+_next2          sta playerStrokes,X     ; [$2E7A + X]
 
                 dex
                 bpl _next2
@@ -527,7 +528,7 @@ _next2          sta playerStrokes,X     ; [$491B + X]
 
 ;======================================
 ;
-;======================================
+;====================================== ;[[F]]
 ResetHW         .proc
                 jsr ClearSprites
 
@@ -537,7 +538,7 @@ ResetHW         .proc
 
 ;======================================
 ;
-;======================================
+;====================================== ;[[U]]
 InitScreenHW    .proc
                 rts
                 .endproc
@@ -545,7 +546,7 @@ InitScreenHW    .proc
 
 ;======================================
 ;
-;======================================
+;====================================== ;[[U]]
 ProcessESC      .proc
                 jsr GetKeycode
 
@@ -573,7 +574,7 @@ _1              pla                     ; discard (PuttControl) return address
 
 ;======================================
 ;
-;======================================
+;====================================== ;[[V]]
 MarkPlayerInUse .proc
                 ldx activePlayer
                 lda #TRUE
@@ -589,7 +590,7 @@ MarkPlayerInUse .proc
 
 ;======================================
 ;
-;======================================
+;====================================== ;[[F]]
 DemoDistanceToPin .proc
                 ldx activePlayer
                 lda playerInUse,X       ; is player being used?
@@ -606,7 +607,7 @@ _XIT            rts
 
 ;======================================
 ;
-;======================================
+;====================================== ;[[F]]
 CalcHonorRanking .proc
 ;   clear honorA and honorB
                 ldx #$07
@@ -670,7 +671,7 @@ _next6          lda playerHonorA,X
 
 ;======================================
 ;
-;======================================
+;====================================== ;[[F]]
 SetNextPlayer   .proc
                 ldx numPlayers
 _next1          lda playerIsReady,X     ; ready?
@@ -732,7 +733,7 @@ _4              dey
 ;--------------------------------------
 ; on entry:
 ;   X           index of config [0:7]
-;======================================
+;====================================== ;[[V]]
 AskForConfig    .proc
 _yCoord         = zpD2
 _src            = zpSource
@@ -828,7 +829,7 @@ _configInstr    .null ' SELECT  NUMBER '    ; [0]
 
 ;======================================
 ;
-;======================================
+;====================================== ;[[V]]
 AskPlayerNames  .proc
 _ptrName        = zpF9
 ;---
@@ -995,7 +996,7 @@ tblRaw2Ascii    .byte $4C,$4A,$3B,$FF,$FF,$4B,$2B,$2A
 
 ;======================================
 ;
-;======================================
+;====================================== ;[[V]]
 AskAbilityLevel .proc
                 jsr DrawDialog
                 jsr SetTimer0._32
@@ -1048,7 +1049,7 @@ _4              cmp #$BC                ; RUNSTOP-key?
 
 ;======================================
 ;
-;======================================
+;====================================== ;[[V]]
 AskGameLength   .proc
                 jsr DrawDialog
                 jsr SetTimer0._32
@@ -1096,7 +1097,7 @@ _4              lda #$00                ; 18-holes
 
 ;======================================
 ;
-;======================================
+;====================================== ;[[V]]
 AskCourseSelection .proc
                 jsr DrawDialog
 
@@ -1154,7 +1155,7 @@ _4              lda #$00
 
 ;======================================
 ;
-;======================================
+;====================================== ;[[V]]
 PromptPlayer    .proc
                 lda idxPlayer
                 clc
@@ -1174,7 +1175,7 @@ _playerNum      .null '0'
 
 ;======================================
 ;
-;======================================
+;====================================== ;[[V]]
 PromptCourse    .proc
                 lda tempC               ; index for course rotation
                 clc
@@ -1192,15 +1193,9 @@ _courseNum      .null '0'
                 .endproc
 
 
-;--------------------------------------
-;--------------------------------------
-;   dead code
-DoRTS5          rts
-
-
 ;======================================
 ;
-;======================================
+;====================================== ;[[V]]
 EnableCursor    .proc
                 .frsCursor TRUE
                 rts
@@ -1209,7 +1204,7 @@ EnableCursor    .proc
 
 ;======================================
 ;
-;======================================
+;====================================== ;[[V]]
 DisableCursor   .proc
                 .frsCursor FALSE
                 rts
@@ -1218,7 +1213,7 @@ DisableCursor   .proc
 
 ;======================================
 ;
-;======================================
+;====================================== ;[[V]]
 DrawCursor      .proc
                 lda idxInputBuffer
                 clc
@@ -1238,7 +1233,7 @@ DrawCursor      .proc
 
 ;======================================
 ;
-;======================================
+;====================================== ;[[V]]
 DrawDialog      .proc
                 .frsTextXY 11, 5,$40,DrawDialog._msgDialog0
                 .frsTextXY 11, 6,$40,DrawDialog._msgDialog1
@@ -1270,7 +1265,7 @@ _msgDialog2     .null 'oppppppppppppppppq'
 
 ;======================================
 ;
-;======================================
+;====================================== ;[[V]]
 DrawCredits     .proc
                 .frsTextXY 3,11,$30,DrawCredits._msgCredits0
                 .frsTextXY 3,12,$30,DrawCredits._msgCredits1
