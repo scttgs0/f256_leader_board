@@ -77,6 +77,8 @@ CS_COLOR_MEM_PTR        = $C000         ; [C000:DFFF]   HiNibble = Foreground; L
 ;   IO Bank 00
 ;--------------------------------------
 
+MOUSE_GFX               = $CC00         ; [$CC00:CFFF]
+
 MASTER_CTRL_L           = $D000
 mcTextOn            = $01               ; Enable Text Mode
 mcOverlayOn         = $02               ; Overlay Text on top of Graphics (Text Background Color is transparent)
@@ -417,6 +419,9 @@ tmrcEnable          = $01
 tmrcClear           = $02
 tmrcLoad            = $04
 tmrcUp              = $08
+tmrcReClear         = $10
+tmrcReLoad          = $20
+tmrcInterrupt       = $80
 
 TIMER0_STATUS           = $D650         ; [read-only]
 tmrsNotEqual        = $00
