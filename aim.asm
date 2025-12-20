@@ -1,12 +1,10 @@
 
 ;======================================
 ;
-;======================================
+;====================================== ;[[F]]
 AimTarget       .proc
 AIM_BASE        = $0060 ; MISL_BASE
 _HPOSM1_Ball    = $0061 ; HPOSM1
-_HPOSM2_TargetL = $0062 ; HPOSM2
-_HPOSM0_TargetR = $0063 ; HPOSM0
 ;---
 
                 jsr ClearMissiles
@@ -32,23 +30,24 @@ _HPOSM0_TargetR = $0063 ; HPOSM0
                 jsr VertexTransform
 
                 txa
-                ror
-                adc xPosDeltaMissile0
+                ror                     ; /2 (PORT: necessary???)
+                adc xPosDeltaBall
                 sta _HPOSM1_Ball
                 sta xPosBall
 
                 tya
                 clc
-                adc yPosDeltaMissile0
+                adc yPosDeltaBall
                 tay
                 sta yPosBall
 
-; - - - - - - - - - - - - - - - - - - -
-;   place the aim target
+;   render the ball
                 lda #$04
                 sta AIM_BASE,Y          ; two scanlines
                 sta AIM_BASE-1,Y
 
+; - - - - - - - - - - - - - - - - - - -
+;   place the aim target
                 lda #<$1800
                 sta aimPosition
                 lda #>$1800
@@ -64,7 +63,9 @@ _HPOSM0_TargetR = $0063 ; HPOSM0
                 sta timerRemaining+9
 
 ; - - - - - - - - - - - - - - - - - - -
-_ENTRY1         lda isSwingInProgress
+;   entry point to skip the above ball placement.
+;   when swing has begun, skip the aim target.
+_SKIPBALL       lda isSwingInProgress
                 ora swingAnimCounter
                 beq _1
 
@@ -73,7 +74,7 @@ _XIT1           rts
 ; - - - - - - - - - - - - - - - - - - -
 ;   reposition the aim target left
 _1              lda timerIsActive+9     ; timer 9 active?
-                bne _XIT1               ;   yes
+                bne _XIT1               ;   yes, exit
 
                 inc timerIsActive+9     ;   no, make active
 
@@ -95,8 +96,8 @@ _1              lda timerIsActive+9     ; timer 9 active?
 ;   check limits
                 ldx activePlayer
                 lda playerDistUnit,X
-                cmp #unitYARDS
-                bcs _2
+                cmp #unitYARDS          ; yards?
+                bcs _2                  ;   yes
 
 ;   feet unit limits (putt)
                 lda aimPosition_HI
@@ -141,8 +142,8 @@ _3              lda #joyRIGHT           ; right deflection?
 ;   check limits
                 ldx activePlayer
                 lda playerDistUnit,X
-                cmp #unitYARDS
-                bcs _4
+                cmp #unitYARDS          ; yards?
+                bcs _4                  ;   yes
 
 ;   feet unit limits (putt)
                 lda aimPosition_HI
@@ -164,7 +165,7 @@ _4              lda aimPosition_HI
                 cmp #>$1900
                 bcc _5
 
-                lda #<$18FF
+                lda #<$18FF             ; clamp
                 sta aimPosition
                 lda #>$18FF
                 sta aimPosition_HI
@@ -174,33 +175,22 @@ _4              lda aimPosition_HI
 _5              ldx #xformAIM_POS
                 jsr VertexTransform
 
+; - - - - - - - - - - - - - - - - - - -
+;   render aim point
                 txa
-                lsr
-                adc xPosDeltaMissile0
-                adc #$01
-                sta _HPOSM0_TargetR     ; position missile-0 (right-side of aim target)
-                sta xPosBallShadow
-
-                sbc #$01
-                sta _HPOSM2_TargetL     ; position missile-2 (left-side of aim target)
-                sta xPosAimTarget
+                clc
+                adc xPosDeltaBall
+                sta SPR(sprite_t.X, 10)
+                lda newVertX_HI
+                sta SPR(sprite_t.X+1, 10)
 
                 tya
                 clc
-                adc yPosDeltaMissile0
-                sta yPosBallShadow
-
-; - - - - - - - - - - - - - - - - - - -
-;   render aim point
-                tay
-                lda #$02                ; missile-0 only
-                sta AIM_BASE-2,Y        ; two scanlines at the top
-                sta AIM_BASE-1,Y
-                sta AIM_BASE+1,Y        ; two scanlines at the bottom
-                sta AIM_BASE+2,Y
-
-                lda #$11                ; missile-2 and missile-0 only
-                sta AIM_BASE,Y          ; one scanline at the middle
+                adc yPosDeltaBall
+                sta yPosBallShadow      ; necessary???
+                sta SPR(sprite_t.Y, 10)
+                lda #$00
+                sta SPR(sprite_t.Y+1, 10)
 
                 rts
                 .endproc
