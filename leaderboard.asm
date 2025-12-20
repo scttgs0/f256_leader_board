@@ -19,6 +19,7 @@
 ;   sprint 8                ball
 ;   sprint 9                ball shadow
 ;   sprint 10               aim target
+;   sprite 11               gauge
 ;
 ;               sprint 0/1  Golfer left-half (0=front, 1=back)
 ;               sprite 2/3  Golfer right-half (2=front, 3=back)
@@ -180,18 +181,9 @@ _next2          sta tblPlayerAbility,X
 ;--------------------------------------
 ;--------------------------------------
 
-                .align $0100
-palette         .include "data/PALETTE.inc"
-end_palette
-
-                .align $0100
-gameFont        .include "data/FONT.inc"
-end_gameFont
-
-                .include "data/CLOUDS.inc"
-                .include "data/MOUNTAINS.inc"
                 .include "data/GAMESTATE.inc"
                 .include "data/SODPATCH.inc"
+                .include "data/GAUGE.inc"
 
                 .include "platform_f256.asm"
                 .include "kernel/facade.asm"
@@ -250,13 +242,48 @@ Stage           .proc
 
 ;--------------------------------------
 ;--------------------------------------
+                * = $0800
+;--------------------------------------
 
-                .include "data/ANIM0_DRIVER_32.inc"
-                .include "data/ANIM1_PUTT_32.inc"
-                .include "data/ANIM0_CLUB_24.inc"
                 .include "data/COURSES.inc"
 
                 .align $100
                 .include "interrupts.asm"
                 .include "data/GLYPHS.inc"
                 .include "data/STATIC.inc"
+
+
+;--------------------------------------
+;--------------------------------------
+                * = $8000
+;--------------------------------------
+
+palette         .include "data/PALETTE.inc"
+
+                .align $0100
+gameFont        .include "data/FONT.inc"
+
+
+;--------------------------------------
+;--------------------------------------
+
+                .include "data/ANIM0_DRIVER.inc"
+                .include "data/ANIM0_CLUB.inc"
+                .include "data/ANIM1_PUTT.inc"
+
+
+;--------------------------------------
+;--------------------------------------
+                .align $2000
+CLOUD_CHUNK     = (* / $2000)
+
+                .logical $A000
+;--------------------------------------
+
+                .include "data/CLOUDS.inc"
+                .include "data/MOUNTAINS.inc"
+
+;--------------------------------------
+;--------------------------------------
+                .endlogical
+;--------------------------------------

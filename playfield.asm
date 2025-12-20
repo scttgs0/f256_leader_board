@@ -4,7 +4,7 @@
 ;--------------------------------------
 ;  80 bytes black [$F0:13F]
 ; 240 bytes blue  [$00:EF]
-;======================================
+;====================================== ;[[V]]
 ResetPlayfield  .proc
 zpIndex1        = zpD0
 ;---
@@ -117,23 +117,89 @@ _XIT
 
 ;======================================
 ;
-;======================================
+;====================================== ;[[F]]
 AdvNextScanline .proc
+_ptr            = zpFD
+;---
+
+                pha                     ; preserve
+
+                lda _ptr
+                clc
+                adc #<$0140             ; +320
+                sta _ptr
+                lda _ptr+1
+                adc #>$0140
+                sta _ptr+1
+
+                pla                     ; restore
                 rts
                 .endproc
 
 
 ;======================================
 ;
-;======================================
+;====================================== ;[[U]]
 BackSwingAnim   .proc
+                lda isBackSwingAnim     ; back swing in progress?
+                bne _1                  ;   yes
+
                 rts
+
+; - - - - - - - - - - - - - - - - - - -
+_1              lda timerIsActive       ; timer 0 active?
+                beq _2                  ;   no
+
+                rts
+
+; - - - - - - - - - - - - - - - - - - -
+_2              ;!!jsr DrawGolferPutt
+
+                inc golferSwingFrame
+                ldx golferSwingFrame
+                cpx #$0A                ; max back swing?
+                bne _3                  ;   no
+
+                lda #FALSE              ;   yes, done
+                sta isBackSwingAnim
+
+                rts
+
+; - - - - - - - - - - - - - - - - - - -
+_3              lda puttAnimTimer,X     ; duration
+                ldx #$00                ; timer 0
+                jsr SetTimer
+
+                ldx golferSwingFrame
+                cpx #$06
+                bne _4
+
+                jsr InitPutt_2521
+
+_4              lda golferSwingFrame
+                cmp #$07
+                bne _XIT
+
+                lda #$00                ; silence
+                ;!!sta AUDC4
+                ;!!sta AUDF4
+
+_XIT            rts
                 .endproc
+
+
+;--------------------------------------
+;--------------------------------------
+
+puttAnimTimer   .byte $05,$05,$05,$0C,$05
+                .byte $05,$05,$05,$05,$05
+puttAnimIndex   .byte $00,$01,$02,$03,$02
+                .byte $01,$00,$04,$05,$06
 
 
 ;======================================
 ;
-;======================================
+;====================================== ;[[V]]
 RenderPlayfield .proc
                 jsr ResetPlayfield      ; fill playfield with water
                 jsr DrawClouds          ; render clouds
@@ -145,7 +211,7 @@ RenderPlayfield .proc
 
 ;======================================
 ;
-;======================================
+;====================================== ;[[V]]
 DrawClouds      .proc
 _dest           = zpCD
 _width          = zpD0
@@ -176,7 +242,7 @@ _ENTRY1
                 lda #$10                ; [8000:9FFF]->[2_0000:2_1FFF]
                 sta zpMMU
                 sta MMU_Block4
-                inc A                   ; [A000:BFFF]->[2_2000:2_3FFF]
+                lda #CLOUD_CHUNK         ; [A000:BFFF]->[CLOUD_CHUNK]
                 sta MMU_Block5
 
 ; - - - - - - - - - - - - - - - - - - -
@@ -289,6 +355,11 @@ _3              dec _width              ; completed all the cloud glyphs?
                 bne _next2              ;   no
 
 ; - - - - - - - - - - - - - - - - - - -
+;   restore MMU
+                lda zpMMU
+                inc A
+                sta MMU_Block5
+
 ;   restore MMU control
                 pla
                 sta MMU_CTRL
@@ -303,7 +374,7 @@ _3              dec _width              ; completed all the cloud glyphs?
 
 ;======================================
 ;
-;======================================
+;====================================== ;[[V]]
 DrawMountains   .proc
 _dest           = zpCD
 _layerOffset    = zpCF
@@ -334,7 +405,7 @@ _ENTRY1
                 lda #$10                ; [8000:9FFF]->[2_0000:2_1FFF]
                 sta zpMMU
                 sta MMU_Block4
-                inc A                   ; [A000:BFFF]->[2_2000:2_3FFF]
+                lda #CLOUD_CHUNK         ; [A000:BFFF]->[CLOUD_CHUNK]
                 sta MMU_Block5
 
 ; - - - - - - - - - - - - - - - - - - -
@@ -447,6 +518,11 @@ _3              dec _width              ; completed all the mountain glyphs?
                 bne _next2              ;   no
 
 ; - - - - - - - - - - - - - - - - - - -
+;   restore MMU
+                lda zpMMU
+                inc A
+                sta MMU_Block5
+
 ;   restore MMU control
                 pla
                 sta MMU_CTRL
