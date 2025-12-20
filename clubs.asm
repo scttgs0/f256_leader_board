@@ -1,7 +1,7 @@
 
 ;======================================
 ;
-;======================================
+;====================================== ;[[V]]
 GetUserInput    .proc
                 stz joystick            ; no input
                 jsr ReadJoystick
@@ -36,7 +36,7 @@ _XIT            rts
 
 ;======================================
 ;
-;======================================
+;====================================== ;[[V]]
 ChangeClub      .proc
 ;   check delay timer
                 lda timerIsActive+1     ; timer 1 active?
@@ -97,7 +97,7 @@ _4              jsr DrawClub
 
 ;======================================
 ;
-;======================================
+;====================================== ;[[V]]
 DrawClub        .proc
                 ldx #stagePLAY
                 stx nStage
@@ -145,55 +145,181 @@ _golfclub       .text '1W'              ; [0]
 
 ;======================================
 ;
-;======================================
+;====================================== ;[[F]]
 AudioSwingControl .proc
+                lda isSwingInProgress   ; swing anim in progress?
+                bne _1                  ;   yes
+
+                rts                     ;   no
+
+; - - - - - - - - - - - - - - - - - - -
+_1              lda timerIsActive       ; timer 0 active?
+                beq _2                  ;   no
+
                 rts
+
+; - - - - - - - - - - - - - - - - - - -
+_2              inc golferSwingFrame
+                ldx golferSwingFrame
+                cpx #$20                ; =32?
+                bne _3                  ;   no
+
+                lda #FALSE              ; stop swing animation
+                sta isSwingInProgress
+
+                lda #$FF
+                sta golferSwingFrame
+
+                rts
+
+; - - - - - - - - - - - - - - - - - - -
+_3              lda tblDuration,X       ; duration
+                ldx #$00                ; timer #0
+                jsr SetTimer
+
+                ldx golferSwingFrame
+                cpx #$01
+                bne _4
+                jmp SetAudSwingPwr
+
+; - - - - - - - - - - - - - - - - - - -
+_4              cpx #$0A                ; max backswing
+                bne _5
+                jmp SetAudSwingEnd
+
+; - - - - - - - - - - - - - - - - - - -
+_5              cpx #$0B
+                bne _6
+                jmp SetAudSwingTmg
+
+; - - - - - - - - - - - - - - - - - - -
+_6              cpx #$10
+                bne _7
+                jmp SetAudSwingEnd
+
+; - - - - - - - - - - - - - - - - - - -
+_7              cpx #$11
+                bne _8
+                jmp SetAudSwingSnap
+
+; - - - - - - - - - - - - - - - - - - -
+_8              cpx #$16
+                bne _XIT
+                jmp SetAudSwingEnd
+
+; - - - - - - - - - - - - - - - - - - -
+_XIT            rts
                 .endproc
 
 
 ;======================================
 ;
-;======================================
+;====================================== ;[[F]]
 SetAudSwing     .proc
+                sei
+
+                jsr DisableTimer2
+
+                jsr PlayClubSwing
+
+                lda #gaugeINACTIVE
+                sta gaugeStage
+
+                cli
                 rts
                 .endproc
 
 
 ;--------------------------------------
 ;
-;--------------------------------------
+;-------------------------------------- ;[[F]]
 SetAudSwingPwr  .proc
+                sei
+
+                jsr DisableTimer2
+
+                lda #$00
+                sta gaugeValue          ; reset
+
+                jsr PlayClubSwing
+
+                lda #gaugeASCENDING
+                sta gaugeStage          ; = Power Increasing
+
+                cli
                 rts
                 .endproc
 
 
 ;--------------------------------------
 ;
-;--------------------------------------
+;-------------------------------------- ;[[F]]
 SetAudSwingTmg  .proc
+                sei
+
+                jsr DisableTimer2
+
+                lda #$10
+                sta gaugeValue          ; = peak power
+
+                jsr PlayClubSwing
+
+                lda #gaugeDESCENDING
+                sta gaugeStage          ; = Power Decreasing
+
+                cli
                 rts
                 .endproc
 
 
 ;--------------------------------------
 ;
-;--------------------------------------
+;-------------------------------------- ;[[F]]
 SetAudSwingSnap .proc
+                sei
+
+                jsr DisableTimer2
+
+                lda #$20
+                sta gaugeValue          ; beginning of snap
+
+                jsr PlayClubSwing
+
+                lda #gaugeSNAP
+                sta gaugeStage
+
+                cli
                 rts
                 .endproc
 
 
 ;--------------------------------------
 ;
-;--------------------------------------
+;-------------------------------------- ;[[F]]
 SetAudSwingEnd  .proc
+                sei
+
+                jsr DisableTimer2
+
+                ldx gaugeStage
+                dex                     ; clamp to range[0:2]
+
+                lda gaugeValue
+                sta cacheGaugeValue,X
+
+                cpx #$02                ; =snap?
+                bne _1                  ;   no
+
+                jsr SetAudSwing
+
+_1              cli
                 rts
                 .endproc
 
 
 ;======================================
 ;
-;======================================
+;====================================== ;[[U]]
 DisableTimer2   .proc
                 rts
                 .endproc
@@ -201,7 +327,7 @@ DisableTimer2   .proc
 
 ;======================================
 ;
-;======================================
+;====================================== ;[[U]]
 PlayClubSwing   .proc
                 rts
                 .endproc

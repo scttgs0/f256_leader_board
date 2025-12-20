@@ -368,6 +368,11 @@ InitGfxPalette  .proc
                 pha
                 phy
 
+; - - - - - - - - - - - - - - - - - - -
+;   set MMU
+                lda #$04                ; [8000:9FFF]
+                sta MMU_Block4
+
 ;   preserve IOPAGE control
                 lda IOPAGE_CTRL
                 pha
@@ -376,21 +381,28 @@ InitGfxPalette  .proc
                 lda #$01
                 sta IOPAGE_CTRL
 
+; - - - - - - - - - - - - - - - - - - -
                 ldy #$C0
 _next1          dey
-                lda Palette,Y
+                lda palette,Y
                 sta GRPH_LUT0_PTR,Y
 
-                ;;lda Palette+$40,Y
+                ;;lda palette+$40,Y
                 ;;sta GRPH_LUT1_PTR,Y
 
                 cpy #$00
                 bne _next1
 
+; - - - - - - - - - - - - - - - - - - -
+;   restore MMU
+                lda zpMMU
+                sta MMU_Block4
+
 ;   restore IOPAGE control
                 pla
                 sta IOPAGE_CTRL
 
+; - - - - - - - - - - - - - - - - - - -
                 ply
                 pla
                 rts
@@ -508,6 +520,9 @@ InitSprites     .proc
 
 ;   set aim target (sprite-10)
                 .frsSpriteInit glyphTarget, scEnable|scLUT0|scDEPTH0|scSIZE_8, 10
+
+;   set power gauge (sprite-11)
+                .frsSpriteInit sprGauge, scEnable|scLUT0|scDEPTH0|scSIZE_32, 11
 
 ;   restore IOPAGE control
                 pla
@@ -778,11 +793,24 @@ _x              .byte ?
 _y              .byte ?
 _offset         .word ?
 
-_addrRow        .word $0000,$0028,$0050,$0078,$00A0
+_addrRow        .word $0000,$0028,$0050,$0078,$00A0     ; 40 chars
                 .word $00C8,$00F0,$0118,$0140,$0168
                 .word $0190,$01B8,$01E0,$0208,$0230
                 .word $0258,$0280,$02A8,$02D0,$02F8
                 .word $0320,$0348,$0370,$0398,$03C0
+
+;_addrRow        .word $0000,$0050,$00A0,$00F0,$0140     ; 80 chars
+;                .word $0190,$01E0,$0230,$0280,$02D0
+;                .word $0320,$0370,$03C0,$0410,$0460
+;                .word $04B0,$0500,$0550,$05A0,$05F0
+;                .word $0640,$0690,$06E0,$0730,$0780
+;                .word $07D0,$0820,$0870,$08C0,$0910
+;                .word $0960,$09B0,$0A00,$0A50,$0AA0
+;                .word $0AF0,$0B40,$0B90,$0BE0,$0C30
+;                .word $0C80,$0CD0,$0D20,$0D70,$0DC0
+;                .word $0E10,$0E60,$0EB0,$0F00,$0F50
+;                .word $0FA0,$0FF0,$1040,$1090,$10E0
+;                .word $1130,$1180,$11D0,$1220,$1270
 
                 .endproc
 
@@ -892,6 +920,67 @@ _XIT
                 plx
                 pla
                 rts
+                .endproc
+
+
+;======================================
+; Change the default mouse graphic
+;======================================
+InitMouseGfx   .proc
+                pha
+                phy
+
+;   preserve IOPAGE control
+                lda IOPAGE_CTRL
+                pha
+
+;   switch to system map
+                stz IOPAGE_CTRL
+
+                lda #<_mouse_pointer
+                sta zpSource
+                lda #>_mouse_pointer
+                sta zpSource+1
+
+                lda #<MOUSE_GFX
+                sta zpDest
+                lda #>MOUSE_GFX
+                sta zpDest+1
+
+                ldy #$00
+_nextByte       lda (zpSource),Y
+                sta (zpDest),Y
+
+                dey
+                bne _nextByte
+
+;   restore IOPAGE control
+                pla
+                sta IOPAGE_CTRL
+
+                ply
+                pla
+                rts
+
+;--------------------------------------
+
+_mouse_pointer  .byte $FF,$80,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00    ; #....... ........
+                .byte $FF,$FF,$80,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00    ; ##...... ........
+                .byte $FF,$30,$FF,$80,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00    ; ###..... ........
+                .byte $FF,$30,$30,$FF,$80,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00    ; ####.... ........
+                .byte $FF,$30,$30,$30,$FF,$80,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00    ; #####... ........
+                .byte $FF,$30,$30,$30,$30,$FF,$80,$00,$00,$00,$00,$00,$00,$00,$00,$00    ; ######.. ........
+                .byte $FF,$30,$30,$30,$30,$30,$FF,$80,$00,$00,$00,$00,$00,$00,$00,$00    ; #######. ........
+                .byte $FF,$30,$30,$30,$30,$30,$30,$FF,$80,$00,$00,$00,$00,$00,$00,$00    ; ######## ........
+                .byte $FF,$30,$30,$30,$30,$30,$30,$30,$FF,$80,$00,$00,$00,$00,$00,$00    ; ######## #.......
+                .byte $FF,$30,$30,$30,$30,$30,$30,$30,$30,$FF,$80,$00,$00,$00,$00,$00    ; ######## ##......
+                .byte $FF,$30,$30,$30,$30,$30,$30,$30,$30,$30,$FF,$80,$00,$00,$00,$00    ; ######## ###.....
+                .byte $FF,$30,$30,$30,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$00,$00,$00,$00    ; #####... ........
+                .byte $FF,$30,$30,$FF,$80,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00    ; ####.... ........
+                .byte $FF,$30,$FF,$80,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00    ; ###..... ........
+                .byte $FF,$FF,$80,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00    ; ##...... ........
+                .byte $FF,$80,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00    ; #....... ........
+
                 .endproc
 
 
@@ -1147,6 +1236,11 @@ SetFont         .proc
 ;   DEBUG: helpful if you need to see the trace
                 ; bra _XIT
 
+; - - - - - - - - - - - - - - - - - - -
+;   set MMU
+                lda #$04                ; [8000:9FFF]
+                sta MMU_Block4
+
 ;   preserve IOPAGE control
                 lda IOPAGE_CTRL
                 pha
@@ -1155,6 +1249,7 @@ SetFont         .proc
                 lda #iopPage1
                 sta IOPAGE_CTRL
 
+; - - - - - - - - - - - - - - - - - - -
 ;   Font #0
 FONT0           lda #<gameFont
                 sta zpSource
@@ -1182,10 +1277,16 @@ _next1          lda (zpSource),Y
                 dex
                 bne _nextPage
 
+; - - - - - - - - - - - - - - - - - - -
+;   restore MMU
+                lda zpMMU               ; restore
+                sta MMU_Block4
+
 ;   restore IOPAGE control
                 pla
                 sta IOPAGE_CTRL
 
+; - - - - - - - - - - - - - - - - - - -
 _XIT            ply
                 plx
                 pla

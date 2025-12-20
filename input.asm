@@ -1,7 +1,7 @@
 
 ;======================================
 ;
-;======================================
+;====================================== ;[[V]]
 GetKeycode      .proc
                 jsr ProcessEvents
 
@@ -9,15 +9,18 @@ GetKeycode      .proc
                 cmp #$FF                ; any key pressed?
                 beq _XIT                ;   no
 
-                cmp #$06                ; meta-key?
-                bcs _1                  ;   no
+                cmp #$B8                ; left/right-arrow key?
+                bcs _1                  ;   yes
 
-                lda #$FF                ;   yes, reset and exit
+                cmp #$06                ; meta-key?
+                bcs _2                  ;   no
+
+_1              lda #$FF                ;   yes, reset and exit
                 sta KEYCODE
 
                 bra _XIT
 
-_1              pha                     ; preserve keycode
+_2              pha                     ; preserve keycode
 
                 lda #$FF                ; reset
                 sta KEYCODE
@@ -32,13 +35,7 @@ _XIT            rts
 
 ;======================================
 ;
-;======================================
-vecProcessESC   jmp ProcessESC
-
-
-;======================================
-;
-;======================================
+;====================================== ;[[F]]
 ReadJoystick    .proc
                 lda JOYSTICK0           ; on return, A=%xxxB_DDDD
                 eor #$1F                ; flip the bits
@@ -64,7 +61,7 @@ _XIT            rts
 
 ;======================================
 ;
-;======================================
+;====================================== ;[[F]]
 WaitForButton   .proc
                 stz joystick            ; no input
 
@@ -85,6 +82,12 @@ _wait1          lda timerIsActive       ; timer 0 active?
 
                 rts
                 .endproc
+
+
+;======================================
+;
+;======================================
+vecProcessESC   jmp ProcessESC
 
 
 ;======================================
@@ -235,7 +238,7 @@ _targetVal      .byte $00
 ; on entry:
 ;   A           duration
 ;   X           index [0:15]
-;======================================
+;====================================== ;[[V]]
 SetTimer        .proc
                 sta timerDuration,X
                 sta timerRemaining,X

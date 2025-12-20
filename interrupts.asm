@@ -66,6 +66,7 @@ irqVBIHandler   .proc
                 inc JIFFYCLOCK          ; increment the jiffy clock each VBI
 
                 jsr DoTimers
+                jsr DoSwingGauge
 
                 ;;lda #TRUE
                 ;;sta gameGate
