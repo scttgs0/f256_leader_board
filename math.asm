@@ -3,199 +3,29 @@
 ;
 ;--------------------------------------
 ; on entry:
-;   Y:X         word value
-;======================================
-CalcPolyVertXY_delta .proc
-                rts
-                .endproc
-
-
-;======================================
-;
-;--------------------------------------
+;   A           multiplier
+;   Y:X         value
 ; on exit:
-;   Y:X         result
-;======================================
-GetWordResult   .proc
-                asl dwordMath+1         ; load CARRY
+;   Y:X:A       result:long
+;====================================== ;[[V]]
+MultiplyWordByByte .proc
+_value          = physicsY
+_multiplier     = dwordMath
+_result         = dwordMath
+;---
 
-                bit dwordMath+3         ; are we decrementing?
-                bmi _1                  ;   yes
+                sta _multiplier
+                lda #$00                ; hi-byte unused
+                sta _multiplier+1
 
-; - - - - - - - - - - - - - - - - - - -
-                lda dwordMath+2         ; increment
-                adc #<$0000
-                tax
-                lda dwordMath+3
-                adc #>$0000
-                tay
+                stx _value
+                sty _value+1
 
-                rts
+                jsr MultiplyWordByWord_ABS  ; long result in Y:X:A
 
-; - - - - - - - - - - - - - - - - - - -
-_1              lda dwordMath+2         ; decrement
-                sbc #<$0000
-                tax
-                lda dwordMath+3
-                sbc #>$0000
-                tay
-
-                rts
-                .endproc
-
-
-;======================================
-;
-;======================================
-InitPutt_2521   .proc
-                rts
-                .endproc
-
-
-;======================================
-;
-;======================================
-Divide_2040byWordA .proc
-                rts
-                .endproc
-
-
-;======================================
-;
-;======================================
-CalcTravelDistanceFeet .proc
-                rts
-                .endproc
-
-
-;======================================
-;
-;======================================
-ProcessClipFlags .proc
-_next1          lda lineNode0_ClipFlags
-                and lineNode1_ClipFlags
-                beq _1
-
-_XIT1           rts
-
-; - - - - - - - - - - - - - - - - - - -
-_1              lda lineNode1_ClipFlags ; any Node1 flags?
-                bne _process            ;   yes
-
-                lda lineNode0_ClipFlags ;   no, are the Node0 flags also off?
-                beq _XIT1               ;       yes, no clipping required
-
-;   lineNode1 is the only node that we clipped, so swap the nodes to allow for clipping
-                jsr SwapLineNodes
-
-; - - - - - - - - - - - - - - - - - - -
-_process        lda #$01                ; newVertX isOffScreenRight flag
-                sta lineNode1_isClipped ; TRUE
-                and lineNode1_ClipFlags
-                bne _xMax
-
-                lda #$02                ; newVertX isOffScreenLeft flag
-                and lineNode1_ClipFlags
-                bne _xMin
-
-                lda #$04                ; newVertZ isOffScreenTop flag
-                and lineNode1_ClipFlags
-                bne _zMin
-
-; - - - - - - - - - - - - - - - - - - -
-_zMax           lda #$C8-1              ; 199
-                jsr ClipZCoordinate
-                jmp _next1
-
-; - - - - - - - - - - - - - - - - - - -
-_zMin           lda #$00
-                jsr ClipZCoordinate
-                jmp _next1
-
-; - - - - - - - - - - - - - - - - - - -
-_xMax           lda #$F0-1              ; 239
-                jsr ClipXCoordinate
-
-                ldx #$01                ; xMax clipped
-                stx lineNode1_VertX_flags
-
-                jmp _next1
-
-; - - - - - - - - - - - - - - - - - - -
-_xMin           lda #$00
-                jsr ClipXCoordinate
-
-                ldx #$02                ; xMin clipped
-                stx lineNode1_VertX_flags
-
-                jmp _next1
-
-                .endproc
-
-
-;--------------------------------------
-;--------------------------------------
-
-newClip_flags           .byte $00
-;   bit0    newVertX isOffScreenRight flag
-;   bit1    newVertX isOffScreenLeft flag
-;   bit2    newVertZ isOffScreenTop flag
-;   bit3    newVertZ isOffScreenBottom flag
-
-lineNode0_ClipFlags     .byte $00
-lineNode1_ClipFlags     .byte $00
-
-newVertX_HI             .byte $00
-newVertZ_HI             .byte $00
-
-lineNode0_VertX_HI      .byte $00
-lineNode0_VertZ_HI      .byte $00
-
-lineNode1_VertX_HI      .byte $00
-lineNode1_VertZ_HI      .byte $00
-
-
-;======================================
-;
-;======================================
-SwapLineNodes   .proc
-                ldx lineNode0_VertX_LO  ; swap
-                ldy lineNode1_VertX_LO
-                stx lineNode1_VertX_LO
-                sty lineNode0_VertX_LO
-
-                ldx lineNode0_VertX_HI  ; swap
-                ldy lineNode1_VertX_HI
-                stx lineNode1_VertX_HI
-                sty lineNode0_VertX_HI
-
-                ldx lineNode0_VertZ_LO  ; swap
-                ldy lineNode1_VertZ_LO
-                stx lineNode1_VertZ_LO
-                sty lineNode0_VertZ_LO
-
-                ldx lineNode0_VertZ_HI  ; swap
-                ldy lineNode1_VertZ_HI
-                stx lineNode1_VertZ_HI
-                sty lineNode0_VertZ_HI
-
-                ldx lineNode0_ClipFlags ; swap
-                ldy lineNode1_ClipFlags
-                stx lineNode1_ClipFlags
-                sty lineNode0_ClipFlags
-
-                ldx lineNode0_VertX_flags  ; swap
-                ldy lineNode1_VertX_flags
-                stx lineNode1_VertX_flags
-                sty lineNode0_VertX_flags
-
-                ldx lineNode0_isClipped ; swap
-                ldy lineNode1_isClipped
-                stx lineNode1_isClipped
-                sty lineNode0_isClipped
-
-                ldx #TRUE
-                stx isSwapped
+                lda _result
+                ldx _result+1
+                ldy _result+2
 
                 rts
                 .endproc
@@ -204,385 +34,8 @@ SwapLineNodes   .proc
 ;======================================
 ;
 ;--------------------------------------
-;   A           [0|-65]
-;======================================
-ClipZCoordinate .proc
-                pha
-
-;   deltaX
-                jsr CalcNodesDeltaX
-                stx dwordMath
-                sty dwordMath+1
-
-                pla
-                pha
-
-                sec
-                sbc lineNode0_VertZ_LO
-                sta physicsY
-                lda #$00
-                sta lineNode1_ClipFlags
-                sbc lineNode0_VertZ_HI
-                sta physicsY+1
-
-                jsr MultiplyWordByWord_ABS
-                jsr Divide32bitByDeltaZ ; result in wordB+wordC[remainder]
-
-                pla
-                sta lineNode1_VertZ_LO
-                ;lda #$00
-                stz lineNode1_VertZ_HI
-
-                lda wordB_3CBE
-                clc
-                adc lineNode0_VertX_LO
-                sta lineNode1_VertX_LO
-                lda wordB_3CBE+1
-                adc lineNode0_VertX_HI
-                sta lineNode1_VertX_HI
-                bpl _1
-
-                lda #$02                ; newVertX isOffScreenLeft flag
-                sta lineNode1_ClipFlags
-
-                rts
-
-; - - - - - - - - - - - - - - - - - - -
-_1              bne _2
-
-                lda lineNode1_VertX_LO
-                cmp #$F0                ; xMax (240)
-                bcc _XIT
-
-_2              lda #$01                ; newVertX isOffScreenRight flag
-                sta lineNode1_ClipFlags
-
-_XIT            rts
-                .endproc
-
-
-;======================================
 ;
-;======================================
-ClipXCoordinate .proc
-                pha
-
-;   zDelta
-                jsr CalcNodesDeltaZ
-                stx dwordMath
-                sty dwordMath+1
-
-                pla
-                pha
-
-                sec
-                sbc lineNode0_VertX_LO
-                sta physicsY
-                lda #$00
-                sta lineNode1_ClipFlags
-                sbc lineNode0_VertX_HI
-                sta physicsY+1
-
-                jsr MultiplyWordByWord_ABS
-                jsr Divide32bitByDeltaX ; result in wordB+wordC[remainder]
-
-                pla
-                sta lineNode1_VertX_LO
-                ;lda #$00
-                stz lineNode1_VertX_HI
-
-                lda wordB_3CBE
-                clc
-                adc lineNode0_VertZ_LO
-                sta lineNode1_VertZ_LO
-                lda wordB_3CBE+1
-                adc lineNode0_VertZ_HI
-                sta lineNode1_VertZ_HI
-                bpl _1
-
-                lda #$04                ; newVertZ isOffScreenTop flag
-                sta lineNode1_ClipFlags
-
-                rts
-
-; - - - - - - - - - - - - - - - - - - -
-_1              bne _2
-
-                lda lineNode1_VertZ_LO
-                cmp #$C8                ; zMax (200)
-                bcc _XIT
-
-_2              lda #$08                ; newVertZ isOffScreenBottom flag
-                sta lineNode1_ClipFlags
-
-_XIT            rts
-                .endproc
-
-
-;======================================
-;
-;======================================
-Divide32bitByDeltaX .proc
-                ldx dwordMath
-                ldy dwordMath+1
-                stx wordB_3CBE
-                sty wordB_3CBE+1
-                ldx dwordMath+2
-                ldy dwordMath+3
-                stx wordC_3CC0
-                sty wordC_3CC0+1
-
-                jsr CalcNodesDeltaX     ; result in Y:X
-                stx wordA_3CBC
-                sty wordA_3CBC+1
-
-                jmp DivideDWordCbySquareWordA
-
-                .endproc
-
-
-;======================================
-;
-;======================================
-Divide32bitByDeltaZ .proc
-                ldx dwordMath
-                ldy dwordMath+1
-                stx wordB_3CBE
-                sty wordB_3CBE+1
-                ldx dwordMath+2
-                ldy dwordMath+3
-                stx wordC_3CC0
-                sty wordC_3CC0+1
-
-                jsr CalcNodesDeltaZ     ; result in Y:X
-                stx wordA_3CBC
-                sty wordA_3CBC+1
-
-                jmp DivideDWordCbySquareWordA
-
-                .endproc
-
-
-;======================================
-; calculate $2B5F:word - $2B5D:word
-;--------------------------------------
-; on exit:
-;   Y:X         delta
-;======================================
-CalcNodesDeltaZ .proc
-                lda lineNode1_VertZ_LO
-                sec
-                sbc lineNode0_VertZ_LO
-                tax
-
-                lda lineNode1_VertZ_HI
-                sbc lineNode0_VertZ_HI
-                tay
-
-                rts
-                .endproc
-
-
-;======================================
-; calculate $2B5E:word - $2B5C:word
-;--------------------------------------
-; on exit:
-;   Y:X         delta
-;======================================
-CalcNodesDeltaX .proc
-                lda lineNode1_VertX_LO
-                sec
-                sbc lineNode0_VertX_LO
-                tax
-
-                lda lineNode1_VertX_HI
-                sbc lineNode0_VertX_HI
-                tay
-
-                rts
-                .endproc
-
-
-;--------------------------------------
-;
-;--------------------------------------
-;
-;--------------------------------------
-ProjectAimPosition .proc
-                lda aimPosition
-                sta polyVertX_LO_2
-                lda aimPosition_HI
-                sta polyVertX_HI_2
-
-                lda #<$0018             ; surface (24 inches)
-                sta polyVertZ_LO_2
-                lda #>$0018
-                sta polyVertZ_HI_2
-
-                lda const_0x700
-                sta polyVertY_LO_2
-                lda const_0x700+1
-                sta polyVertY_HI_2
-
-                .endproc
-
-                ;[fall-through]
-
-
-;--------------------------------------
-;
-;--------------------------------------
-; calculate:
-;   wordC:wordD = vertZ * $0298
-;   = wordD / vertY
-;--------------------------------------
-Project3DVertex .proc
-;   wordC:wordB = (zCoord-zCenterline)*664
-                lda polyVertZ_LO_2
-                sec
-                sbc #<$0150             ; 336 (zCoord centerline)
-                sta dwordMath
-                lda polyVertZ_HI_2
-                sbc #>$0150
-                sta dwordMath+1
-
-                lda #<$0298             ; *664
-                sta physicsY
-                lda #>$0298
-                sta physicsY+1
-
-                jsr MultiplyWordByWord_ABS  ; result in dwordMath
-
-                lda dwordMath           ; save result
-                sta wordB_3CBE
-                lda dwordMath+1
-                sta wordB_3CBE+1
-                lda dwordMath+2
-                sta wordC_3CC0
-                lda dwordMath+3
-                sta wordC_3CC0+1
-
-; - - - - - - - - - - - - - - - - - - -
-;   wordB = wordC:wordB/yCoord^2... remainder wordC (ignored)
-                lda polyVertY_LO_2
-                sta wordA_3CBC
-                lda polyVertY_HI_2
-                sta wordA_3CBC+1
-
-                jsr DivideDWordCbySquareWordA   ; result in wordB+wordC[remainder]
-
-; - - - - - - - - - - - - - - - - - - -
-                ;lda #$00
-                stz newClip_flags       ; clear clipping flags
-
-; - - - - - - - - - - - - - - - - - - -
-;   newVertZ = 20 - wordB
-                lda #<$0014
-                sec
-                sbc wordB_3CBE
-                sta newVertZ_LO
-                lda #>$0014
-                sbc wordB_3CBE+1
-                sta newVertZ_HI
-                bpl _1
-
-                lda #$04                ; set bit-2 (newVertZ isOffScreenTop)
-                ora newClip_flags
-                sta newClip_flags
-
-                jmp _3
-
-; - - - - - - - - - - - - - - - - - - -
-_1              bne _2
-
-                lda newVertZ_LO
-                cmp #$C8                ; off-screen?
-                bcs _2                  ;   yes
-                jmp _3
-
-; - - - - - - - - - - - - - - - - - - -
-_2              lda #$08                ; set bit-3 (newVertZ isOffScreenBottom)
-                ora newClip_flags
-                sta newClip_flags
-
-; - - - - - - - - - - - - - - - - - - -
-;   wordC:wordB = (xCoord-xCenterline)*857
-_3              lda polyVertX_LO_2
-                sta dwordMath
-                lda polyVertX_HI_2
-                sec
-                sbc #>$1800             ; course centerline (512 feet)
-                sta dwordMath+1
-
-                lda #<$0359             ; *857
-                sta physicsY
-                lda #>$0359
-                sta physicsY+1
-
-                jsr MultiplyWordByWord_ABS  ; result in dwordMath
-
-                lda dwordMath           ; save result
-                sta wordB_3CBE
-                lda dwordMath+1
-                sta wordB_3CBE+1
-                lda dwordMath+2
-                sta wordC_3CC0
-                lda dwordMath+3
-                sta wordC_3CC0+1
-
-; - - - - - - - - - - - - - - - - - - -
-;   wordB = wordC:wordB/yCoord^2... remainder wordC (ignored)
-                lda polyVertY_LO_2
-                sta wordA_3CBC
-                lda polyVertY_HI_2
-                sta wordA_3CBC+1
-
-                jsr DivideDWordCbySquareWordA   ; result in wordB+wordC[remainder]
-
-; - - - - - - - - - - - - - - - - - - -
-;   newVertX = 120 + wordB
-                lda #<$0078             ; 120, half of the screen width [240]
-                clc
-                adc wordB_3CBE
-                sta newVertX_LO
-                lda #>$0078
-                adc wordB_3CBE+1
-                sta newVertX_HI
-                bpl _4
-
-                lda #$02                ; set bit-1 (newVertX isOffScreenLeft)
-                ora newClip_flags
-                sta newClip_flags
-
-                jmp _6
-
-; - - - - - - - - - - - - - - - - - - -
-_4              bne _5
-
-                lda newVertX_LO
-                cmp #$F0                ; off-screen?
-                bcs _5                  ;   yes
-                jmp _6
-
-; - - - - - - - - - - - - - - - - - - -
-_5              lda newClip_flags
-                ora #$01                ; set bit-0 (newVertX isOffScreenRight)
-                sta newClip_flags
-
-; - - - - - - - - - - - - - - - - - - -
-_6              ldx newVertX_LO
-                ldy newVertZ_LO
-                lda newClip_flags
-
-                rts
-                .endproc
-
-
-;======================================
-;
-;--------------------------------------
-;
-;======================================
+;====================================== ;[[V]]
 MultipleWordByPhysicsY .proc
                 stz dwordMath+2
                 stz dwordMath+3
@@ -612,14 +65,6 @@ _1              ror dwordMath+3
                 .endproc
 
 
-;--------------------------------------
-;--------------------------------------
-
-dwordMath               .dword $0000
-physicsY                .word $0000
-isResultNegative        .byte $00
-
-
 ;======================================
 ;
 ;--------------------------------------
@@ -628,7 +73,7 @@ isResultNegative        .byte $00
 ;   physicsY    word value 2
 ; on exit:
 ;   dwordMath   dword result
-;======================================
+;====================================== ;[[V]]
 MultiplyWordByWord_ABS .proc
                 lda physicsY+1
                 eor dwordMath+1
@@ -683,6 +128,66 @@ _XIT            rts
 
 
 ;======================================
+;
+;====================================== ;[[V]]
+MultipleBy6     .proc
+                stx dwordMath           ; idxActiveHole
+                sty physicsY            ; always 6
+
+                stz dwordMath+1         ; hi-byte unused
+                stz physicsY+1
+
+                jsr MultipleWordByPhysicsY
+
+                lda dwordMath           ; word result
+                ldx dwordMath+1
+
+                rts
+                .endproc
+
+
+;======================================
+;
+;--------------------------------------
+; preserved:    X,Y
+; on entry:
+;   A           power based on club
+; on exit:
+;   A           result_HI (dwordMath+1)
+;   dwordMath   result_LO
+;====================================== ;[[V]]
+MultiplyByteBy42 .proc
+_value          = dwordMath
+_multiplier     = physicsY
+_result         = dwordMath
+;---
+
+                sta _value
+
+                txa                     ; preserve X,Y
+                pha
+                tya
+                pha
+
+                lda #>$002A
+                sta _value+1            ; value_HI unused
+                sta _multiplier+1       ; multiplier_HI unused
+                lda #<$002A             ; multiplier (x42)
+                sta _multiplier
+
+                jsr MultipleWordByPhysicsY
+
+                pla                     ; restore X,Y
+                tay
+                pla
+                tax
+
+                lda _result+1
+                rts
+                .endproc
+
+
+;======================================
 ; divide wordB by wordA
 ;--------------------------------------
 ; on entry:
@@ -696,9 +201,8 @@ _XIT            rts
 ; wordA     $0024       ,$003C
 ; wordB     $3148->$015E,$090F->$0026
 ; wordC            $0010,       $0027
-;======================================
+;====================================== ;[[V]]
 DivideWordBbyWordA .proc
-                ;lda #$00
                 stz wordC_3CC0
                 stz wordC_3CC0+1
 
@@ -739,15 +243,6 @@ _2              dex
                 .endproc
 
 
-;--------------------------------------
-;--------------------------------------
-
-wordA_3CBC      .word $0000
-wordB_3CBE      .word $0000
-wordC_3CC0      .word $0000
-wordD_3CC2      .word $0000
-
-
 ;======================================
 ; divide ABS(wordB) by ABS(wordA)
 ;--------------------------------------
@@ -763,7 +258,7 @@ wordD_3CC2      .word $0000
 ;   wordB   $0000->$00A2,$02DA->$000C
 ;   wordC   $0007->$E220,$0000->$000A
 ;   wordD        ->$20ED,$0005->$0202
-;======================================
+;====================================== ;[[V]]
 DivideWordBbyWordA_ABS .proc
                 lda wordB_3CBE+1
                 eor wordA_3CBC+1
@@ -825,8 +320,7 @@ _3              lda wordD_3CC2+1
                 jmp _XIT
 
 ; - - - - - - - - - - - - - - - - - - -
-_4              ;lda #$00
-                stz wordB_3CBE
+_4              stz wordB_3CBE
                 stz wordB_3CBE+1
                 stz wordC_3CC0
                 stz wordC_3CC0+1
@@ -844,7 +338,7 @@ _XIT            clc
 ;
 ;--------------------------------------
 ;
-;======================================
+;====================================== ;[[V]]
 DivideDWordCbySquareWordA .proc
                 lda wordC_3CC0+1
                 eor wordA_3CBC+1
@@ -894,14 +388,33 @@ _2              jsr DivideWordBbyWordA._ENTRY1      ; result in wordB+wordC[rema
 ;======================================
 ;
 ;--------------------------------------
-; preserved:    X,Y
-; on entry:
-;   A           power based on club
 ; on exit:
-;   A           result_HI (dwordMath+1)
-;   dwordMath   result_LO
-;======================================
-MultiplyByteBy42 .proc
+;   Y:X         result
+;====================================== ;[[V]]
+GetWordResult   .proc
+                asl dwordMath+1         ; load CARRY
+
+                bit dwordMath+3         ; are we decrementing?
+                bmi _1                  ;   yes
+
+; - - - - - - - - - - - - - - - - - - -
+                lda dwordMath+2         ; increment
+                adc #<$0000
+                tax
+                lda dwordMath+3
+                adc #>$0000
+                tay
+
+                rts
+
+; - - - - - - - - - - - - - - - - - - -
+_1              lda dwordMath+2         ; decrement
+                sbc #<$0000
+                tax
+                lda dwordMath+3
+                sbc #>$0000
+                tay
+
                 rts
                 .endproc
 
@@ -909,51 +422,229 @@ MultiplyByteBy42 .proc
 ;======================================
 ;
 ;--------------------------------------
-; on entry:
-;   A           multiplier
-;   Y:X         value
-; on exit:
-;   Y:X:A       result:long
-;======================================
-MultiplyWordByByte .proc
-                rts
-                .endproc
-
-
-;======================================
 ;
-;--------------------------------------
-;
-;======================================
-CalcProjectile  .proc
-                rts
-                .endproc
-
-
-;======================================
-;
-;--------------------------------------
-;
-;======================================
+;====================================== ;[[V]]
 Multiply_DividebySquare .proc
+                lda distanceToPinFeet
+                sta wordA_3CBC
+                lda distanceToPinFeet+1
+                sta wordA_3CBC+1
+
+                stx dwordMath
+                sty dwordMath+1
+
+                lda wordA_course
+                sta physicsY
+                lda wordA_course+1
+                sta physicsY+1
+
+                jsr MultiplyWordByWord_ABS
+
+                ldx #$03
+_next1          lda dwordMath,X
+                sta wordB_3CBE,X
+
+                dex
+                bpl _next1
+
+                jsr DivideDWordCbySquareWordA
+
+                ldx wordB_3CBE
+                ldy wordB_3CBE+1
+
+                rts
+                .endproc
+
+
+;======================================
+; calculate Sqr(deltaX) + Sqr(deltaY).
+;--------------------------------------
+; Step One of the Pythagorean formula
+;====================================== ;[[V]]
+calcHypotenuseArea .proc
+;   calculate deltaX^2
+                lda wordA_course
+                sec
+                sbc polyVertX_LO
+                sta dwordMath
+                sta physicsY
+                sta polyVertX_delta
+
+                lda wordA_course+1
+                sbc polyVertX_HI
+                sta dwordMath+1
+                sta physicsY+1
+                sta polyVertX_delta+1
+
+                jsr MultiplyWordByWord_ABS  ; = dwordMath * physicsY
+
+                lda dwordMath
+                sta distanceToPinFeet
+                lda dwordMath+1
+                sta distanceToPinFeet+1
+
+                lda dwordMath+2
+                sta distanceToPinNatural
+                lda dwordMath+3
+                sta distanceToPinNatural+1
+
+; - - - - - - - - - - - - - - - - - - -
+;   calculate deltaY^2
+                lda wordB_course
+                sec
+                sbc polyVertY_LO
+                sta dwordMath
+                sta physicsY
+                sta polyVertY_delta
+
+                lda wordB_course+1
+                sbc polyVertY_HI
+                sta dwordMath+1
+                sta physicsY+1
+                sta polyVertY_delta+1
+
+                jsr MultiplyWordByWord_ABS
+
+                clc
+                lda dwordMath
+                adc distanceToPinFeet
+                sta distanceToPinFeet
+                sta distanceToPinFeet2
+                lda dwordMath+1
+                adc distanceToPinFeet+1
+                sta distanceToPinFeet+1
+                sta distanceToPinFeet2+1
+
+                lda dwordMath+2
+                adc distanceToPinNatural
+                sta distanceToPinNatural
+                sta distanceToPinNatural2
+                lda dwordMath+3
+                adc distanceToPinNatural+1
+                sta distanceToPinNatural+1
+                sta distanceToPinNatural2+1
+
                 rts
                 .endproc
 
 
 ;======================================
 ;
-;======================================
-MultipleBy6     .proc
-                stx dwordMath           ; idxActiveHole
-                sty physicsY            ; always 6
+;--------------------------------------
+; Step Two of the Pythagorean formula
+;--------------------------------------
+; given:
+;   SQR($097CA440) = $3148
+;--------------------------------------
+; example:
+;   $2294   $A440                     ->$A440 ...   ->$3148
+;   $2296   $097C                     ->$097C       ->$097C
+;   $2298   $A440->$7FFF              ->$497C       ->$3148
+;   $229A   $097C->$0000              ->$0000       ->$0000
+;   wordA          $7FFF       ->$7FFF
+;   wordB          $A440->$12F9->$497C
+;   wordC          $097C->$3739->$0000
+;   wordD
+;====================================== ;[[V]]
+calcSquareRoot  .proc
+                lda #$00
+                sta polyVertCount
 
-                stz dwordMath+1         ; hi-byte unused
-                stz physicsY+1
+;   find non-zero value
+                ldx #$03                ; two words
+_next1          lda distanceToPinFeet,X ; non-zero?
+                bne _2                  ;   yes
 
-                jsr MultipleWordByPhysicsY
+                dex
+                bne _next1
 
-                lda dwordMath           ; word result
-                ldx dwordMath+1
+;   all values are zero
+                lda distanceToPinFeet
+                bne _1
+
+                rts
+
+; - - - - - - - - - - - - - - - - - - -
+_1              cmp #$02                ; >=2 feet?
+                bcs _2                  ;   yes
+
+                lda #$01                ; distance is 1 foot
+
+                rts
+
+; - - - - - - - - - - - - - - - - - - -
+_2              lda #>$7FFF             ; max value
+                sta distanceToPinFeet2+1
+                lda #<$7FFF
+                sta distanceToPinFeet2
+
+                lda #$00                ; clear
+                sta distanceToPinNatural2
+                sta distanceToPinNatural2+1
+
+_next2          ldx #$03                ; two words
+_next3          lda distanceToPinFeet,X ; get Feet & Natural
+                sta wordB_3CBE,X        ; set wordB & wordC
+
+                lda distanceToPinFeet2,X ; get Feet2 & Natural2
+                sta wordA_3CBC,X        ; set wordA & wordB
+
+                dex
+                bpl _next3
+
+;   input:
+;   wordA = distanceToPinFeet2
+;   wordB = distanceToPinNatural2
+;   wordC = distanceToPinNatural
+;   output:
+;   wordB = distanceToPinNatural2 / distanceToPinFeet2
+;   wordC = remainder
+                jsr DivideWordBbyWordA._ENTRY1  ; result in wordB+wordC[remainder]
+
+;   calculate wordB += distanceToPinFeet2
+                ldy #$01
+                ldx #$00
+                clc
+_next4          lda wordB_3CBE,X
+                adc distanceToPinFeet2,X
+                sta wordB_3CBE,X
+                inx
+
+                dey
+                bpl _next4
+
+                lsr wordB_3CBE+1        ; /2 (16-bit)
+                ror wordB_3CBE
+
+                lda #$00
+                adc #$00
+                sta tempC               ; preserve Carry-bit
+
+                lda #$00                ; clear remainder
+                sta wordC_3CC0+1
+                sta wordC_3CC0
+
+                jsr CompareForEquality
+                bcs _3
+
+                ldx #$03                ; two word
+_next5          lda wordB_3CBE,X        ; store result
+                sta distanceToPinFeet2,X
+
+                dex
+                bpl _next5
+                jmp _next2
+
+; - - - - - - - - - - - - - - - - - - -
+_3              lda wordB_3CBE          ; add the preserved Carry-bit
+                clc
+                adc tempC
+                tax
+                sta distanceToPinFeet   ; save result
+                lda wordB_3CBE+1
+                adc #$00
+                tay
+                sta distanceToPinFeet+1
 
                 rts
                 .endproc
@@ -961,7 +652,7 @@ MultipleBy6     .proc
 
 ;======================================
 ;
-;======================================
+;====================================== ;[[V]]
 ConvertToInches .proc
                 stx dwordMath           ; polygon origin X_LO
                 sta dwordMath+1         ; polygon origin X_HI
@@ -984,3 +675,39 @@ ConvertToInches .proc
 
                 rts
                 .endproc
+
+
+;======================================
+;
+;--------------------------------------
+; CARRY is cleared when NOT EQUAL
+;====================================== ;[[V]]
+CompareForEquality .proc
+                ldx #$03                ; two words
+_next1          lda wordB_3CBE,X
+                cmp distanceToPinFeet2,X
+                bne _XIT
+
+                dex
+                bpl _next1
+
+_XIT            rts
+
+;--------------------------------------
+
+                .byte $00,$D3
+
+                .endproc
+
+
+;--------------------------------------
+;--------------------------------------
+
+dwordMath           .dword $0000
+physicsY            .word $0000
+isResultNegative    .byte $00
+
+wordA_3CBC          .word $0000
+wordB_3CBE          .word $0000
+wordC_3CC0          .word $0000
+wordD_3CC2          .word $0000
