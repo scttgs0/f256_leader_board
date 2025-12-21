@@ -46,11 +46,6 @@ zpFF                    = $00FF
 
 JIFFYCLOCK              = $0085
 
-InputFlags              = $0086         ; [2 bytes]
-
-InputType               = $0088         ; [2 bytes] Joystick/Keyboard for Player 1
-itJoystick          = 0
-itKeyboard          = 1
 KEYCHAR                 = $008A         ; last key pressed ascii
 KEYCODE                 = $008B         ; last key pressed raw
 CONSOL                  = $008C         ; state of OPTION,SELECT,START

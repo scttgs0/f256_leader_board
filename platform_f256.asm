@@ -1175,13 +1175,6 @@ InitIRQs        .proc
                 lda #$07
                 sta CONSOL
 
-;   initialize joystick/keyboard
-                lda #$1F
-                sta InputFlags
-                ; sta InputFlags+1
-                stz InputType           ; =joystick
-                ; stz InputType+1
-
 ;   disable all IRQ
                 lda #$FF
                 sta INT_EDGE_REG0

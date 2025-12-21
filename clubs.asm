@@ -146,7 +146,7 @@ _golfclub       .text '1W'              ; [0]
 ;======================================
 ;
 ;====================================== ;[[F]]
-AudioSwingControl .proc
+SwingAnimControl .proc
                 lda isSwingInProgress   ; swing anim in progress?
                 bne _1                  ;   yes
 
@@ -161,10 +161,10 @@ _1              lda timerIsActive       ; timer 0 active?
 ; - - - - - - - - - - - - - - - - - - -
 _2              inc golferSwingFrame
                 ldx golferSwingFrame
-                cpx #$20                ; =32?
+                cpx #$20                ; =32? (MAX)
                 bne _3                  ;   no
 
-                lda #FALSE              ; stop swing animation
+                lda #FALSE              ;   yes, stop swing animation
                 sta isSwingInProgress
 
                 lda #$FF
@@ -177,37 +177,41 @@ _3              lda tblDuration,X       ; duration
                 ldx #$00                ; timer #0
                 jsr SetTimer
 
+;--------------------------------------
+;   POWER
                 ldx golferSwingFrame
-                cpx #$01
-                bne _4
-                jmp SetAudSwingPwr
+                cpx #$01                ; frame 1?
+                bne _4                  ;   no
+                jmp SetGaugePower       ;   yes, switch to POWER phase (ascending)
 
 ; - - - - - - - - - - - - - - - - - - -
-_4              cpx #$0A                ; max backswing
-                bne _5
-                jmp SetAudSwingEnd
+_4              cpx #$0A                ; frame 10? (max backswing)
+                bne _5                  ;   no
+                jmp SyncGaugeAudio      ;   yes
+
+;--------------------------------------
+;   TIMING
+_5              cpx #$0B                ; frame 11?
+                bne _6                  ;   no
+                jmp SetGaugeTiming      ;   yes, switch to TIMING phase (descending)
 
 ; - - - - - - - - - - - - - - - - - - -
-_5              cpx #$0B
-                bne _6
-                jmp SetAudSwingTmg
+_6              cpx #$10                ; frame 16?
+                bne _7                  ;   no
+                jmp SyncGaugeAudio      ;   yes
+
+;--------------------------------------
+;   SNAP
+_7              cpx #$11                ; frame 17?
+                bne _8                  ;   no
+                jmp SetGaugeSnap        ;   yes, switch to SNAP phase
 
 ; - - - - - - - - - - - - - - - - - - -
-_6              cpx #$10
-                bne _7
-                jmp SetAudSwingEnd
+_8              cpx #$16                ; frame 22?
+                bne _XIT                ;   no
+                jmp SyncGaugeAudio      ;   yes
 
-; - - - - - - - - - - - - - - - - - - -
-_7              cpx #$11
-                bne _8
-                jmp SetAudSwingSnap
-
-; - - - - - - - - - - - - - - - - - - -
-_8              cpx #$16
-                bne _XIT
-                jmp SetAudSwingEnd
-
-; - - - - - - - - - - - - - - - - - - -
+;--------------------------------------
 _XIT            rts
                 .endproc
 
@@ -215,10 +219,19 @@ _XIT            rts
 ;======================================
 ;
 ;====================================== ;[[F]]
-SetAudSwing     .proc
+ResetGauge      .proc
                 sei
 
                 jsr DisableTimer2
+
+                lda #$FF
+                ;!!sta AUDF1
+                sta PlayClubSwing._swingFreq1
+
+                lda #$F0
+                ;!!eor audioF2Chaos
+                ;!!sta AUDF2
+                sta PlayClubSwing._swingFreq2
 
                 jsr PlayClubSwing
 
@@ -233,10 +246,18 @@ SetAudSwing     .proc
 ;--------------------------------------
 ;
 ;-------------------------------------- ;[[F]]
-SetAudSwingPwr  .proc
+SetGaugePower   .proc
                 sei
 
                 jsr DisableTimer2
+
+                lda #$FF
+                sta PlayClubSwing._swingFreq1
+                ;!!sta AUDF1
+
+                lda #$FF
+                sta PlayClubSwing._swingFreq2
+                ;!!sta AUDF2
 
                 lda #$00
                 sta gaugeValue          ; reset
@@ -254,10 +275,18 @@ SetAudSwingPwr  .proc
 ;--------------------------------------
 ;
 ;-------------------------------------- ;[[F]]
-SetAudSwingTmg  .proc
+SetGaugeTiming  .proc
                 sei
 
                 jsr DisableTimer2
+
+                lda #$86
+                sta PlayClubSwing._swingFreq1
+                ;!!sta AUDF1
+
+                lda #$5C
+                sta PlayClubSwing._swingFreq2
+                ;!!sta AUDF2
 
                 lda #$10
                 sta gaugeValue          ; = peak power
@@ -275,10 +304,18 @@ SetAudSwingTmg  .proc
 ;--------------------------------------
 ;
 ;-------------------------------------- ;[[F]]
-SetAudSwingSnap .proc
+SetGaugeSnap    .proc
                 sei
 
                 jsr DisableTimer2
+
+                lda #$06
+                sta PlayClubSwing._swingFreq1
+                ;!!sta AUDF1
+
+                lda #$46
+                sta PlayClubSwing._swingFreq2
+                ;!!sta AUDF2
 
                 lda #$20
                 sta gaugeValue          ; beginning of snap
@@ -296,7 +333,7 @@ SetAudSwingSnap .proc
 ;--------------------------------------
 ;
 ;-------------------------------------- ;[[F]]
-SetAudSwingEnd  .proc
+SyncGaugeAudio  .proc
                 sei
 
                 jsr DisableTimer2
@@ -307,10 +344,16 @@ SetAudSwingEnd  .proc
                 lda gaugeValue
                 sta cacheGaugeValue,X
 
+                lda PlayClubSwing._swingFreq1
+                sta cacheSwingFreq1,X
+
+                lda PlayClubSwing._swingFreq2
+                sta cacheSwingFreq2,X
+
                 cpx #$02                ; =snap?
                 bne _1                  ;   no
 
-                jsr SetAudSwing
+                jsr ResetGauge
 
 _1              cli
                 rts
@@ -321,6 +364,11 @@ _1              cli
 ;
 ;====================================== ;[[U]]
 DisableTimer2   .proc
+                ;!!lda POKMSK
+                ;!!and #$FD                ; disable timer-2
+                ;!!sta POKMSK
+                ;!!sta IRQEN
+
                 rts
                 .endproc
 
@@ -329,5 +377,22 @@ DisableTimer2   .proc
 ;
 ;====================================== ;[[U]]
 PlayClubSwing   .proc
+                lda _swingFreq1
+                ;!!sta AUDF1
+                lda _swingFreq2
+                ;!!sta AUDF2
+                ;!!sta STIMER
+
+                ;!!lda POKMSK
+                ;!!ora #$02                ; enable timer-2
+                ;!!sta POKMSK
+                ;!!sta IRQEN
+
                 rts
+
+;--------------------------------------
+
+_swingFreq1     .byte $FF
+_swingFreq2     .byte $FF
+
                 .endproc

@@ -216,18 +216,6 @@ HACKSprites     .proc
                 .frsSpriteShow 0
                 .frsSpriteSetX $86,0    ; club
                 .frsSpriteSetY $D2,0
-;   club animation [$01]
-                ;.frsSpriteSetX $7E,0    ; club
-                ;.frsSpriteSetY $D2,0
-;   club animation [$02]
-                ;.frsSpriteSetX $7E,0    ; club
-                ;.frsSpriteSetY $D1,0
-;   club animation [$03]
-                ;.frsSpriteSetX $70,0    ; club
-                ;.frsSpriteSetY $CA,0
-;   club animation [$04]
-                ;.frsSpriteSetX $60,0    ; club
-                ;.frsSpriteSetY $C2,0
 
 ;   player driver animation [$00:1F]
                 .frsSpriteShow 1

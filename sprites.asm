@@ -3,6 +3,12 @@
 ;
 ;====================================== ;[[U]]
 SpriteInit      .proc
+                jsr ClearAllPlayers
+
+                lda #$00
+                sta golferSwingFrame
+                sta golferSwingFrameMax
+
                 rts
                 .endproc
 

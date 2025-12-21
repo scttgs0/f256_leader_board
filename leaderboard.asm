@@ -92,10 +92,13 @@
 ;--------------------------------------
 ;
 ;--------------------------------------
-BOOT            ldx #$FF
+BOOT            ldx #$FF                ; reset the stack
                 txs
 
-                stz IOPAGE_CTRL
+                stz IOPAGE_CTRL         ; switch to the Primary I/O page
+
+                lda #mmuPage3|mmuEditPage3|mmuEditMode
+                sta MMU_CTRL            ; ensure Page3 w/Edit
 
                 stz BACKGROUND_COLOR_R
                 stz BACKGROUND_COLOR_G
@@ -185,9 +188,6 @@ _next2          sta tblPlayerAbility,X
                 .include "data/SODPATCH.inc"
                 .include "data/GAUGE.inc"
 
-                .include "platform_f256.asm"
-                .include "kernel/facade.asm"
-
 
 ;======================================
 ;
@@ -242,6 +242,14 @@ Stage           .proc
 
 ;--------------------------------------
 ;--------------------------------------
+                * = $0300
+;--------------------------------------
+
+                .include "platform_f256.asm"
+
+
+;--------------------------------------
+;--------------------------------------
                 * = $0800
 ;--------------------------------------
 
@@ -251,6 +259,7 @@ Stage           .proc
                 .include "interrupts.asm"
                 .include "data/GLYPHS.inc"
                 .include "data/STATIC.inc"
+                .include "kernel/facade.asm"
 
 
 ;--------------------------------------
@@ -268,7 +277,7 @@ gameFont        .include "data/FONT.inc"
 ;--------------------------------------
 
                 .include "data/ANIM0_DRIVER.inc"
-                .include "data/ANIM0_CLUB.inc"
+                .include "data/ANIM2_CLUB.inc"
                 .include "data/ANIM1_PUTT.inc"
 
 
@@ -282,6 +291,7 @@ CLOUD_CHUNK     = (* / $2000)
 
                 .include "data/CLOUDS.inc"
                 .include "data/MOUNTAINS.inc"
+
 
 ;--------------------------------------
 ;--------------------------------------

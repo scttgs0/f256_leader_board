@@ -101,34 +101,40 @@ frsSpriteSetY   .macro val,idx
 
 
 frsSpriteSetX_ix .macro
-                pha
                 phx
+                pha
 
                 txa
                 asl                     ; *8
                 asl
                 asl
                 tax
+
+                pla
+                pha
                 sta $D904,X
                 stz $D905,X
 
-                plx
                 pla
+                plx
                 .endmacro
 
 
 frsSpriteSetY_ix .macro
-                pha
                 phx
+                pha
 
                 txa
                 asl                     ; *8
                 asl
                 asl
                 tax
+
+                pla
+                pha
                 sta $D906,X
                 stz $D907,X
 
-                plx
                 pla
+                plx
                 .endmacro

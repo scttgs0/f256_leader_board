@@ -3,7 +3,7 @@
 ;~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ; Main IRQ Handler
 ;~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-;~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+;~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ;[[V]]
 irqMain         .proc
                 pha
                 phx
@@ -57,7 +57,7 @@ irqMain_END     jmp (priorIRQ_BRK)
 
 ;~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ; Vertical Blank Interrupt (SOF)
-;~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+;~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ;[[U]]
 irqVBIHandler   .proc
                 pha
                 phx
@@ -65,53 +65,13 @@ irqVBIHandler   .proc
 
                 inc JIFFYCLOCK          ; increment the jiffy clock each VBI
 
-                jsr DoTimers
                 jsr DoSwingGauge
 
-                ;;lda #TRUE
-                ;;sta gameGate
+                jsr DoTimers
+                jsr SwingAnim_DeferredA
+                ;!!jsr Math_DeferredB
 
-;   when already in joystick mode, bypass the override logic
-                lda InputType
-                cmp #itJoystick
-                beq _joyModeP1
-
-                lda JOYSTICK0           ; read joystick0
-                and #$1F
-                cmp #$1F
-                beq _chkJoy2            ; when no activity, keyboard is alternative
-
-                sta InputFlags          ; joystick activity -- override keyboard input
-                lda #itJoystick
-                sta InputType
-
-                bra _chkJoy2
-
-_joyModeP1      lda JOYSTICK0           ; read joystick0
-                sta InputFlags
-
-_chkJoy2        lda InputType+1
-                cmp #itJoystick
-                beq _joyModeP2
-
-                lda JOYSTICK1           ; read joystick1
-                and #$1F
-                cmp #$1F
-                beq _XIT                ; when no activity, keyboard is alternative
-
-                sta InputFlags+1        ; joystick activity -- override keyboard input
-                lda #itJoystick
-                sta InputType+1
-
-                bra _XIT
-
-_joyModeP2      lda JOYSTICK1           ; read joystick0
-                sta InputFlags+1
-
-                ; jsr AnimateSprites
-                ; jsr EventController.Process
-
-_XIT            ply
+                ply
                 plx
                 pla
                 rts
@@ -122,7 +82,7 @@ _XIT            ply
 ;
 ;--------------------------------------
 ; called from interrupt
-;======================================
+;====================================== ;[[V]]
 DoTimers        .proc
                 ldx #$0F                ; timer index
 _nextTimer      lda timerIsActive,X     ; timer X active?
@@ -137,12 +97,12 @@ _nextTimer      lda timerIsActive,X     ; timer X active?
                 lda timerDuration,X     ; reset ticks
                 sta timerRemaining,X
 
-_1              ;!!cpx audioF2Chaos
-                ;!!bne _2
+_1              cpx _audioF2Chaos
+                bne _2
 
-                ;!!inc unused_9C0E
-                ;!!dec unused_9C0F
-                ;!!inc timerIsActive,X     ; make active
+                inc unused_9C0E
+                dec unused_9C0F
+                inc timerIsActive,X     ; make active
 
 _2              dex
                 bpl _nextTimer
@@ -211,4 +171,46 @@ _XIT            rts
 
 _jiffyCount     .byte $00
 
+_audioF2Chaos   .byte $12,$00
+
+                .endproc
+
+
+;======================================
+;
+;--------------------------------------
+; called from interrupt
+;====================================== ;[[F]]
+SwingAnim_DeferredA .proc
+                lda isSwingDisabled
+                beq _1
+
+                rts
+
+; - - - - - - - - - - - - - - - - - - -
+_1              lda isSwingInProgress   ; swing anim in progress?
+                bne _2                  ;   yes
+
+                rts                     ;   no
+
+; - - - - - - - - - - - - - - - - - - -
+_2              lda golferSwingFrame
+                cmp #$20                ; <32? (max)
+                bcc _3                  ;   yes
+
+                rts                     ;   no
+
+; - - - - - - - - - - - - - - - - - - -
+_3              cmp golferSwingFrameMax
+                bne _4
+
+                rts
+
+; - - - - - - - - - - - - - - - - - - -
+_4              sta golferSwingFrameMax
+
+                jsr DrawGolfer
+                ;!!jmp ProcessClubSwingAnim    ; render club
+
+                rts     ; HACK:
                 .endproc

@@ -4,15 +4,15 @@
 ;-------------------------------------- ;[[F]]
 NewGame         .proc
                 jsr ResetGame
-                jsr SetAudSwing
+                jsr ResetGauge
                 jsr DoConfig
 
                 jsr ClearScreen
 
                 lda #$00
                 sta activePlayer
-                sta isSwingDisabled
-                sta isSwingInProgress
+                sta isSwingDisabled     ; =FALSE
+                sta isSwingInProgress   ; =FALSE
                 sta swingAnimCounter    ; reset
                 sta arrDeferredSum
                 sta arrDeferredSum+1
@@ -197,7 +197,7 @@ MainLoop        .proc
                 sta activeClub
 
                 ;!!jsr DoWindStreamer
-                ;!!jsr InitSprites
+                jsr SpriteInit
                 jsr AimTarget
                 jsr InitBall
 
@@ -243,7 +243,7 @@ _next1          jsr ChangeClub
 _1              lda isSwingInProgress   ; swing anim in progress?
                 beq _next1              ;   no
 
-_next2          jsr AudioSwingControl
+_next2          jsr SwingAnimControl
                 jsr ProcessAudio
                 jsr DemoInput
 
@@ -253,7 +253,7 @@ _next2          jsr AudioSwingControl
 
                 jsr PowerLocked
 
-_next3          jsr AudioSwingControl
+_next3          jsr SwingAnimControl
                 jsr ProcessAudio
                 jsr DrawClock
                 jsr DemoInput
@@ -284,7 +284,7 @@ _2              jsr Swing_math_326F
                 ldx snapValue
                 jsr CalcAccuracyPenalty
 
-_next4          jsr AudioSwingControl
+_next4          jsr SwingAnimControl
                 jsr ProcessAudio
                 jsr Swing_math_326F
                 jsr PositionBallShadow
@@ -591,4 +591,159 @@ _XIT            pla
                 sta wordB_3CBE
 
                 rts
+                .endproc
+
+
+;======================================
+;
+;--------------------------------------
+; called from interrupt
+;====================================== ;[[F]]
+DrawGolfer      .proc
+;   preserve IOPAGE control
+                lda IOPAGE_CTRL
+                pha
+
+;   switch to system map
+                stz IOPAGE_CTRL
+; - - - - - - - - - - - - - - - - - - -
+
+                sei
+
+                .frsSpriteShow 1        ; player top
+                .frsSpriteShow 2        ; player bottom
+
+                .frsSpriteSetX $70,1    ; player top
+                .frsSpriteSetY $B6,1
+                .frsSpriteSetX $70,2    ; player bottom
+                .frsSpriteSetY $D6,2
+
+                ;;ldx #$03
+                ;;stx golferSwingFrame    ; HACK:
+
+                ldx golferSwingFrame
+                cmp #$FF
+                beq _XIT
+
+                lda _anim0Addr_LO,X
+                sta SPR(sprite_t.ADDR, 1)
+                sta SPR(sprite_t.ADDR, 2)
+
+                lda _anim0Addr_HI,X
+                sta SPR(sprite_t.ADDR+1, 1)
+                clc
+                adc #$04                ; +$400
+                sta SPR(sprite_t.ADDR+1, 2)
+
+                lda _anim0Addr_24,X
+                sta SPR(sprite_t.ADDR+2, 1)
+                sta SPR(sprite_t.ADDR+2, 2)
+
+; - - - - - - - - - - - - - - - - - - -
+                .frsSpriteShow 0        ; club
+
+                lda _anim2Addr_LO,X
+                sta SPR(sprite_t.ADDR, 0)
+
+                lda _anim2Addr_HI,X
+                sta SPR(sprite_t.ADDR+1, 0)
+
+                lda _anim2Addr_24,X
+                sta SPR(sprite_t.ADDR+2, 0)
+
+                phx
+                lda _anim2PosX,X
+                ldx #$00
+                .frsSpriteSetX_ix
+                plx
+
+                phx
+                lda _anim2PosY,X
+                ldx #$00
+                .frsSpriteSetY_ix
+                plx
+
+                ;;ldx golferSwingFrame    ; HACK:
+                ;;cpx #$0F
+                ;;bne _XIT
+
+;;_endless        bra _endless
+
+_XIT            cli
+
+; - - - - - - - - - - - - - - - - - - -
+;   restore IOPAGE control
+                pla
+                sta IOPAGE_CTRL
+
+                rts
+
+;--------------------------------------
+
+_anim0Addr_24   .byte `anim0cell00,`anim0cell01,`anim0cell02,`anim0cell03
+                .byte `anim0cell04,`anim0cell05,`anim0cell06,`anim0cell07
+                .byte `anim0cell08,`anim0cell09,`anim0cell0A,`anim0cell0B
+                .byte `anim0cell0C,`anim0cell0D,`anim0cell0E,`anim0cell0F
+                .byte `anim0cell00,`anim0cell11,`anim0cell12,`anim0cell13
+                .byte `anim0cell14,`anim0cell15,`anim0cell16,`anim0cell17
+                .byte `anim0cell18,`anim0cell19,`anim0cell1A,`anim0cell1B
+                .byte `anim0cell1C,`anim0cell1D,`anim0cell1E,`anim0cell1F
+_anim0Addr_HI   .byte >anim0cell00,>anim0cell01,>anim0cell02,>anim0cell03
+                .byte >anim0cell04,>anim0cell05,>anim0cell06,>anim0cell07
+                .byte >anim0cell08,>anim0cell09,>anim0cell0A,>anim0cell0B
+                .byte >anim0cell0C,>anim0cell0D,>anim0cell0E,>anim0cell0F
+                .byte >anim0cell00,>anim0cell11,>anim0cell12,>anim0cell13
+                .byte >anim0cell14,>anim0cell15,>anim0cell16,>anim0cell17
+                .byte >anim0cell18,>anim0cell19,>anim0cell1A,>anim0cell1B
+                .byte >anim0cell1C,>anim0cell1D,>anim0cell1E,>anim0cell1F
+_anim0Addr_LO   .byte <anim0cell00,<anim0cell01,<anim0cell02,<anim0cell03
+                .byte <anim0cell04,<anim0cell05,<anim0cell06,<anim0cell07
+                .byte <anim0cell08,<anim0cell09,<anim0cell0A,<anim0cell0B
+                .byte <anim0cell0C,<anim0cell0D,<anim0cell0E,<anim0cell0F
+                .byte <anim0cell00,<anim0cell11,<anim0cell12,<anim0cell13
+                .byte <anim0cell14,<anim0cell15,<anim0cell16,<anim0cell17
+                .byte <anim0cell18,<anim0cell19,<anim0cell1A,<anim0cell1B
+                .byte <anim0cell1C,<anim0cell1D,<anim0cell1E,<anim0cell1F
+
+_anim2Addr_24   .byte `anim2cell00,`anim2cell01,`anim2cell02,`anim2cell03
+                .byte `anim2cell04,`anim2cell05,`anim2cell06,`anim2cell07
+                .byte `anim2cell08,`anim2cell09,`anim2cell0A,`anim2cell0B
+                .byte `anim2cell0C,`anim2cell0D,`anim2cell0E,`anim2cell0F
+                .byte `anim2cell10,`anim2cell11,`anim2cell12,`anim2cell13
+                .byte `anim2cell14,`anim2cell15,`anim2cell16,`anim2cell17
+                .byte `anim2cell18,`anim2cell19,`anim2cell1A,`anim2cell1B
+                .byte `anim2cell1C,`anim2cell1D,`anim2cell1E,`anim2cell1F
+_anim2Addr_HI   .byte >anim2cell00,>anim2cell01,>anim2cell02,>anim2cell03
+                .byte >anim2cell04,>anim2cell05,>anim2cell06,>anim2cell07
+                .byte >anim2cell08,>anim2cell09,>anim2cell0A,>anim2cell0B
+                .byte >anim2cell0C,>anim2cell0D,>anim2cell0E,>anim2cell0F
+                .byte >anim2cell10,>anim2cell11,>anim2cell12,>anim2cell13
+                .byte >anim2cell14,>anim2cell15,>anim2cell16,>anim2cell17
+                .byte >anim2cell18,>anim2cell19,>anim2cell1A,>anim2cell1B
+                .byte >anim2cell1C,>anim2cell1D,>anim2cell1E,>anim2cell1F
+_anim2Addr_LO   .byte <anim2cell00,<anim2cell01,<anim2cell02,<anim2cell03
+                .byte <anim2cell04,<anim2cell05,<anim2cell06,<anim2cell07
+                .byte <anim2cell08,<anim2cell09,<anim2cell0A,<anim2cell0B
+                .byte <anim2cell0C,<anim2cell0D,<anim2cell0E,<anim2cell0F
+                .byte <anim2cell10,<anim2cell11,<anim2cell12,<anim2cell13
+                .byte <anim2cell14,<anim2cell15,<anim2cell16,<anim2cell17
+                .byte <anim2cell18,<anim2cell19,<anim2cell1A,<anim2cell1B
+                .byte <anim2cell1C,<anim2cell1D,<anim2cell1E,<anim2cell1F
+_anim2PosX      .byte $86,$7E,$7E,$76
+                .byte $66,$5E,$5E,$66
+                .byte $66,$66,$66,$66
+                .byte $76,$6E,$6E,$66
+                .byte $76,$7E,$86,$86
+                .byte $86,$8E,$6E,$6E
+                .byte $66,$6E,$76,$76
+                .byte $7E,$5E,$7E,$7E
+_anim2PosY      .byte $D2,$D2,$D1,$CA
+                .byte $C2,$BA,$B0,$B1
+                .byte $B2,$B2,$B2,$B2
+                .byte $BB,$B6,$B3,$B2
+                .byte $C4,$C8,$D0,$D0
+                .byte $CE,$C8,$BA,$B5
+                .byte $B0,$B4,$B9,$B8
+                .byte $B9,$B8,$B9,$B9
+
                 .endproc
