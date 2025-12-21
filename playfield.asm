@@ -55,10 +55,10 @@ _nextWater      sta (zpDest),Y
 
                 lda zpDest
                 clc
-                adc #<240
+                adc #<$F0
                 sta zpDest
                 lda zpDest+1
-                adc #>240
+                adc #>$F0
                 sta zpDest+1
 
                 lda #$00                ; BLACK (HUD)
@@ -70,10 +70,10 @@ _nextHUD        sta (zpDest),Y
 
                 lda zpDest
                 clc
-                adc #<80
+                adc #<$50
                 sta zpDest
                 lda zpDest+1
-                adc #>80
+                adc #>$50
                 sta zpDest+1
 
                 dex
