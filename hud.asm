@@ -322,7 +322,7 @@ RenderHUDCourse .proc
 
 ;======================================
 ;
-;====================================== ;[[U]]
+;====================================== ;[[U]]+
 RenderHUDPlayers .proc
                 jsr RenderHUDActivePlayer  ; '>'-mark for the active player
                 bra _hack    ; HACK:
@@ -501,7 +501,7 @@ DoNothing4      rts
 
 ;======================================
 ;
-;====================================== ;[[U]]
+;====================================== ;[[U]]+
 RenderStrokeCount .proc
                 ldx #stagePLAY
                 stx nStage

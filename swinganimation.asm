@@ -117,7 +117,7 @@ _XIT            rts
 ; build table of byte values from the
 ; screen locations specified in table
 ; tblClubKeyframes
-;====================================== ;[[F]]
+;====================================== ;[[F]]  obsolete
 PreserveScreenPatch .proc
 _screen         = zpC3
 ;---

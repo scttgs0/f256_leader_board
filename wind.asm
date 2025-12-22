@@ -226,7 +226,7 @@ _1              sty windVelThisHole
 ;
 ;--------------------------------------
 ; also utilized to render the slope
-;====================================== ;[[U]]
+;====================================== ;[[F]]
 DrawWindStreamer .proc
 _srcWIND_DIR    = zpFB
 _srcWIND_VEL    = zpFD
