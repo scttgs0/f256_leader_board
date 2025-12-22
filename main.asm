@@ -82,10 +82,10 @@ _ptr            = zpD4
 
                 lda _ptr
                 clc
-                adc #<$0028             ; +40
+                adc #<$0140             ; +320
                 sta _ptr
                 lda _ptr+1
-                adc #>$0028
+                adc #>$0140
                 sta _ptr+1
 
                 pla                     ; restore

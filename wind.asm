@@ -1,9 +1,11 @@
 
 ;======================================
 ;
-;====================================== ;[[U]]
+;====================================== ;[[V]]
 DoWind          .proc
+_retainPixel    = zpCD
 _SCREEN         = zpD4
+_scrnCloud      = screen16K
 ;---
 
                 lda windFactor          ; already set?
@@ -51,10 +53,31 @@ _2              cmp #$10                ; <16?
                 cmp #$F0                ; >=240?
                 bcs _XIT1               ;   yes
 
+; - - - - - - - - - - - - - - - - - - -
+;   preserve IOPAGE control
+                lda IOPAGE_CTRL
+                pha
+
+;   switch to system map
+                stz IOPAGE_CTRL
+
+;   ensure edit mode
+                lda MMU_CTRL
+                pha                     ; preserve
+                ora #mmuEditMode
+                sta MMU_CTRL
+
+                lda #$10                ; [8000:9FFF]->[2_0000:2_1FFF]
+                sta zpMMU
+                sta MMU_Block4
+                inc A                   ; [A000:BFFF]->[2_2000:2_3FFF]
+                sta MMU_Block5
+
+; - - - - - - - - - - - - - - - - - - -
 ;   move clouds
-                lda #<scrnTop
+                lda #<_scrnCloud
                 sta _SCREEN
-                lda #>scrnTop
+                lda #>_scrnCloud
                 sta _SCREEN+1
 
                 ldx #$08
@@ -63,64 +86,64 @@ _2              cmp #$10                ; <16?
 
 ; - - - - - - - - - - - - - - - - - - -
 ;   positive - move clouds right
-_moveRight      ldy #$1D                ; column[0:29]
+_moveRight      ldy #$EF                ; right-most cloud pixel
                 lda (_SCREEN),Y
-                and #$03
-                sta zpCD                ; preserve the right-pixel
+                sta _retainPixel        ; preserve the right-pixel
 
-                ldy #$00
+                ldy #$EE
 _next2          lda (_SCREEN),Y
-                pha                     ; preserve the current pixels
-
-                ror zpCD
-                ror
-                ror zpCD
-                ror
-                sta (_SCREEN),Y
-
-                pla                     ; restore the prior pixels
-                and #$03
-                sta zpCD                ; preserve the right-pixel
-
                 iny
-                cpy #$1E
-                bcc _next2
+                sta (_SCREEN),Y
+                dey
+
+                dey
+                cpy #$FF
+                bne _next2
+
+                lda _retainPixel        ; right-most pixel becomes left-most pixel
+                ldy #$00
+                sta (_SCREEN),Y
 
                 jsr AdvNextScanline_D4  ; move down one line
 
                 dex
                 bne _moveRight
-
-                rts
+                bra _XIT
 
 ; - - - - - - - - - - - - - - - - - - -
 ;   negative - move clouds left
-_moveLeft       ldy #$00
+_moveLeft       ldy #$00                ; left-most cloud pixel
                 lda (_SCREEN),Y
-                and #$C0
-                sta zpCD                ; preserve the left-pixel
+                sta _retainPixel        ; preserve the left-pixel
 
-                ldy #$1D                ; column[0:29]
+                ldy #$01
 _next4          lda (_SCREEN),Y
-                pha                     ; preserve the current pixels
-
-                rol zpCD
-                rol
-                rol zpCD
-                rol
-                sta (_SCREEN),Y
-
-                pla                     ; restore the prior pixels
-                and #$C0
-                sta zpCD                ; preserve the left-pixel
-
                 dey
-                bpl _next4
+                sta (_SCREEN),Y
+                iny
+
+                iny
+                cpy #$F0
+                bne _next4
+
+                lda _retainPixel        ; left-most pixel becomes right-most pixel
+                ldy #$EF
+                sta (_SCREEN),Y
 
                 jsr AdvNextScanline_D4  ; move down one line
 
                 dex
                 bne _moveLeft
+
+; - - - - - - - - - - - - - - - - - - -
+_XIT
+;   restore MMU control
+                pla
+                sta MMU_CTRL
+
+;   restore IOPAGE control
+                pla
+                sta IOPAGE_CTRL
 
                 rts
                 .endproc
@@ -353,7 +376,7 @@ _setColor1      lda #COLOR_BLACK        ; (wind velocity pole)
 
 ;======================================
 ;
-;====================================== ;[[U]]
+;====================================== ;[[F]]
 PuttSlope_54CF  .proc
                 lda idxDistanceUnit
                 cmp #unitYARDS          ; inches or feet?
