@@ -1,7 +1,7 @@
 
 ;======================================
 ;
-;====================================== ;[[U]]
+;====================================== ;[[F]]
 RenderHUD       .proc
                 jsr RenderHUDCourse     ; draw course#
                 jsr RenderHUDPAR        ; draw hole# and PAR
@@ -177,7 +177,7 @@ _6              sta _tensDigit
 
 _7              lda #' '
                 sta RenderHUD._scrnDistVal+1
-                
+
                 lda _tensDigit          ; is there a tens-digit?
                 beq _8                  ;   no, skip
 
@@ -495,7 +495,7 @@ _XIT            rts
 
 ;======================================
 ;
-;======================================
+;====================================== ;[[V]]
 DoNothing4      rts
 
 

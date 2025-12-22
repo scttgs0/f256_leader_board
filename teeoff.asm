@@ -117,7 +117,7 @@ _2              ldx activePlayer
                 jsr ResetHW
                 jsr PrepareCourse
                 jsr RenderPlayfield     ; clear course
-                jsr RenderHUD           ; course#, hole#, PAR, player summary 
+                jsr RenderHUD           ; course#, hole#, PAR, player summary
 
                 jsr InitScreenHW
                 jsr RenderCourse._OUTLINE   ; draw polygon outlines

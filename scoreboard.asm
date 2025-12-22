@@ -1,7 +1,7 @@
 
 ;======================================
 ;
-;======================================
+;====================================== ;[[V]]
 DrawScoreboard  .proc
 ;   fill the top with water and the bottom with grass
                 jsr ResetScoreboard
@@ -84,7 +84,7 @@ _scoreboard4    .null 'l                         nkkkkkm'
 
 ;======================================
 ;
-;======================================
+;====================================== ;[[V]]
 DrawScoreboardBackground .proc
 _dest           = zpCD
 _width          = zpD0
@@ -221,7 +221,7 @@ _1              dec _height             ; completed all the rows?
 ;--------------------------------------
 ;  80 bytes black [$F0:13F]
 ; 240 bytes blue  [$00:EF]
-;======================================
+;====================================== ;[[V]]
 ResetScoreboard .proc
 _zpFillQty      = zpD0
 ;---
@@ -348,7 +348,7 @@ _XIT
 
 ;======================================
 ;
-;======================================
+;====================================== ;[[F]]
 SetStrokesPtr   .proc
                 pha
 
@@ -390,7 +390,7 @@ _1              sta zpF9
 ;--------------------------------------
 ; on exit:
 ;   zpF9:FA     pointer
-;======================================
+;====================================== ;[[F]]
 SetNameBufPtr   .proc
                 pha                     ; =$0C (enter), needed due to bypass of SetStrokePtr
 

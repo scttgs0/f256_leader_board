@@ -3,7 +3,7 @@
 ;
 ;--------------------------------------
 ; called from interrupt
-;====================================== ;[[U]]
+;====================================== ;[[F]]
 ProcessClubSwingAnim .proc
 _screen         = zpC3
 _mask           = zpC5
@@ -117,7 +117,7 @@ _XIT            rts
 ; build table of byte values from the
 ; screen locations specified in table
 ; tblClubKeyframes
-;====================================== ;[[U]]
+;====================================== ;[[F]]
 PreserveScreenPatch .proc
 _screen         = zpC3
 ;---
