@@ -187,7 +187,7 @@ _3              lda tblDuration,X       ; duration
 ; - - - - - - - - - - - - - - - - - - -
 _4              cpx #$0A                ; frame 10? (max backswing)
                 bne _5                  ;   no
-                jmp SyncGaugeAudio      ;   yes
+                jmp SyncSwingGauge      ;   yes
 
 ;--------------------------------------
 ;   TIMING
@@ -198,7 +198,7 @@ _5              cpx #$0B                ; frame 11?
 ; - - - - - - - - - - - - - - - - - - -
 _6              cpx #$10                ; frame 16?
                 bne _7                  ;   no
-                jmp SyncGaugeAudio      ;   yes
+                jmp SyncSwingGauge      ;   yes
 
 ;--------------------------------------
 ;   SNAP
@@ -209,7 +209,7 @@ _7              cpx #$11                ; frame 17?
 ; - - - - - - - - - - - - - - - - - - -
 _8              cpx #$16                ; frame 22?
                 bne _XIT                ;   no
-                jmp SyncGaugeAudio      ;   yes
+                jmp SyncSwingGauge      ;   yes
 
 ;--------------------------------------
 _XIT            rts
@@ -218,22 +218,22 @@ _XIT            rts
 
 ;======================================
 ;
-;====================================== ;[[F]]
+;====================================== ;[[U]]
 ResetGauge      .proc
                 sei
 
-                jsr DisableTimer2
+                jsr DisableTimer16bit
 
-                lda #$FF
-                ;!!sta AUDF1
-                sta PlayClubSwing._swingFreq1
+                lda #>$FFF0             ; $1B4F5E / $FFF0 = $1B (1/27 sec)
+                ;!!sta AUDF1               ; timer-1 duration
+                sta EnableTimer16bit._tmrDuration_HI
 
-                lda #$F0
-                ;!!eor audioF2Chaos
-                ;!!sta AUDF2
-                sta PlayClubSwing._swingFreq2
+                lda #<$FFF0
+                eor DoTimers.timer16bitMask_LO
+                ;!!sta AUDF2               ; timer-2 duration
+                sta EnableTimer16bit._tmrDuration_LO
 
-                jsr PlayClubSwing
+                jsr EnableTimer16bit
 
                 lda #gaugeINACTIVE
                 sta gaugeStage
@@ -245,24 +245,24 @@ ResetGauge      .proc
 
 ;--------------------------------------
 ;
-;-------------------------------------- ;[[F]]
+;-------------------------------------- ;[[U]]
 SetGaugePower   .proc
                 sei
 
-                jsr DisableTimer2
+                jsr DisableTimer16bit
 
-                lda #$FF
-                sta PlayClubSwing._swingFreq1
-                ;!!sta AUDF1
+                lda #>$FFFF             ; $1B4F5E / $FFFF = $1B (1/27 sec)
+                sta EnableTimer16bit._tmrDuration_HI
+                ;!!sta AUDF1               ; timer-1 duration
 
-                lda #$FF
-                sta PlayClubSwing._swingFreq2
-                ;!!sta AUDF2
+                lda #<$FFFF
+                sta EnableTimer16bit._tmrDuration_LO
+                ;!!sta AUDF2               ; timer-2 duration
 
                 lda #$00
                 sta gaugeValue          ; reset
 
-                jsr PlayClubSwing
+                jsr EnableTimer16bit
 
                 lda #gaugeASCENDING
                 sta gaugeStage          ; = Power Increasing
@@ -274,24 +274,24 @@ SetGaugePower   .proc
 
 ;--------------------------------------
 ;
-;-------------------------------------- ;[[F]]
+;-------------------------------------- ;[[U]]
 SetGaugeTiming  .proc
                 sei
 
-                jsr DisableTimer2
+                jsr DisableTimer16bit
 
-                lda #$86
-                sta PlayClubSwing._swingFreq1
-                ;!!sta AUDF1
+                lda #>$865C             ; $1B4F5E / $865C = $34 (1/52 sec)
+                sta EnableTimer16bit._tmrDuration_HI
+                ;!!sta AUDF1               ; timer-1 duration
 
-                lda #$5C
-                sta PlayClubSwing._swingFreq2
-                ;!!sta AUDF2
+                lda #<$865C
+                sta EnableTimer16bit._tmrDuration_LO
+                ;!!sta AUDF2               ; timer-2 duration
 
                 lda #$10
                 sta gaugeValue          ; = peak power
 
-                jsr PlayClubSwing
+                jsr EnableTimer16bit
 
                 lda #gaugeDESCENDING
                 sta gaugeStage          ; = Power Decreasing
@@ -303,24 +303,24 @@ SetGaugeTiming  .proc
 
 ;--------------------------------------
 ;
-;-------------------------------------- ;[[F]]
+;-------------------------------------- ;[[U]]
 SetGaugeSnap    .proc
                 sei
 
-                jsr DisableTimer2
+                jsr DisableTimer16bit
 
-                lda #$06
-                sta PlayClubSwing._swingFreq1
-                ;!!sta AUDF1
+                lda #>$0646             ; $1B4F5E / $0646 = $45A (1/1114 sec)
+                sta EnableTimer16bit._tmrDuration_HI
+                ;!!sta AUDF1               ; timer-1 duration
 
-                lda #$46
-                sta PlayClubSwing._swingFreq2
-                ;!!sta AUDF2
+                lda #<$0646
+                sta EnableTimer16bit._tmrDuration_LO
+                ;!!sta AUDF2               ; timer-2 duration
 
                 lda #$20
                 sta gaugeValue          ; beginning of snap
 
-                jsr PlayClubSwing
+                jsr EnableTimer16bit
 
                 lda #gaugeSNAP
                 sta gaugeStage
@@ -333,10 +333,10 @@ SetGaugeSnap    .proc
 ;--------------------------------------
 ;
 ;-------------------------------------- ;[[F]]
-SyncGaugeAudio  .proc
+SyncSwingGauge  .proc
                 sei
 
-                jsr DisableTimer2
+                jsr DisableTimer16bit
 
                 ldx gaugeStage
                 dex                     ; clamp to range[0:2]
@@ -344,11 +344,10 @@ SyncGaugeAudio  .proc
                 lda gaugeValue
                 sta cacheGaugeValue,X
 
-                lda PlayClubSwing._swingFreq1
-                sta cacheSwingFreq1,X
-
-                lda PlayClubSwing._swingFreq2
-                sta cacheSwingFreq2,X
+                lda EnableTimer16bit._tmrDuration_HI
+                sta cacheTimer16bit_HI,X
+                lda EnableTimer16bit._tmrDuration_LO
+                sta cacheTimer16bit_LO,X
 
                 cpx #$02                ; =snap?
                 bne _1                  ;   no
@@ -363,9 +362,9 @@ _1              cli
 ;======================================
 ;
 ;====================================== ;[[U]]
-DisableTimer2   .proc
+DisableTimer16bit .proc
                 ;!!lda POKMSK
-                ;!!and #$FD                ; disable timer-2
+                ;!!and #$FD                ; disable 16-bit timer
                 ;!!sta POKMSK
                 ;!!sta IRQEN
 
@@ -376,15 +375,15 @@ DisableTimer2   .proc
 ;======================================
 ;
 ;====================================== ;[[U]]
-PlayClubSwing   .proc
-                lda _swingFreq1
-                ;!!sta AUDF1
-                lda _swingFreq2
-                ;!!sta AUDF2
-                ;!!sta STIMER
+EnableTimer16bit    .proc
+                lda _tmrDuration_HI
+                ;!!sta AUDF1               ; 16-bit timer duration (HI)
+                lda _tmrDuration_LO
+                ;!!sta AUDF2               ; 16-bit timer duration (LO)
+                ;!!sta STIMER              ; begin countdown
 
                 ;!!lda POKMSK
-                ;!!ora #$02                ; enable timer-2
+                ;!!ora #$02                ; enable 16-bit (count down to zero)
                 ;!!sta POKMSK
                 ;!!sta IRQEN
 
@@ -392,7 +391,7 @@ PlayClubSwing   .proc
 
 ;--------------------------------------
 
-_swingFreq1     .byte $FF
-_swingFreq2     .byte $FF
+_tmrDuration_HI .byte $FF
+_tmrDuration_LO .byte $FF
 
                 .endproc

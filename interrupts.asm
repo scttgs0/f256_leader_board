@@ -57,7 +57,7 @@ irqMain_END     jmp (priorIRQ_BRK)
 
 ;~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ; Vertical Blank Interrupt (SOF)
-;~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ;[[U]]
+;~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ;[[F]]
 irqVBIHandler   .proc
                 pha
                 phx
@@ -69,7 +69,7 @@ irqVBIHandler   .proc
 
                 jsr DoTimers
                 jsr SwingAnim_DeferredA
-                ;!!jsr Math_DeferredB
+                jsr Math_DeferredB
 
                 ply
                 plx
@@ -97,7 +97,7 @@ _nextTimer      lda timerIsActive,X     ; timer X active?
                 lda timerDuration,X     ; reset ticks
                 sta timerRemaining,X
 
-_1              cpx _audioF2Chaos
+_1              cpx timer16bitMask_LO
                 bne _2
 
                 inc unused_9C0E
@@ -169,9 +169,9 @@ _XIT            rts
 
 ;--------------------------------------
 
-_jiffyCount     .byte $00
+_jiffyCount         .byte $00
 
-_audioF2Chaos   .byte $12,$00
+timer16bitMask_LO   .byte $12,$00
 
                 .endproc
 

@@ -13,7 +13,7 @@ DoSwingGauge    .proc
 
                 inc gaugeValue
 
-_XIT            jmp PlayClubSwing
+_XIT            jmp EnableTimer16bit
 
                 .endproc
 
