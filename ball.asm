@@ -65,8 +65,7 @@ _HPOSM3_BallL   = $0063 ;HPOSM3
                 sta isSwingAnimCounterActive    ; FALSE
                 sta swingAnimCounter
 
-                ;!!jsr ReadPortA           ; on return, A=%1100xxxx
-                and #$B0                ; [A:=$80]
+                lda #$80
                 sta flags_9D76
                 sta animBallFrame       ; set bit-7; ball is visible
 
@@ -119,7 +118,7 @@ yPosDeltaBall   .byte $1F
 
 ;======================================
 ;
-;====================================== ;[[U]]
+;====================================== ;[[F]]
 PositionBallShadow .proc
                 ldx #xformNORMAL
                 jsr VertexTransform
@@ -132,9 +131,7 @@ PositionBallShadow .proc
                 sta lineNode1_ClipFlags
                 sty zTransform
 
-                ;!!jsr ReadPortA           ; on return, A=%1100xxxx
-                and #$30                ; [A:=0]
-
+                lda #$00
                 ldx lineNode0_ClipFlags
                 bne _1
 
@@ -166,7 +163,6 @@ _2              sta flags_BallVisible
                 bne _3
 
                 lda yTransform
-                ;!!bit PACTL
                 jmp _4
 
 ; - - - - - - - - - - - - - - - - - - -
@@ -296,7 +292,7 @@ _ENTRY2         lda #$00
 
 ;======================================
 ;
-;====================================== ;[[U]]
+;====================================== ;[[F]]
 AnimateBall_2AC6 .proc
                 lda animBallFrame
                 beq _1
@@ -460,8 +456,7 @@ _1              cmp #$05
                 cmp #$02                ; missile-0?
                 beq _2                  ;   yes
 
-                ;!!jsr ReadPortA           ; on return, A=%1100xxxx
-                and #$B0                ; [A:=$80]
+                lda #$80
                 ora flagsBall_9D83
                 sta flagsBall_9D83
 
@@ -499,7 +494,6 @@ _5              lda flagsBall_9D83
 
                 rts
                 .endproc
-
 
 
 ;--------------------------------------
