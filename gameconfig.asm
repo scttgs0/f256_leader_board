@@ -3,7 +3,7 @@
 ;
 ;====================================== ;[[V]]
 DoConfig        .proc
-                jsr ResetHW
+                jsr ClearSprites
                 jsr DrawScoreboard
                 jsr DrawCredits
 
@@ -39,7 +39,7 @@ BeginConfig     .proc
 ;
 ;====================================== ;[[V]]
 AskPlayerQty    .proc
-_next1          jsr StartPokeyTimers
+_next1          jsr StartTimer16bit
 
 ;   clock + 10 seconds (BCD)
                 lda clockSecs
@@ -383,7 +383,7 @@ _7              sta charToPlot
 ;
 ;====================================== ;[[U]]
 LoadSupplement  .proc
-                jsr ResetHW
+                jsr ClearSprites
 
                 sei
 
@@ -413,6 +413,7 @@ LoadSupplement  .proc
                 jsr ReadSectors
                 jsr SetInterrupts
 
+                rts
                 .endproc
 
 
@@ -426,7 +427,7 @@ cacheVDSLST     .fill 38,$00
 ;======================================
 ;
 ;====================================== ;[[U]]
-StartPokeyTimers .proc
+StartTimer16bit .proc
                 ;!!sta STIMER
 
                 rts
@@ -527,18 +528,16 @@ _next2          sta playerStrokes,X     ; [$2E7A + X]
 
 
 ;======================================
-;
-;====================================== ;[[F]]
+; <<obsolete>>
+;====================================== ;[[V]]
 ResetHW         .proc
-                jsr ClearSprites
-
                 rts
                 .endproc
 
 
 ;======================================
-;
-;====================================== ;[[U]]
+; <<obsolete>>
+;====================================== ;[[V]]
 InitScreenHW    .proc
                 rts
                 .endproc
@@ -546,7 +545,7 @@ InitScreenHW    .proc
 
 ;======================================
 ;
-;====================================== ;[[U]]
+;====================================== ;[[U]]+
 ProcessESC      .proc
                 jsr GetKeycode
 

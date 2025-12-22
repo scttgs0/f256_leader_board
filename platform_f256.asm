@@ -518,6 +518,9 @@ InitSprites     .proc
 ;   set the ball sprite (sprite-08)
                 .frsSpriteInit glyphBall, scEnable|scLUT0|scDEPTH0|scSIZE_8, 8
 
+;   set the ball sprite (sprite-09)
+                .frsSpriteInit glyphBallShadow, scEnable|scLUT0|scDEPTH0|scSIZE_8, 9
+
 ;   set aim target (sprite-10)
                 .frsSpriteInit glyphTarget, scEnable|scLUT0|scDEPTH0|scSIZE_8, 10
 
@@ -552,12 +555,17 @@ ClearSprites    .proc
                 .frsSpriteHide 1
                 .frsSpriteClear 2       ; player
                 .frsSpriteHide 2
+
                 .frsSpriteClear 4       ; putter
                 .frsSpriteHide 4
                 .frsSpriteClear 5       ; putter
                 .frsSpriteHide 5
+
                 .frsSpriteClear 8       ; ball
                 .frsSpriteHide 8
+                .frsSpriteClear 9       ; ball shadow
+                .frsSpriteHide 9
+
                 .frsSpriteClear 10      ; aim target
                 .frsSpriteHide 10
 

@@ -139,7 +139,7 @@ _ptr            = zpFD
 
 ;======================================
 ;
-;====================================== ;[[U]]
+;====================================== ;[[U]]+
 BackSwingAnim   .proc
                 lda isBackSwingAnim     ; back swing in progress?
                 bne _1                  ;   yes
@@ -153,7 +153,7 @@ _1              lda timerIsActive       ; timer 0 active?
                 rts
 
 ; - - - - - - - - - - - - - - - - - - -
-_2              ;!!jsr DrawGolferPutt
+_2              jsr DrawGolferPutt
 
                 inc golferSwingFrame
                 ldx golferSwingFrame
@@ -242,7 +242,7 @@ _ENTRY1
                 lda #$10                ; [8000:9FFF]->[2_0000:2_1FFF]
                 sta zpMMU
                 sta MMU_Block4
-                lda #CLOUD_CHUNK         ; [A000:BFFF]->[CLOUD_CHUNK]
+                lda #CLOUD_CHUNK        ; [A000:BFFF]->[CLOUD_CHUNK]
                 sta MMU_Block5
 
 ; - - - - - - - - - - - - - - - - - - -

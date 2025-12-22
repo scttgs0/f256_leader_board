@@ -123,9 +123,8 @@ _next1          jsr SetNextPlayer
 
 
 ;--------------------------------------
-;-------------------------------------- ;[[U]]
+;-------------------------------------- ;[[U]]+
 SetStage3       .proc
-                jsr ResetHW
                 jsr ClearAllPlayers
                 jsr ClearMissiles
 
@@ -148,8 +147,8 @@ _next1          ;;jsr RenderPlayerName
 
                 dec idxPlayer
                 bpl _next1
-                jmp InitScreenHW
 
+                rts
                 .endproc
 
 
@@ -186,6 +185,7 @@ GoNextHole      .proc
 ;====================================== ;[[U]]
 MainLoop        .proc
                 jsr ResetSwingGauge
+                jsr ShowSwingGauge
 
                 lda #$00
                 sta flags_9D76

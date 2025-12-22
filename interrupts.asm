@@ -210,7 +210,6 @@ _3              cmp golferSwingFrameMax
 _4              sta golferSwingFrameMax
 
                 jsr DrawGolfer
-                ;!!jmp ProcessClubSwingAnim    ; render club
+                jmp ProcessClubSwingAnim    ; render club
 
-                rts     ; HACK:
                 .endproc

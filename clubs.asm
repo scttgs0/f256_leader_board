@@ -26,7 +26,7 @@ GetUserInput    .proc
                 lda #TRUE
                 sta isSwingInProgress
 
-                ;;jsr ClearMissile0       ; clear the aim target
+                jsr ClearBallShadow
                 jmp ClearAimTarget
 
 ; - - - - - - - - - - - - - - - - - - -

@@ -176,7 +176,17 @@ _5              ldx #xformAIM_POS
                 jsr VertexTransform
 
 ; - - - - - - - - - - - - - - - - - - -
+;   preserve IOPAGE control
+                lda IOPAGE_CTRL
+                pha
+
+;   switch to system map
+                stz IOPAGE_CTRL
+
+; - - - - - - - - - - - - - - - - - - -
 ;   render aim point
+                .frsSpriteShow 10
+
                 txa
                 clc
                 adc xPosDeltaBall
@@ -191,6 +201,11 @@ _5              ldx #xformAIM_POS
                 sta SPR(sprite_t.Y, 10)
                 lda #$00
                 sta SPR(sprite_t.Y+1, 10)
+
+; - - - - - - - - - - - - - - - - - - -
+;   restore IOPAGE control
+                pla
+                sta IOPAGE_CTRL
 
                 rts
                 .endproc

@@ -114,12 +114,11 @@ _2              ldx activePlayer
                 lda playerDistUnit,X
                 sta idxDistanceUnit
 
-                jsr ResetHW
+                jsr ClearSprites
                 jsr PrepareCourse
                 jsr RenderPlayfield     ; clear course
                 jsr RenderHUD           ; course#, hole#, PAR, player summary
 
-                jsr InitScreenHW
                 jsr RenderCourse._OUTLINE   ; draw polygon outlines
                 jsr RenderSodPatch          ; sod patch under the golfer
                 jsr RenderFill              ; draw polygon fills
@@ -127,7 +126,7 @@ _2              ldx activePlayer
                 jsr RenderCupOrPin
                 jsr DrawMarkers
 
-                jsr HACKSprites         ; HACK:
+                ;;jsr HACKSprites         ; HACK:
 
                 lda idxDistanceUnit
                 cmp #unitYARDS          ; yards?
@@ -233,13 +232,17 @@ HACKSprites     .proc
                 ;.frsSpriteSetX $7E,5    ; player bottom
                 ;.frsSpriteSetY $D8,5
 
-                .frsSpriteShow 10
-                .frsSpriteSetX $96,10   ; aim target
-                .frsSpriteSetY $A2,10
-
                 .frsSpriteShow 8
                 .frsSpriteSetX $97,8    ; ball
                 .frsSpriteSetY $DC,8
+
+                .frsSpriteShow 9
+                .frsSpriteSetX $95,9    ; ball shadow
+                .frsSpriteSetY $DB,9
+
+                .frsSpriteShow 10
+                .frsSpriteSetX $96,10   ; aim target
+                .frsSpriteSetY $A2,10
 
 ;   power gauge
                 .frsSpriteShow 11
