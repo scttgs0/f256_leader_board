@@ -58,7 +58,9 @@ _dest           = zpDest
                 sta _dest+1
 
                 txa                     ; using glyph #0?
-                beq _extract            ;   yes, skip adjustment
+                bne _next1
+
+                lda #' '
 
 ;   adjust address to point to the proper glyph #
 _next1          lda _src
@@ -86,9 +88,9 @@ _nextPixel      clc
 
                 bcs _one
 
-                lda #$00
+                lda #$00                ; background
                 .byte $2C
-_one            lda #$01
+_one            lda #$16                ; foreground
                 sta (_dest),Y
                 iny
 
@@ -210,15 +212,21 @@ CalcPixelAddr   .proc
 _dest           = zp3F
 ;---
 
+                stz _dest+1
+
                 txa                     ; x-coordinate
                 asl                     ; *8
                 asl
                 asl
-                clc
+                bcc _1
+
+                inc _dest+1
+
+_1              clc
                 adc #<scrnTop           ; +$A010
                 sta _dest
-                lda #>scrnTop
-                adc #$00
+                lda _dest+1
+                adc #>scrnTop
                 sta _dest+1
 
 ;   set MMU
@@ -339,10 +347,10 @@ _dest           = zp3F
 ;   restore DEST pointer
                 lda _dest
                 sec
-                sbc #<$09FF             ; -2559 (8 scanlines * 320 bytes/line)
+                sbc #<$09F8             ; -2552 (320*8-8)
                 sta _dest
                 lda _dest+1
-                sbc #>$09FF
+                sbc #>$09F8
                 sta _dest+1
 
 ; - - - - - - - - - - - - - - - - - - -
@@ -372,10 +380,10 @@ _dest           = zp3F
 ;   restore DEST pointer
                 lda _dest
                 sec
-                sbc #<$09FF             ; -2559 (8 scanlines * 320 bytes/line)
+                sbc #<$09F8             ; -2552 (320*8-8)
                 sta _dest
                 lda _dest+1
-                sbc #>$09FF
+                sbc #>$09F8
                 sta _dest+1
 
                 rts

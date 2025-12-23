@@ -123,41 +123,13 @@ _next1          jsr SetNextPlayer
 
 
 ;--------------------------------------
-;-------------------------------------- ;[[U]]+
-SetStage3       .proc
-                jsr ClearAllPlayers
-                jsr ClearMissiles
-
-                lda #stageCONFIG
-                sta nStage
-
-                jsr DrawScoreboard
-                ;;jsr RenderCourseNo
-                ;;jsr UpdateScore
-
-                lda numPlayers
-                sta idxPlayer
-
-_next1          ;;jsr RenderPlayerName
-                ;;jsr Render5Digits
-                ;;jsr Render4Digits
-                ;;jsr Render2or3Digits
-                ;;jsr Render2or3Digits_2
-                ;;jsr DoNothing3
-
-                dec idxPlayer
-                bpl _next1
-
-                rts
-                .endproc
-
-
-;--------------------------------------
 ;
 ;-------------------------------------- ;[[F]]
 GoNextHole      .proc
-                jsr SetStage3
+                jsr ClearScreen
+                jsr XBPC_DoScoreboard
                 jsr WaitForButton
+                jsr ClearScreen
 
                 inc idxActiveHole
                 lda idxActiveHole
@@ -174,7 +146,6 @@ GoNextHole      .proc
                 cmp gameLength          ; finished?
                 beq PlayNextHole        ;   no
                 bcc PlayNextHole        ;   no
-
                 jmp NewGame             ; done
 
                 .endproc
@@ -226,16 +197,17 @@ _next1          jsr ChangeClub
                 jsr DemoInput
                 jsr DrawClock
 
-                lda CONSOL
-                and #$04                ; OPTION pressed?
+                ;;jsr GetKeycode
+                lda KEYCODE
+                cmp #$83                ; OPTION pressed?
                 bne _1                  ;   no
 
 ;   /// OPTION ///
                 jsr PlaySoundInputAction
 
+                pla                     ; discard (ProcessStroke) return address
                 pla
-                pla
-                pla
+                pla                     ; discard (MainLoop) return address
                 pla
                 jmp GoNextHole
 
@@ -265,7 +237,7 @@ _next3          jsr SwingAnimControl
                 cmp #$13
                 bne _next3
 
-                jsr RenderStrokeCount
+                jsr IncrementStrokeCount
                 jsr InitStroke
 
 _2              jsr Swing_math_326F

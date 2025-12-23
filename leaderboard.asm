@@ -137,13 +137,6 @@ BOOT            ldx #$FF                ; reset the stack
 
                 .include "swinganimation.asm"
                 .include "teeoff.asm"
-                .include "putt.asm"
-
-                .include "scoreboard.asm"
-
-                .include "gameconfig.asm"
-
-                .include "mock.asm"
 
 
 ;--------------------------------------
@@ -172,10 +165,6 @@ _next2          sta tblPlayerAbility,X
 
                 jmp NewGame
 
-                ;jsr DoConfig
-
-                ;jsr ProcessStroke
-
 ;_endless        jsr ProcessEvents
 ;                bra _endless
                 .endproc
@@ -185,8 +174,6 @@ _next2          sta tblPlayerAbility,X
 ;--------------------------------------
 
                 .include "data/GAMESTATE.inc"
-                .include "data/SODPATCH.inc"
-                .include "data/GAUGE.inc"
 
 
 ;======================================
@@ -199,6 +186,9 @@ INIT            .proc
                 sei                     ; disable interrupts
 
                 jsr InitMMU
+                lda #CONFIG_CHUNK       ; default to the gameconfig chunk
+                sta MMU_Block3
+
                 jsr InitCPUVectors
                 jsr InitIRQs
 
@@ -240,6 +230,120 @@ Stage           .proc
                 .endproc
 
 
+;======================================
+;
+;======================================
+XBPC_DrawScoreboard .proc
+                lda MMU_Block3          ; preserve
+                sta zpMMU_XBPC
+
+                lda #SCORE_CHUNK
+                sta MMU_Block3
+
+                jsr DrawScoreboard
+
+                lda zpMMU_XBPC          ; restore
+                sta MMU_Block3
+
+                rts
+                .endproc
+
+
+;======================================
+;
+;======================================
+XBPC_DoScoreboard .proc
+                lda MMU_Block3          ; preserve
+                sta zpMMU_XBPC
+
+                lda #SCORE_CHUNK
+                sta MMU_Block3
+
+                jsr DoScoreboard
+
+                lda zpMMU_XBPC          ; restore
+                sta MMU_Block3
+
+                rts
+                .endproc
+
+
+;======================================
+;
+;======================================
+XBPC_RenderScoreDelta .proc
+                lda MMU_Block3          ; preserve
+                sta zpMMU_XBPC
+
+                lda #SCORE_CHUNK
+                sta MMU_Block3
+
+                jsr RenderScoreDelta
+
+                lda zpMMU_XBPC          ; restore
+                sta MMU_Block3
+
+                rts
+                .endproc
+
+
+;======================================
+;
+;======================================
+XBPC_FindFirstUsed .proc
+                lda MMU_Block3          ; preserve
+                sta zpMMU_XBPC
+
+                lda #SCORE_CHUNK
+                sta MMU_Block3
+
+                jsr FindFirstUsed
+
+                lda zpMMU_XBPC          ; restore
+                sta MMU_Block3
+
+                rts
+                .endproc
+
+
+;======================================
+;
+;======================================
+XBPC_SetNameBufPtr .proc
+                lda MMU_Block3          ; preserve
+                sta zpMMU_XBPC
+
+                lda #SCORE_CHUNK
+                sta MMU_Block3
+
+                jsr SetNameBufPtr
+
+                lda zpMMU_XBPC          ; restore
+                sta MMU_Block3
+
+                rts
+                .endproc
+
+
+;======================================
+;
+;======================================
+XBPC_ConvertToArray .proc
+                lda MMU_Block3          ; preserve
+                sta zpMMU_XBPC
+
+                lda #SCORE_CHUNK
+                sta MMU_Block3
+
+                jsr ConvertToArray
+
+                lda zpMMU_XBPC          ; restore
+                sta MMU_Block3
+
+                rts
+                .endproc
+
+
 ;--------------------------------------
 ;--------------------------------------
                 * = $0300
@@ -257,7 +361,7 @@ Stage           .proc
 
                 .align $100
                 .include "interrupts.asm"
-                .include "data/GLYPHS.inc"
+
                 .include "data/STATIC.inc"
                 .include "kernel/facade.asm"
 
@@ -291,6 +395,53 @@ CLOUD_CHUNK     = (* / $2000)
 
                 .include "data/CLOUDS.inc"
                 .include "data/MOUNTAINS.inc"
+
+
+;--------------------------------------
+;--------------------------------------
+                .endlogical
+;--------------------------------------
+
+
+;--------------------------------------
+;--------------------------------------
+                * = $5_0000
+CONFIG_CHUNK    = (* / $2000)
+
+                .logical $6000
+;--------------------------------------
+
+                .include "gameconfig.asm"
+                .include "data/SODPATCH.inc"
+                .include "data/GLYPHS.inc"
+                .include "data/GAUGE.inc"
+                .include "mock.asm"
+
+
+;--------------------------------------
+;--------------------------------------
+                .endlogical
+
+                * = $5_2000
+SCORE_CHUNK     = (* / $2000)
+
+                .logical $6000
+;--------------------------------------
+
+                .include "scoreboard.asm"
+
+
+;--------------------------------------
+;--------------------------------------
+                .endlogical
+
+                * = $5_4000
+PUTT_CHUNK      = (* / $2000)
+
+                .logical $6000
+;--------------------------------------
+
+                .include "putt.asm"
 
 
 ;--------------------------------------

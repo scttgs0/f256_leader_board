@@ -22,8 +22,8 @@ _1              lda #$FF                ;   yes, reset and exit
 
 _2              pha                     ; preserve keycode
 
-                lda #$FF                ; reset
-                sta KEYCODE
+                ;;lda #$FF                ; reset
+                ;;sta KEYCODE
 
                 jsr PlaySoundInputAction
 

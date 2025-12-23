@@ -1,7 +1,7 @@
 
 ;======================================
 ;
-;====================================== ;[[F]]
+;====================================== ;[[V]]
 RenderHUD       .proc
                 jsr RenderHUDCourse     ; draw course#
                 jsr RenderHUDPAR        ; draw hole# and PAR
@@ -56,7 +56,7 @@ _scrnSnap       .null "SNAP"
 
 ;======================================
 ;
-;====================================== ;[[F]]
+;====================================== ;[[V]]
 DrawDistanceToPin_m1 .proc
                 ldx #stagePLAY
                 stx nStage
@@ -70,7 +70,7 @@ DrawDistanceToPin_m1 .proc
 
 ;--------------------------------------
 ;
-;-------------------------------------- ;[[F]]
+;-------------------------------------- ;[[V]]
 DrawDistanceToPin .proc
 _remainder      = zpD0
 ;---
@@ -252,7 +252,7 @@ _2digits        ldx #$03
                 stx idxPolygonVertex
 
 _next1          lda arr5Digits,X        ; fetch element value
-                bit glyphType           ; <0?
+                bit glyphType           ; negative?
                 bmi _2                  ;   yes
 
 ; - - - - - - - - - - - - - - - - - - -
@@ -339,8 +339,8 @@ _nextplayer     ldx idxPlayer
                 lda #$00                ; hi-byte unused
                 sta wordB_3CBE+1
 
-                ;;jsr Convert2Digits
-                ;;jsr FindFirst5Digits
+                jsr XBPC_ConvertToArray
+                jsr XBPC_FindFirstUsed  ; Y result is ignored
 
                 lda #$05                ; line number [5:8]
                 clc
@@ -349,7 +349,7 @@ _nextplayer     ldx idxPlayer
                 ldx #$21                ; [33,5+]
                 jsr CalcPixelAddr
 
-                lda #$10                ; '0'-glyph
+                lda #'0'                ; '0'-glyph
                 sta glyphType
                 jsr PlotCharArray._2digits
 
@@ -359,36 +359,39 @@ _nextplayer     ldx idxPlayer
                 lda idxActiveHole       ; first hole?
                 beq _2                  ;   yes, skip
 
-_1              ;;jsr Render5Digits
+_1              jsr XBPC_RenderScoreDelta
 
 _2              jsr DoNothing4
 
                 dec idxPlayer
                 bpl _nextplayer
 
+                rts
+
+;--------------------------------------
 ;//////////////////////
 
 _hack           .frsTextXY 31,5,$F0,RenderHUDPlayers._scrnName
 
                 .frsTextXY 30,6,$F0,RenderHUDPlayers._scrnP1Active
                 .frsTextXY 31,6,$10,RenderHUDPlayers._scrnP1
-                .frsTextXY 34,6,$10,RenderHUDPlayers._scrnP1Strokes
-                .frsTextXY 38,6,$30,RenderHUDPlayers._scrnP1Delta
+                .frsTextXY 33,6,$10,RenderHUDPlayers._scrnP1Strokes
+                .frsTextXY 37,6,$30,RenderHUDPlayers._scrnP1Delta
 
                 .frsTextXY 30,7,$F0,RenderHUDPlayers._scrnP2Active
                 .frsTextXY 31,7,$F0,RenderHUDPlayers._scrnP2
-                .frsTextXY 34,7,$10,RenderHUDPlayers._scrnP2Strokes
-                .frsTextXY 38,7,$80,RenderHUDPlayers._scrnP2Delta
+                .frsTextXY 33,7,$10,RenderHUDPlayers._scrnP2Strokes
+                .frsTextXY 37,7,$80,RenderHUDPlayers._scrnP2Delta
 
                 .frsTextXY 30,8,$F0,RenderHUDPlayers._scrnP3Active
                 .frsTextXY 31,8,$10,RenderHUDPlayers._scrnP3
-                .frsTextXY 34,8,$10,RenderHUDPlayers._scrnP3Strokes
-                .frsTextXY 38,8,$F0,RenderHUDPlayers._scrnP3Delta
+                .frsTextXY 33,8,$10,RenderHUDPlayers._scrnP3Strokes
+                .frsTextXY 37,8,$F0,RenderHUDPlayers._scrnP3Delta
 
                 .frsTextXY 30,9,$F0,RenderHUDPlayers._scrnP4Active
                 .frsTextXY 31,9,$10,RenderHUDPlayers._scrnP4
-                .frsTextXY 34,9,$10,RenderHUDPlayers._scrnP4Strokes
-                .frsTextXY 38,9,$10,RenderHUDPlayers._scrnP4Delta
+                .frsTextXY 33,9,$10,RenderHUDPlayers._scrnP4Strokes
+                .frsTextXY 37,9,$10,RenderHUDPlayers._scrnP4Delta
 
                 rts
 
@@ -398,23 +401,23 @@ _scrnName       .null "ADAM    "
 
 _scrnP1Active   .null " "
 _scrnP1         .null "1"
-_scrnP1Strokes  .null "1"
-_scrnP1Delta    .null "-1"
+_scrnP1Strokes  .null "  0"
+_scrnP1Delta    .null " -1"
 
 _scrnP2Active   .null " "
 _scrnP2         .null "2"
-_scrnP2Strokes  .null "1"
-_scrnP2Delta    .null " E"
+_scrnP2Strokes  .null "  0"
+_scrnP2Delta    .null "  E"
 
 _scrnP3Active   .null " "
 _scrnP3         .null "3"
-_scrnP3Strokes  .null "1"
-_scrnP3Delta    .null "+1"
+_scrnP3Strokes  .null "  0"
+_scrnP3Delta    .null " +1"
 
 _scrnP4Active   .null " "
 _scrnP4         .null "4"
-_scrnP4Strokes  .null " "
-_scrnP4Delta    .null "  "
+_scrnP4Strokes  .null "   "
+_scrnP4Delta    .null "   "
 
                 .endproc
 
@@ -446,7 +449,7 @@ _1              lda #stageCONFIG
                 sta nStage
 
                 ldx activePlayer
-                jsr SetNameBufPtr       ; result _ptrName [$F9:FA]
+                jsr XBPC_SetNameBufPtr  ; result _ptrName [$F9:FA]
 
                 lda #<RenderHUDPlayers._scrnName
                 sta zpDest
@@ -501,46 +504,129 @@ DoNothing4      rts
 
 ;======================================
 ;
-;====================================== ;[[U]]+
-RenderStrokeCount .proc
+;====================================== ;[[F]]
+IncrementStrokeCount .proc
                 ldx #stagePLAY
                 stx nStage
 
                 ldx activePlayer
                 lda playerStrokeCount,X
                 cmp #$20                ; >=32?
-                bcs _1                  ;   yes, don't increase
+                bcs RenderStrokeCount   ;   yes, don't increase
 
                 inc playerStrokeCount,X
 
-_1              lda #$05                ; y-coordinate
-                clc
-                adc activePlayer
-                tay
-                ldx #$21                ; [33,5+]
-                jsr CalcPixelAddr
+                .endproc
 
+                ;[fall-through]
+
+
+;======================================
+;
+;====================================== ;[[F]]
+RenderStrokeCount .proc
                 ldx activePlayer
                 lda playerStrokeCount,X
                 ldy #$00
 _next1          cmp #$0A                ; <10?
                 bcc _2                  ;   yes
 
+                ; carry is set
                 sbc #$0A                ; -10
 
                 iny
                 bne _next1
 
-_2              pha
+_2              sty _tensDigit
+                sta _onesDigit
 
-                tya
-                beq _3
+; - - - - - - - - - - - - - - - - - - -
+                lda activePlayer
+                cmp #$00                ; player 1?
+                bne _3                  ;   no
 
-                ora #$10                ; convert to glyph #
-_3              jsr PlotChar
+                lda #' '                ; clear the tens-digit placeholder
+                sta RenderHUDPlayers._scrnP1Strokes
 
-                pla
-                jmp PlotCharBCD
+                lda _tensDigit          ; is there a tens-digit?
+                beq _2A                 ;   no, skip
+
+                ora #'0'                ; convert to ascii
+                sta RenderHUDPlayers._scrnP1Strokes
+
+_2A             lda _onesDigit
+                ora #'0'                ; convert to ascii
+                sta RenderHUDPlayers._scrnP1Strokes+1
+
+                .frsTextXY 34,6,$10,RenderHUDPlayers._scrnP1Strokes
+
+                jmp _XIT
+
+; - - - - - - - - - - - - - - - - - - -
+_3              cmp #$01                ; player 2?
+                bne _4                  ;   no
+
+                lda #' '                ; clear the tens-digit placeholder
+                sta RenderHUDPlayers._scrnP2Strokes
+
+                lda _tensDigit          ; is there a tens-digit?
+                beq _3A                 ;   no, skip
+
+                ora #'0'                ; convert to ascii
+                sta RenderHUDPlayers._scrnP2Strokes
+
+_3A             lda _onesDigit
+                ora #'0'                ; convert to ascii
+                sta RenderHUDPlayers._scrnP2Strokes+1
+
+                .frsTextXY 34,7,$10,RenderHUDPlayers._scrnP2Strokes
+
+                bra _XIT
+
+; - - - - - - - - - - - - - - - - - - -
+_4              cmp #$02                ; player 3?
+                bne _5                  ;   no
+
+                lda #' '                ; clear the tens-digit placeholder
+                sta RenderHUDPlayers._scrnP3Strokes
+
+                lda _tensDigit          ; is there a tens-digit?
+                beq _4A                 ;   no, skip
+
+                ora #'0'                ; convert to ascii
+                sta RenderHUDPlayers._scrnP3Strokes
+
+_4A             lda _onesDigit
+                ora #'0'                ; convert to ascii
+                sta RenderHUDPlayers._scrnP3Strokes+1
+
+                .frsTextXY 34,8,$10,RenderHUDPlayers._scrnP3Strokes
+
+                bra _XIT
+
+; - - - - - - - - - - - - - - - - - - -
+_5              lda #' '                ; clear the tens-digit placeholder
+                sta RenderHUDPlayers._scrnP4Strokes
+
+                lda _tensDigit          ; is there a tens-digit?
+                beq _5A                 ;   no, skip
+
+                ora #'0'                ; convert to ascii
+                sta RenderHUDPlayers._scrnP4Strokes
+
+_5A             lda _onesDigit
+                ora #'0'                ; convert to ascii
+                sta RenderHUDPlayers._scrnP4Strokes+1
+
+                .frsTextXY 34,9,$10,RenderHUDPlayers._scrnP4Strokes
+
+; - - - - - - - - - - - - - - - - - - -
+_XIT            rts
+
+;--------------------------------------
+
+_onesDigit      .byte $00
+_tensDigit      .byte $00
 
                 .endproc
 
@@ -553,7 +639,7 @@ _3              jsr PlotChar
 ;   wordA
 ;   wordB
 ;   wordC
-;====================================== ;[[F]]
+;====================================== ;[[F]] <obsolete>???
 CalcValuem10_Div10_x3 .proc
                 ldx activePlayer
                 lda playerWindDirection_HI,X

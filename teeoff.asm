@@ -28,14 +28,14 @@ _1              ldx #stageTEEOFF
                 jsr CalcPixelAddr
 
                 lda #$00                ; blue marker
-                jsr PlotChar
+                jsr PlotGlyph
 
                 ldx #$17                ; right marker [23,23]
                 ldy #$17
                 jsr CalcPixelAddr
 
                 lda #$00                ; blue marker
-                jmp PlotChar
+                jmp PlotGlyph
 
                 .endproc
 

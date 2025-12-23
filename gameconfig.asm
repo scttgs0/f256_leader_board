@@ -4,7 +4,7 @@
 ;====================================== ;[[V]]
 DoConfig        .proc
                 jsr ClearSprites
-                jsr DrawScoreboard
+                jsr XBPC_DrawScoreboard
                 jsr DrawCredits
 
 _ENTRY1         jsr DrawDialog
@@ -881,7 +881,7 @@ _1              cmp #$94                ; ENTER-key?
                 jsr DisableCursor
 
                 ldx idxPlayer
-                jsr SetNameBufPtr       ; result _ptrName [$F9:FA]
+                jsr XBPC_SetNameBufPtr  ; result _ptrName [$F9:FA]
 
 ;   copy the input buffer -> playNames
                 ldy #$07

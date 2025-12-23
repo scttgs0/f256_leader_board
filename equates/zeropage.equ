@@ -17,6 +17,9 @@ zp82                    = $0082         ; [word]
 zp84                    = $0084         ; [word]
 
 zpMMU                   = $00C0
+zpMMU_XBPC              = $00C1         ; preserve bank during X-Bank Procedure Call
+zpCharToPlot            = $00C2
+
 zpC3                    = $00C3         ; [word]
 zpC5                    = $00C5
 zpCD                    = $00CD         ; [word]

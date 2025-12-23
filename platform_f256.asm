@@ -1128,21 +1128,27 @@ InitMMU         .proc
 
                 lda #$00                ; [0000:1FFF]
                 sta MMU_Block0
+
                 inc A                   ; [2000:3FFF]
                 sta MMU_Block1
+
                 inc A                   ; [4000:5FFF]
                 sta MMU_Block2
+
                 inc A                   ; [6000:7FFF]
                 sta MMU_Block3
+
                 inc A                   ; [8000:9FFF]
                 sta zpMMU
                 sta MMU_Block4
+
                 inc A                   ; [A000:BFFF]
                 sta MMU_Block5
 
 ;   play nice with the kernel
                 ;!!inc A                   ; [C000:DFFF]
                 ;!!sta MMU_Block6
+
                 ;!!inc A                   ; [E000:FFFF]
                 ;!!sta MMU_Block7
 

@@ -4,7 +4,7 @@
                 .align $100
 ;--------------------------------------
 
-fontGlyphs
+gfxGlyph
 glyphBlueTee    .byte $0D,$0D,$0D,$0D,$0D,$0D,$0D,$0D       ; [00]  blue marker at tee
                 .byte $0D,$08,$08,$08,$08,$0D,$0D,$0D
                 .byte $08,$08,$08,$08,$08,$08,$0D,$0D
