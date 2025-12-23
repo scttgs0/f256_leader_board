@@ -4,14 +4,15 @@
 ;--------------------------------------
 ; on entry:
 ;   X           glyph #
+;   zp3D/3E     addr of source glyph
 ;====================================== ;[[V]]
 GetGlyph        .proc
 _src            = zp3D
 ;---
 
-                lda #<fontGlyphs
+                lda #<gfxGlyph
                 sta _src
-                lda #>fontGlyphs
+                lda #>gfxGlyph
                 sta _src+1
 
                 txa                     ; using glyph #0?
@@ -31,6 +32,99 @@ _1              dex
 
 _XIT            rts
                 .endproc
+
+
+;======================================
+;
+;--------------------------------------
+; on entry:
+;   X           glyph #
+; on exit:
+;   glyphData   8x8 glyph data
+;====================================== ;[[V]]
+GetFontGlyph    .proc
+_src            = zpSource
+_dest           = zpDest
+;---
+
+                lda #<FONT_MEMORY_BANK0
+                sta _src
+                lda #>FONT_MEMORY_BANK0
+                sta _src+1
+
+                lda #<glyphData
+                sta _dest
+                lda #>glyphData
+                sta _dest+1
+
+                txa                     ; using glyph #0?
+                beq _extract            ;   yes, skip adjustment
+
+;   adjust address to point to the proper glyph #
+_next1          lda _src
+                clc
+                adc #$08                ; advance one glyph
+                sta _src
+                bcc _1
+
+                inc _src+1
+
+_1              dex
+                bne _next1
+
+; - - - - - - - - - - - - - - - - - - -
+_extract        ldy #$00
+                sty _idxLine
+
+_nextLine       ldy _idxLine
+                lda (_src),Y
+
+                ldy #$00
+_nextPixel      clc
+                rol
+                pha                     ; preserve remainder
+
+                bcs _one
+
+                lda #$00
+                .byte $2C
+_one            lda #$01
+                sta (_dest),Y
+                iny
+
+                pla                     ; restore remainder
+
+                cpy #$08
+                bne _nextPixel
+
+                lda _dest
+                clc
+                adc #<$0008
+                sta _dest
+                lda _dest+1
+                adc #>$0008
+                sta _dest+1
+
+                ldy _idxLine
+                iny
+                sty _idxLine
+
+                cpy #$08
+                bne _nextLine
+
+                rts
+
+;--------------------------------------
+
+_idxLine        .byte $00
+
+                .endproc
+
+
+;--------------------------------------
+;--------------------------------------
+
+glyphData       .fill 64,$00
 
 
 ;======================================
@@ -109,6 +203,8 @@ _nextRow        ldy #$00
 ; on entry:
 ;   X           x-coordinate
 ;   Y           y-coordinate
+; on exit
+;   zp3F/40     address
 ;====================================== ;[[V]]
 CalcPixelAddr   .proc
 _dest           = zp3F
@@ -199,19 +295,73 @@ _apply          lda IOPAGE_CTRL
 ;--------------------------------------
 ; on entry:
 ;   A           single BCD-digit
-;====================================== ;[[F]]
-PlotCharBCD     ora '0'
+;====================================== ;[[V]]
+PlotCharBCD     ora #'0'
 
                 ;[fall-through]
 
 
 ;======================================
-;
+; plot a 1x8 character glyph
 ;--------------------------------------
 ; on entry:
 ;   A           glyph #
-;====================================== ;[[F]]
+;   zp3F/40     screen address
+;====================================== ;[[V]]
 PlotChar        .proc
+_src            = zp3D
+_dest           = zp3F
+;---
+
+                sta zpCharToPlot
+
+; - - - - - - - - - - - - - - - - - - -
+;   preserve IOPAGE control
+                lda IOPAGE_CTRL
+                pha
+
+;   switch to charset map
+                lda #iopPage1
+                sta IOPAGE_CTRL
+
+; - - - - - - - - - - - - - - - - - - -
+                lda zpCharToPlot
+                tax                     ; glyph #
+                jsr GetFontGlyph
+
+                lda #<glyphData
+                sta _src
+                lda #>glyphData
+                sta _src+1
+
+                jsr DrawGlyph
+
+;   restore DEST pointer
+                lda _dest
+                sec
+                sbc #<$09FF             ; -2559 (8 scanlines * 320 bytes/line)
+                sta _dest
+                lda _dest+1
+                sbc #>$09FF
+                sta _dest+1
+
+; - - - - - - - - - - - - - - - - - - -
+;   restore IOPAGE control
+                pla
+                sta IOPAGE_CTRL
+
+; - - - - - - - - - - - - - - - - - - -
+                rts
+                .endproc
+
+
+;======================================
+; plot an 8x8 gfx glyph
+;--------------------------------------
+; on entry:
+;   A           glyph #
+;====================================== ;[[V]]
+PlotGlyph       .proc
 _dest           = zp3F
 ;---
 
