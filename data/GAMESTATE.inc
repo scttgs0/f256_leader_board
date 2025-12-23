@@ -166,7 +166,7 @@ unused_9D72             .word $0000
 unused_9D74             .byte $00
 unused_9D75             .byte $00
 flags_9D76              .byte $00
-nodeOperation           .byte $00       ; 0=operPIXEL, 1=operFILL, 2=operPOINT
+nodeOperation           .byte $00       ; 0=operPIXEL, 1=operFILL, 2=operSHADOW_BALL
 isSwapped               .byte FALSE
 
 lineNode0_VertX_flags   .byte $00       ; 1=xMax, 2=xMin
