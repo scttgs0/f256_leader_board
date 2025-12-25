@@ -196,68 +196,6 @@ _4              jsr CalcTeeoff
 
 
 ;======================================
-; HACK:
-;======================================
-HACKSprites     .proc
-                pha
-
-;   preserve IOPAGE control
-                lda IOPAGE_CTRL
-                pha
-
-;   switch to system map
-                stz IOPAGE_CTRL
-; - - - - - - - - - - - - - - - - - - -
-
-;   club animation [$00]
-                .frsSpriteShow 0
-                .frsSpriteSetX $86,0    ; club
-                .frsSpriteSetY $D2,0
-
-;   player driver animation [$00:1F]
-                .frsSpriteShow 1
-                .frsSpriteShow 2
-                .frsSpriteSetX $70,1    ; player top
-                .frsSpriteSetY $B6,1
-                .frsSpriteSetX $70,2    ; player bottom
-                .frsSpriteSetY $D6,2
-
-;   player putt animation [$00:06]
-                ;.frsSpriteShow 4
-                ;.frsSpriteShow 5
-                ;.frsSpriteSetX $7E,4    ; player top
-                ;.frsSpriteSetY $B8,4
-                ;.frsSpriteSetX $7E,5    ; player bottom
-                ;.frsSpriteSetY $D8,5
-
-                .frsSpriteShow 8
-                .frsSpriteSetX $97,8    ; ball
-                .frsSpriteSetY $DC,8
-
-                .frsSpriteShow 9
-                .frsSpriteSetX $95,9    ; ball shadow
-                .frsSpriteSetY $DB,9
-
-                .frsSpriteShow 10
-                .frsSpriteSetX $96,10   ; aim target
-                .frsSpriteSetY $A2,10
-
-;   power gauge
-                .frsSpriteShow 11
-                .frsSpriteSetX $114,11
-                .frsSpriteSetY $C0,11
-
-; - - - - - - - - - - - - - - - - - - -
-;   restore IOPAGE control
-                pla
-                sta IOPAGE_CTRL
-
-                pla
-                rts
-                .endproc
-
-
-;======================================
 ;
 ;====================================== ;[[F]]
 CalcTeeoff      .proc

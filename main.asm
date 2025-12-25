@@ -630,7 +630,7 @@ _XIT            pla
 ;
 ;--------------------------------------
 ; called from interrupt
-;====================================== ;[[F]]
+;====================================== ;[[V]]
 DrawGolfer      .proc
 ;   preserve IOPAGE control
                 lda IOPAGE_CTRL
@@ -640,8 +640,6 @@ DrawGolfer      .proc
                 stz IOPAGE_CTRL
 ; - - - - - - - - - - - - - - - - - - -
 
-                sei
-
                 .frsSpriteShow 1        ; player top
                 .frsSpriteShow 2        ; player bottom
 
@@ -649,9 +647,6 @@ DrawGolfer      .proc
                 .frsSpriteSetY $B6,1
                 .frsSpriteSetX $70,2    ; player bottom
                 .frsSpriteSetY $D6,2
-
-                ;;ldx #$03
-                ;;stx golferSwingFrame    ; HACK:
 
                 ldx golferSwingFrame
                 cmp #$FF
@@ -695,14 +690,7 @@ DrawGolfer      .proc
                 .frsSpriteSetY_ix
                 plx
 
-                ;;ldx golferSwingFrame    ; HACK:
-                ;;cpx #$0F
-                ;;bne _XIT
-
-;;_endless        bra _endless
-
-_XIT            cli
-
+_XIT
 ; - - - - - - - - - - - - - - - - - - -
 ;   restore IOPAGE control
                 pla
