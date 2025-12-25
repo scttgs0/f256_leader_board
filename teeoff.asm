@@ -126,8 +126,6 @@ _2              ldx activePlayer
                 jsr RenderCupOrPin
                 jsr DrawMarkers
 
-                ;;jsr HACKSprites         ; HACK:
-
                 lda idxDistanceUnit
                 cmp #unitYARDS          ; yards?
                 bcs _3                  ;   not putting
@@ -481,9 +479,6 @@ SetTimer6       .proc
 ;
 ;====================================== ;[[F]]
 Swing_math_326F .proc
-_HPOSM0_Shadow  = $0063 ; HPOSM0
-;---
-
                 lda swingAnimCounter
                 bne _1
 
@@ -604,7 +599,7 @@ _9              sta temp9D29
 
 ;   place ball shadow
 _10             lda xPosBall
-                sta _HPOSM0_Shadow
+                .frsSpriteSetX xPosBall,9
 
                 lda temp9D33_puttX_LO
                 ora temp9D57_puttX_HI

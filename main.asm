@@ -1,7 +1,7 @@
 
 ;--------------------------------------
 ;
-;-------------------------------------- ;[[F]]
+;-------------------------------------- ;[[V]]
 NewGame         .proc
                 jsr ResetGame
                 jsr ResetGauge
@@ -10,20 +10,19 @@ NewGame         .proc
                 jsr ClearScreen
 
                 lda #$00
-                sta activePlayer
-                sta isSwingDisabled     ; =FALSE
-                sta isSwingInProgress   ; =FALSE
-                sta swingAnimCounter    ; reset
-                sta arrDeferredSum
-                sta arrDeferredSum+1
-                sta arrDeferredSum+2
-                sta isSwingAnimCounterActive
+                sta activePlayer                ; first player
+                sta isSwingDisabled             ; =FALSE
+                sta isSwingInProgress           ; =FALSE
+                sta swingAnimCounter            ; =0
+                sta arrDeferredSum              ; =0
+                sta arrDeferredSum+1            ; =0
+                sta arrDeferredSum+2            ; =0
+                sta isSwingAnimCounterActive    ; =FALSE
 
                 lda #$3C
-                sta const_60
+                sta const_60            ; obsolete
 
-                lda #$00
-                sta idxActiveHole       ; first hole
+                stz idxActiveHole       ; first hole
 
                 lda #unitYARDS
                 sta idxDistanceUnit
@@ -35,7 +34,7 @@ NewGame         .proc
 
 ;======================================
 ;
-;====================================== ;[[F]]
+;====================================== ;[[V]]
 ResetGame       .proc
                 lda numPlayers
                 pha
@@ -155,6 +154,32 @@ GoNextHole      .proc
 ;
 ;====================================== ;[[U]]
 MainLoop        .proc
+; - - - - - - - - - - - - - - - - - - -
+;   for stability control
+                ;!!sei                     ; disable interrupts
+
+                lda IOPAGE_CTRL
+                beq _s0
+
+                stz IOPAGE_CTRL         ; switch to the Primary I/O page
+
+_s0             lda MMU_CTRL
+                cmp #mmuPage3|mmuEditPage3|mmuEditMode
+                beq _s1
+
+                lda #mmuPage3|mmuEditPage3|mmuEditMode
+                sta MMU_CTRL            ; ensure Page3 w/Edit
+
+_s1             lda MMU_Block3
+                cmp #CONFIG_CHUNK
+                beq _s2
+
+                lda #CONFIG_CHUNK       ; default to the gameconfig chunk
+                sta MMU_Block3
+
+_s2             ;!!cli                     ; enable interrupts
+; - - - - - - - - - - - - - - - - - - -
+
                 jsr ResetSwingGauge
                 jsr ShowSwingGauge
 
@@ -173,7 +198,7 @@ MainLoop        .proc
                 jsr InitBall
 
                 lda #$00
-                sta animBallFrame
+                sta animSplashFrame
                 sta nodeOperation       ; operPIXEL
 
                 jsr DrawClub
@@ -197,7 +222,42 @@ _next1          jsr ChangeClub
                 jsr DemoInput
                 jsr DrawClock
 
-                ;;jsr GetKeycode
+;   HACK:
+                lda KEYCODE
+                cmp #$FF
+                beq _h1
+
+                cmp #','                ; '<'-key
+                bne _h0
+
+                ;;lda #TRUE
+                ;;sta isSwingInProgress
+
+                dec _h_frame
+                lda _h_frame
+                sta golferSwingFrame
+
+                jsr DrawGolfer
+                bra _next1
+
+_h0             cmp #$2F                ; '?/'-key
+                bne _h1
+
+                ;;lda #TRUE
+                ;;sta isSwingInProgress
+
+                inc _h_frame
+                lda _h_frame
+                sta golferSwingFrame
+
+                jsr DrawGolfer
+                bra _next1
+
+_h_frame        .byte $00
+
+_h1
+; end HACK::
+
                 lda KEYCODE
                 cmp #$83                ; OPTION pressed?
                 bne _1                  ;   no
@@ -244,7 +304,7 @@ _2              jsr Swing_math_326F
                 jsr DemoInput
                 jsr PositionBallShadow
                 ;;jsr CalcBallPixelMask
-                jsr AnimateBall_2AC6
+                jsr AnimateSplash_2AC6
                 jsr RenderBall
 
                 lda golferSwingFrame
@@ -261,19 +321,19 @@ _next4          jsr SwingAnimControl
                 jsr Swing_math_326F
                 jsr PositionBallShadow
 ;                ;;jsr CalcBallPixelMask
-                jsr AnimateBall_2AC6
+                jsr AnimateSplash_2AC6
                 jsr Swing_3E71
                 ;;jsr CalcPixelMask
                 jsr RenderBall
 
-_next5          jsr AnimateBall
+_next5          jsr AnimateSplash
                 jsr SetAudio4Max
                 jsr DrawClock
 
                 lda swingAnimCounter
                 bne _next4
 
-                lda animBallFrame
+                lda animSplashFrame
                 bne _next5
 
                 lda #$40
@@ -462,7 +522,7 @@ _2              lda temp9D33_puttX_LO,X
                 sta wordB_3CBE+1
                 stx zpD1
 
-                lda const_60            ; =$3C
+                lda #<$003C
                 sta wordA_3CBC
                 lda #>$003C
                 sta wordA_3CBC+1
@@ -494,7 +554,7 @@ _3              ldx zpD1
                 sta arrDeferredSum,X
 
                 sec
-                sbc const_60            ; =$3C
+                sbc #$3C
                 bcc _4
 
                 sta arrDeferredSum,X

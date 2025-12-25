@@ -107,7 +107,7 @@ flags_BallVisible       .byte $00
 
 const_60                .byte $00
 
-animBallFrame           .fill 6,$00
+animSplashFrame         .fill 6,$00
 
 polyVertCount           .byte $00
 

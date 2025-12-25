@@ -3,13 +3,17 @@
 ;
 ;====================================== ;[[F]]
 AimTarget       .proc
-AIM_BASE        = $0060 ; MISL_BASE
-_HPOSM1_Ball    = $0061 ; HPOSM1
-;---
+; - - - - - - - - - - - - - - - - - - -
+;   preserve IOPAGE control
+                lda IOPAGE_CTRL
+                pha
 
-                jsr ClearMissiles
+;   switch to system map
+                stz IOPAGE_CTRL
 
 ; - - - - - - - - - - - - - - - - - - -
+                jsr ClearMissiles
+
 ;   place the ball
                 lda #<$1800
                 sta polyVertX_LO
@@ -32,7 +36,6 @@ _HPOSM1_Ball    = $0061 ; HPOSM1
                 txa
                 ror                     ; /2 (PORT: necessary???)
                 adc xPosDeltaBall
-                sta _HPOSM1_Ball
                 sta xPosBall
 
                 tya
@@ -42,9 +45,9 @@ _HPOSM1_Ball    = $0061 ; HPOSM1
                 sta yPosBall
 
 ;   render the ball
-                lda #$04
-                sta AIM_BASE,Y          ; two scanlines
-                sta AIM_BASE-1,Y
+                .frsSpriteShow 8
+                .frsSpriteSetX xPosBall,8
+                .frsSpriteSetY yPosBall,8
 
 ; - - - - - - - - - - - - - - - - - - -
 ;   place the aim target
@@ -69,7 +72,7 @@ _SKIPBALL       lda isSwingInProgress
                 ora swingAnimCounter
                 beq _1
 
-_XIT1           rts
+_XIT1           jmp _XIT
 
 ; - - - - - - - - - - - - - - - - - - -
 ;   reposition the aim target left
@@ -176,14 +179,6 @@ _5              ldx #xformAIM_POS
                 jsr VertexTransform
 
 ; - - - - - - - - - - - - - - - - - - -
-;   preserve IOPAGE control
-                lda IOPAGE_CTRL
-                pha
-
-;   switch to system map
-                stz IOPAGE_CTRL
-
-; - - - - - - - - - - - - - - - - - - -
 ;   render aim point
                 .frsSpriteShow 10
 
@@ -204,8 +199,9 @@ _5              ldx #xformAIM_POS
 
 ; - - - - - - - - - - - - - - - - - - -
 ;   restore IOPAGE control
-                pla
+_XIT            pla
                 sta IOPAGE_CTRL
 
+; - - - - - - - - - - - - - - - - - - -
                 rts
                 .endproc

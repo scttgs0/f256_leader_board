@@ -39,12 +39,11 @@ _1              ldx #$07                ; missile-1 (shadow)
 ;
 ;====================================== ;[[F]]
 InitBall        .proc
-                lda #$00
-                sta flagsBall_9D81
-                sta nodeOperation       ; operPIXEL
-                sta flagsBall_9D83
-                sta flagsBall_9DAF
-                sta unused_9D82
+                stz flagsBall_9D81      ; reset
+                stz nodeOperation       ; =operPIXEL
+                stz flagsBall_9D83      ; reset
+                stz flagsBall_9DAF      ; reset
+                stz unused_9D82         ; reset
 
                 lda polyVertZ_LO
                 sta polyVertZ_delta
@@ -57,17 +56,16 @@ InitBall        .proc
 ;
 ;====================================== ;[[U]]
 MoveBall        .proc
-_HPOSM1_BallR   = $0061 ;HPOSM1
-_HPOSM3_BallL   = $0063 ;HPOSM3
+;!!_HPOSM1_BallR   = $0061 ;HPOSM1
+;!!_HPOSM3_BallL   = $0063 ;HPOSM3
 ;---
 
-                lda #$00
-                sta isSwingAnimCounterActive    ; FALSE
-                sta swingAnimCounter
+                stz isSwingAnimCounterActive    ; =FALSE
+                stz swingAnimCounter            ; =0
 
                 lda #$80
                 sta flags_9D76
-                sta animBallFrame       ; set bit-7; ball is visible
+                sta animSplashFrame       ; set bit-7; ball is visible
 
 _next1          ldx #$06                        ; missile-1 (ball)
                 jsr CalcMissilePositionAndMask  ; result in A=maskedPixelValue, [X,Y]
@@ -83,12 +81,12 @@ _1              lda newMissileY1
                 sta yPosBall
 
                 lda newMissileX
-                clc
-                adc #$01
-                sta _HPOSM1_BallR
+                ;!!clc
+                ;!!adc #$01
+                ;!!sta _HPOSM1_BallR
 
                 sbc #$01
-                sta _HPOSM3_BallL
+                ;!!sta _HPOSM3_BallL
 
                 jsr ClearMissiles
 
@@ -104,7 +102,7 @@ _1              lda newMissileY1
                 ora lineNode0_ClipFlags
                 sta ballController
 
-                jmp AnimateBall._ENTRY1
+                jmp AnimateSplash._FINISH
 
                 .endproc
 
@@ -237,8 +235,8 @@ _2              sec
 ;======================================
 ;
 ;====================================== ;[[U]]
-AnimateBall     .proc
-                bit animBallFrame       ; ball is visible?
+AnimateSplash   .proc
+                bit animSplashFrame     ; ball is visible?
                 bmi _1                  ;   yes
 
                 ;!!lsr PORTA               ;   no
@@ -250,40 +248,40 @@ _1              lda timerIsActive+6     ; timer 6 active?
                 bne _XIT1               ;   yes
 
                 inc timerIsActive+6     ;   no, make active
-                inc animBallFrame
+                inc animSplashFrame
 
 ; - - - - - - - - - - - - - - - - - - -
 _ENTRY1         lda polyVertY_HI
                 cmp #10
-                bcc _XIT4
+                bcc _XIT_D              ; very close
 
                 cmp #15
-                bcc _XIT3
+                bcc _XIT_C
 
                 cmp #20
-                bcc _XIT2
-
-                jmp _2
-
-; - - - - - - - - - - - - - - - - - - -
-_XIT2           jmp RenderMissile1B
+                bcc _XIT_B
+                jmp _XIT_A              ; very far
 
 ; - - - - - - - - - - - - - - - - - - -
-_XIT3           jmp RenderMissile1C
+_XIT_B          jmp AnimSplash_B
 
 ; - - - - - - - - - - - - - - - - - - -
-_XIT4           jmp RenderMissile1D
+_XIT_C          jmp AnimSplash_C
 
 ; - - - - - - - - - - - - - - - - - - -
-_2              lda animBallFrame
-                cmp #$84
-                ;;bcc RenderMissile1A
+_XIT_D          jmp AnimSplash_D
 
 ; - - - - - - - - - - - - - - - - - - -
-_ENTRY2         lda #$00
+_XIT_A          lda animSplashFrame
+                cmp #$84                ; hi-bit & frame 4
+                bcs _FINISH
+                jmp AnimSplash_A
+
+; - - - - - - - - - - - - - - - - - - -
+_FINISH         lda #$00
                 ;!!sta AUDC3
                 ;!!sta AUDF3
-                sta animBallFrame
+                sta animSplashFrame     ; reset
 
                 jmp ClearMissiles
 
@@ -293,8 +291,8 @@ _ENTRY2         lda #$00
 ;======================================
 ;
 ;====================================== ;[[F]]
-AnimateBall_2AC6 .proc
-                lda animBallFrame
+AnimateSplash_2AC6 .proc
+                lda animSplashFrame
                 beq _1
 
                 rts
@@ -340,42 +338,29 @@ _XIT            rts
 ;
 ;====================================== ;[[F]]
 RenderBall      .proc
-_HPOSM0_Shadow  = $0063 ; HPOSM0
-_HPOSM1_Ball    = $0061 ; HPOSM1
-BALL_BASE       = $0060 ; MISL_BASE
-SHADOW_BASE     = $0060 ; MISL_BASE
-;---
-
-                bit animBallFrame
+                bit animSplashFrame
                 bpl _1
 
                 rts
 
 ; - - - - - - - - - - - - - - - - - - -
-_1              ldy yPosBallShadow      ; capture the current shadow position
-                lda newMissileY0        ; capture the new shadow position
-                sta yPosBallShadow      ; update the shadow position for the future
+;   preserve IOPAGE control
+_1              lda IOPAGE_CTRL
+                pha
 
-                lda SHADOW_BASE,Y       ; erase at the current position
-                and #$FC                ; clear missile-0 (shadow)
-                sta SHADOW_BASE,Y
+;   switch to system map
+                stz IOPAGE_CTRL
 
-                ldx newMissileX         ; move missile-0 and missile-1
-                stx _HPOSM0_Shadow
-                stx _HPOSM1_Ball
-                stx xPosBallShadow      ; update the variables
+; - - - - - - - - - - - - - - - - - - -
+                lda newMissileY0        ; update the new shadow vertical position
+                sta yPosBallShadow
+
+                ldx newMissileX         ; move ball and shadow horizontally
+                stx xPosBallShadow
                 stx xPosBall
 
-                lda newMissileY1        ; capture the new ball position
-                ldy yPosBall            ; capture the current ball position
-                sta yPosBall            ; update the ball position for the future
-
-                lda BALL_BASE,Y         ; erase at the current position (two scanlines)
-                and #$F3                ; clear missile-1 (ball)
-                sta BALL_BASE,Y
-                lda BALL_BASE-1,Y
-                and #$F3                ; clear missile-1 (ball)
-                sta BALL_BASE-1,Y
+                lda newMissileY1        ; update the new ball vertical position
+                sta yPosBall
 
 ; - - - - - - - - - - - - - - - - - - -
 ;   render the ball shadow
@@ -386,10 +371,9 @@ _1              ldy yPosBallShadow      ; capture the current shadow position
                 and flagsBall_9DAF
                 beq _2                  ; skip when no bits
 
-                ldy yPosBallShadow      ; draw at the new position
-                lda SHADOW_BASE,Y
-                ora #$01                ; set missile-0 (shadow)
-                sta SHADOW_BASE,Y
+                .frsSpriteShow 9        ; draw at the new position
+                .frsSpriteSetX xPosBallShadow,9
+                .frsSpriteSetY yPosBallShadow,9
 
 ; - - - - - - - - - - - - - - - - - - -
 ;   render the ball
@@ -400,15 +384,17 @@ _2              lda flags_BallVisible   ; ball(bit-6) is visible?
                 and flagsBall_9DAF
                 beq _XIT                ; skip when no bits
 
-                ldy yPosBall            ; draw at the new position (two scanlines)
-                lda BALL_BASE,Y
-                ora #$04                ; set missile-1 (ball)
-                sta BALL_BASE,Y
-                lda BALL_BASE-1,Y
-                ora #$04                ; set missile-1 (ball)
-                sta BALL_BASE-1,Y
+                .frsSpriteShow 8        ; draw at the new position
+                .frsSpriteSetX xPosBall,8
+                .frsSpriteSetY yPosBall,8
 
-_XIT            rts
+; - - - - - - - - - - - - - - - - - - -
+;   restore IOPAGE control
+_XIT            pla
+                sta IOPAGE_CTRL
+
+; - - - - - - - - - - - - - - - - - - -
+                rts
                 .endproc
 
 
@@ -498,16 +484,19 @@ _5              lda flagsBall_9D83
 
 ;--------------------------------------
 ;
+;--------------------------------------
+; on entry:
+;   A           animSplashFrame [0:3]
 ;-------------------------------------- ;[[U]]
-RenderMissile1A .proc
-                and #$0F
+AnimSplash_A    .proc
+                and #$0F                ; strip the hi-bit
                 tax
 
                 lda #$00
                 cpx #$00
                 beq _1
 
-_next1          clc
+_next1          clc                     ; calculate X*3
                 adc #$03
 
                 dex
@@ -519,48 +508,49 @@ _1              tax
                 bne _2
 
                 ldy yPosBall
-                lda _data2,X
-                sta MISL_BASE,Y
-                lda _data2+1,X
-                sta MISL_BASE-1,Y
-                lda _data2+2,X
-                sta MISL_BASE-2,Y
+                lda _frame+0,X
+                ;!!sta MISL_BASE,Y
+                lda _frame+1,X
+                ;!!sta MISL_BASE-1,Y
+                lda _frame+2,X
+                ;!!sta MISL_BASE-2,Y
 
-_2              lda animBallFrame
-                and #$7F
+_2              lda animSplashFrame
+                and #$7F                ; strip the hi-bit
 
                 tax
-                lda _data1,X
+                lda _audioControl,X
                 ;!!sta AUDC3
 
                 rts
 
 ;--------------------------------------
 
-; ..  ..  gg  ..
-; ..  .R  ..  ..
-; .R  .R  .R  gg
+; ......  ......  .#.#..  ......
+; ......  ..#...  ......  ......
+; ..#...  ..#...  ..#...  .#.#..
 
-_data1          .byte $81,$82,$82,$81               ; audio control
-_data2          ;.byte $08,$00,$00
-                .byte %00001000         ; . . R .   ; missile-1
-                .byte %00000000         ; . . . .
-                .byte %00000000         ; . . . .
+_audioControl   .byte $81,$82,$82,$81
+
+_frame          ;.byte $08,$00,$00
+                .byte %00001000         ; ..#...   ; ball-R
+                .byte %00000000         ; ......
+                .byte %00000000         ; ......
 
                 ;.byte $08,$08,$00
-                .byte %00001000         ; . . R .   ; missile-1
-                .byte %00001000         ; . . R .
-                .byte %00000000         ; . . . .
+                .byte %00001000         ; ..#...   ; ball-R
+                .byte %00001000         ; ..#...
+                .byte %00000000         ; ......
 
                 ;.byte $08,$00,$44
-                .byte %00001000         ; . . R .   ; missile-1 and 3
-                .byte %00000000         ; . . . .
-                .byte %01000100         ; g . g .
+                .byte %00001000         ; ..#...   ; ball-R and ball-L
+                .byte %00000000         ; ......
+                .byte %01000100         ; .#.#..
 
                 ;.byte $44,$00,$00
-                .byte %01000100         ; g . g .   ; missile-1 and 3
-                .byte %00000000         ; . . . .
-                .byte %00000000         ; . . . .
+                .byte %01000100         ; .#.#..   ; ball-R and ball-L
+                .byte %00000000         ; ......
+                .byte %00000000         ; ......
 
                 .endproc
 
@@ -568,25 +558,22 @@ _data2          ;.byte $08,$00,$00
 ;--------------------------------------
 ;
 ;-------------------------------------- ;[[U]]
-RenderMissile1B .proc
-MISL_BASE       = $0060
-;---
+AnimSplash_B .proc
+                lda animSplashFrame     ; [0:4]
+                cmp #$85                ; max frame? (hi-bit + 5)
+                bcc _next1              ;   no
 
-                lda animBallFrame
-                cmp #$85
-                bcc _next1
-
-                jmp AnimateBall._ENTRY2
+                jmp AnimateSplash._FINISH
 
 ; - - - - - - - - - - - - - - - - - - -
-_next1          and #$0F
+_next1          and #$0F                ; strip the hi-bit
                 tax
 
                 lda #$00
                 cpx #$00
                 beq _1
 
-_next2          clc
+_next2          clc                     ; calculate X*5
                 adc #$05
 
                 dex
@@ -597,70 +584,70 @@ _1              tax
                 bne _2
 
                 ldy yPosBall
-                lda _data2,X
-                sta MISL_BASE,Y
-                lda _data2+1,X
-                sta MISL_BASE-1,Y
-                lda _data2+2,X
-                sta MISL_BASE-2,Y
-                lda _data2+3,X
-                sta MISL_BASE-3,Y
-                lda _data2+4,X
-                sta MISL_BASE-4,Y
+                lda _frame+0,X
+                ;!!sta MISL_BASE,Y
+                lda _frame+1,X
+                ;!!sta MISL_BASE-1,Y
+                lda _frame+2,X
+                ;!!sta MISL_BASE-2,Y
+                lda _frame+3,X
+                ;!!sta MISL_BASE-3,Y
+                lda _frame+4,X
+                ;!!sta MISL_BASE-4,Y
 
-_2              lda animBallFrame
-                and #$7F
+_2              lda animSplashFrame
+                and #$7F                ; strip the hi-bit
                 tax
 
-                lda _data1,X
+                lda _audioControl,X
                 ;!!sta AUDC3
 
                 rts
 
 ;--------------------------------------
 
-; ..  .R  ..  ..  ..
-; ..  .g  ..  ..  ..
-; ..  ..  .R  ..  ..
-; ..  gR  .g  .R  ..
-; ..  .R  g.  .g  ..
-; .R  .R  .R  gR  gg
+; ......  ..#...  ......  ......  ......
+; ......  ...#..  ..#...  ......  ......
+; ......  .##...  ...#..  ..#...  ......
+; ......  ..#...  .#....  ...#..  ......
+; ..#...  ..#...  ..#...  .##...  .#.#..
 
-_data1          .byte $81,$82,$82,$81,$81           ; audio control
-_data2          ;.byte $08,$00,$00,$00,$00
-                .byte %00001000         ; . . R .   ; missile-1
-                .byte %00000000         ; . . . .
-                .byte %00000000         ; . . . .
-                .byte %00000000         ; . . . .
-                .byte %00000000         ; . . . .
+_audioControl   .byte $81,$82,$82,$81,$81
+
+_frame          ;.byte $08,$00,$00,$00,$00
+                .byte %00001000         ; ..#...   ; ball-R
+                .byte %00000000         ; ......
+                .byte %00000000         ; ......
+                .byte %00000000         ; ......
+                .byte %00000000         ; ......
 
                 ;.byte $08,$08,$48,$04,$08
-                .byte %00001000         ; . . R .   ; missile-1 and 3
-                .byte %00001000         ; . . R .
-                .byte %01001000         ; g . R .
-                .byte %00000100         ; . . g .
-                .byte %00001000         ; . . R .
+                .byte %00001000         ; ..#...   ; ball-R and ball-L
+                .byte %00001000         ; ..#...
+                .byte %01001000         ; .##...
+                .byte %00000100         ; ...#..
+                .byte %00001000         ; ..#...
 
                 ;.byte $08,$40,$04,$08,$00
-                .byte %00001000         ; . . R .   ; missile-1 and 3
-                .byte %01000000         ; g . . .
-                .byte %00000100         ; . . g .
-                .byte %00001000         ; . . R .
-                .byte %00000000         ; . . . .
+                .byte %00001000         ; ..#...   ; ball-R and ball-L
+                .byte %01000000         ; .#....
+                .byte %00000100         ; ...#..
+                .byte %00001000         ; ..#...
+                .byte %00000000         ; ......
 
                 ;.byte $48,$04,$08,$00,$00
-                .byte %01001000         ; g . R .   ; missile-1 and 3
-                .byte %00000100         ; . . g .
-                .byte %00001000         ; . . R .
-                .byte %00000000         ; . . . .
-                .byte %00000000         ; . . . .
+                .byte %01001000         ; .##...   ; ball-R and ball-L
+                .byte %00000100         ; ...#..
+                .byte %00001000         ; ..#...
+                .byte %00000000         ; ......
+                .byte %00000000         ; ......
 
                 ;.byte $44,$00,$00,$00,$00
-                .byte %01000100         ; g . g .   ; missile-1 and 3
-                .byte %00000000         ; . . . .
-                .byte %00000000         ; . . . .
-                .byte %00000000         ; . . . .
-                .byte %00000000         ; . . . .
+                .byte %01000100         ; .#.#..   ; ball-R and ball-L
+                .byte %00000000         ; ......
+                .byte %00000000         ; ......
+                .byte %00000000         ; ......
+                .byte %00000000         ; ......
 
                 .endproc
 
@@ -668,24 +655,25 @@ _data2          ;.byte $08,$00,$00,$00,$00
 ;--------------------------------------
 ;
 ;-------------------------------------- ;[[U]]
-RenderMissile1C .proc
-MISL_BASE       = $0060
+AnimSplash_C .proc
+;!!MISL_BASE       = $0060
 ;---
 
-                lda animBallFrame
-                cmp #$85
-                bcc _1
+                lda animSplashFrame     ; [0:4]
+                cmp #$85                ; max frame? (hi_bit + 5)
+                bcc _1                  ;   no
 
-                jmp AnimateBall._ENTRY2
+                jmp AnimateSplash._FINISH
 
 ; - - - - - - - - - - - - - - - - - - -
-_1              and #$0F
+_1              and #$0F                ; strip the hi-bit
                 tax
+
                 lda #$00
                 cpx #$00
                 beq _2
 
-_next1          clc
+_next1          clc                     ; calculate X*7
                 adc #$07
 
                 dex
@@ -696,85 +684,86 @@ _2              tax
                 lda ballController
                 bne _3
 
-                lda _data2,X
-                sta MISL_BASE,Y
-                lda _data2+1,X
-                sta MISL_BASE-1,Y
-                lda _data2+2,X
-                sta MISL_BASE-2,Y
-                lda _data2+3,X
-                sta MISL_BASE-3,Y
-                lda _data2+4,X
-                sta MISL_BASE-4,Y
-                lda _data2+5,X
-                sta MISL_BASE-5,Y
-                lda _data2+6,X
-                sta MISL_BASE-6,Y
+                lda _frame+0,X
+                ;!!sta MISL_BASE,Y
+                lda _frame+1,X
+                ;!!sta MISL_BASE-1,Y
+                lda _frame+2,X
+                ;!!sta MISL_BASE-2,Y
+                lda _frame+3,X
+                ;!!sta MISL_BASE-3,Y
+                lda _frame+4,X
+                ;!!sta MISL_BASE-4,Y
+                lda _frame+5,X
+                ;!!sta MISL_BASE-5,Y
+                lda _frame+6,X
+                ;!!sta MISL_BASE-6,Y
 
-_3              lda animBallFrame
-                and #$7F
+_3              lda animSplashFrame
+                and #$7F                ; strip the hi-bit
                 tax
 
-                lda _data1,X
+                lda _audioControl,X
                 ;!!sta AUDC3
 
                 rts
 
 ;--------------------------------------
 
-; ..  .g  ..  ..  ..
-; ..  .R  g.  ..  ..
-; ..  gg  .g  ..  ..
-; ..  .R  gR  g.  ..
-; ..  gR  gR  .R  ..
-; ..  .R  gR  gR  ..
-; .R  .R  .R  gR  gg
+; ......  ...#..  ......  ......  ......
+; ......  ..#...  .#.#..  ......  ......
+; ......  .#.#..  ..#...  ......  ......
+; ......  ..#...  .##.#.  .#....  ......
+; ......  .##.#.  .##...  ..#...  ......
+; ......  ..#...  .##...  .##.#.  ......
+; ..#...  ..#...  ..#...  .##...  .#.#..
 
-_data1          .byte $81,$82,$83,$82,$81           ; audio control
-_data2          ;.byte $08,$00,$00,$00,$00,$00,$00
-                .byte %00001000         ; . . R .   ; missile-1
-                .byte %00000000         ; . . . .
-                .byte %00000000         ; . . . .
-                .byte %00000000         ; . . . .
-                .byte %00000000         ; . . . .
-                .byte %00000000         ; . . . .
-                .byte %00000000         ; . . . .
+_audioControl   .byte $81,$82,$83,$82,$81
+
+_frame          ;.byte $08,$00,$00,$00,$00,$00,$00
+                .byte %00001000         ; ..#...   ; ball-R
+                .byte %00000000         ; ......
+                .byte %00000000         ; ......
+                .byte %00000000         ; ......
+                .byte %00000000         ; ......
+                .byte %00000000         ; ......
+                .byte %00000000         ; ......
 
                 ;.byte $08,$08,$4A,$08,$44,$08,$04
-                .byte %00001000         ; . . R .   ; missile-0, 1, and 3
-                .byte %00001000         ; . . R .
-                .byte %01001010         ; g . R R
-                .byte %00001000         ; . . R .
-                .byte %01000100         ; g . g .
-                .byte %00001000         ; . . R .
-                .byte %00000100         ; . . g .
+                .byte %00001000         ; ..#...   ; shadow, ball-R, and ball-L
+                .byte %00001000         ; ..#...
+                .byte %01001010         ; .##.#.
+                .byte %00001000         ; ..#...
+                .byte %01000100         ; .#.#..
+                .byte %00001000         ; ..#...
+                .byte %00000100         ; ...#..
 
                 ;.byte $08,$48,$48,$4A,$08,$44,$00
-                .byte %00001000         ; . . R .   ; missile-0, 1, and 3
-                .byte %01001000         ; g . R .
-                .byte %01001000         ; g . R .
-                .byte %01001010         ; g . R R
-                .byte %00001000         ; . . R .
-                .byte %01000100         ; g . g .
-                .byte %00000000         ; . . . .
+                .byte %00001000         ; ..#...   ; shadow, ball-R, and ball-L
+                .byte %01001000         ; .##...
+                .byte %01001000         ; .##...
+                .byte %01001010         ; .##.#.
+                .byte %00001000         ; ..#...
+                .byte %01000100         ; .#.#..
+                .byte %00000000         ; ......
 
                 ;.byte $48,$4A,$08,$40,$00,$00,$00
-                .byte %01001000         ; g . R .   ; missile-0, 1, and 3
-                .byte %01001010         ; g . R R
-                .byte %00001000         ; . . R .
-                .byte %01000000         ; g . . .
-                .byte %00000000         ; . . . .
-                .byte %00000000         ; . . . .
-                .byte %00000000         ; . . . .
+                .byte %01001000         ; .##...    ; shadow, ball-R, and ball-L
+                .byte %01001010         ; .##.#.
+                .byte %00001000         ; ..#...
+                .byte %01000000         ; .#....
+                .byte %00000000         ; ......
+                .byte %00000000         ; ......
+                .byte %00000000         ; ......
 
                 ;.byte $44,$00,$00,$00,$00,$00,$00
-                .byte %01000100         ; g . g .   ; missile-1 and 3
-                .byte %00000000         ; . . . .
-                .byte %00000000         ; . . . .
-                .byte %00000000         ; . . . .
-                .byte %00000000         ; . . . .
-                .byte %00000000         ; . . . .
-                .byte %00000000         ; . . . .
+                .byte %01000100         ; .#.#..   ; ball-R and ball-L
+                .byte %00000000         ; ......
+                .byte %00000000         ; ......
+                .byte %00000000         ; ......
+                .byte %00000000         ; ......
+                .byte %00000000         ; ......
+                .byte %00000000         ; ......
 
                 .endproc
 
@@ -782,25 +771,22 @@ _data2          ;.byte $08,$00,$00,$00,$00,$00,$00
 ;--------------------------------------
 ;
 ;-------------------------------------- ;[[U]]
-RenderMissile1D .proc
-MISL_BASE       = $0060
-;---
+AnimSplash_D .proc
+                lda animSplashFrame     ; [0:5]
+                cmp #$86                ; max frame? (hi-bit + 6)
+                bcc _1                  ;   no
 
-                lda animBallFrame
-                cmp #$86
-                bcc _1
-
-                jmp AnimateBall._ENTRY2
+                jmp AnimateSplash._FINISH
 
 ; - - - - - - - - - - - - - - - - - - -
-_1              and #$0F
+_1              and #$0F                ; strip the hi-bit
                 tax
 
                 lda #$00
                 cpx #$00
                 beq _2
 
-_next1          clc
+_next1          clc                     ; calculate X*9
                 adc #$09
 
                 dex
@@ -811,105 +797,108 @@ _2              tax
                 bne _3
 
                 ldy yPosBall
-                lda _data2,X
-                sta MISL_BASE,Y
-                lda _data2+1,X
-                sta MISL_BASE-1,Y
-                lda _data2+2,X
-                sta MISL_BASE-2,Y
-                lda _data2+3,X
-                sta MISL_BASE-3,Y
-                lda _data2+4,X
-                sta MISL_BASE-4,Y
-                lda _data2+5,X
-                sta MISL_BASE-5,Y
-                lda _data2+6,X
-                sta MISL_BASE-6,Y
+                lda _frame+0,X
+                ;!!sta MISL_BASE,Y
+                lda _frame+1,X
+                ;!!sta MISL_BASE-1,Y
+                lda _frame+2,X
+                ;!!sta MISL_BASE-2,Y
+                lda _frame+3,X
+                ;!!sta MISL_BASE-3,Y
+                lda _frame+4,X
+                ;!!sta MISL_BASE-4,Y
+                lda _frame+5,X
+                ;!!sta MISL_BASE-5,Y
+                lda _frame+6,X
+                ;!!sta MISL_BASE-6,Y
 
-_3              lda animBallFrame
-                and #$7F
+_3              lda animSplashFrame
+                and #$7F                ; strip the hi-bit
                 tax
 
-                lda _data1,X
+                lda _audioControl,X
                 ;!!sta AUDC3
 
                 rts
 
 ;--------------------------------------
 
-; ..  gg  gR  .R  ..  ..  ..
-; ..  gR  .R  ..  .R  ..  ..
-; ..  gR  .R  .R  ..  ..  ..
-; ..  gR  .R  .g  .g  .R  .R
-; ..  .R  .g  g.  g.  ..  ..
-; ..  ..  g.  .R  .R  gg  ..
-; .R  ..  .R  gR  gR  ..  ..
+; ......  ..#...  ......  ......  ......  ......
+; ......  ...#..  ..#...  ......  ......  ......
+; ......  .#....  ...#..  ..#...  ......  ......
+; ......  ..#...  .#....  ......  ......  ......
+; ......  .#.#..  ..#...  ...#..  ......  ......
+; ......  .##.#.  .##.#.  .#....  ......  ......
+; ......  .##.#.  .##.#.  ..#.#.  ..#...  ......
+; ......  .##.#.  ..#...  .##.#.  ......  ......
+; ..#...  ..#...  ..#...  ..#...  .#.#..  ..#...
 
-_data1          .byte $81,$82,$83,$84,$83,$82       ; audio control
-_data2          ;.byte $08,$00,$00,$00,$00,$00,$00
-                .byte %00001000         ; . . R .   ; missile-1
-                .byte %00000000         ; . . . .
-                .byte %00000000         ; . . . .
-                .byte %00000000         ; . . . .
-                .byte %00000000         ; . . . .
-                .byte %00000000         ; . . . .
-                .byte %00000000         ; . . . .
+_audioControl   .byte $81,$82,$83,$84,$83,$82
 
-                ;.byte $00,$00,$08,$4A,$4A,$4A,$44
-                .byte %00000000         ; . . . .   ; missile-0, 1, and 3
-                .byte %00000000         ; . . . .
-                .byte %00001000         ; . . R .
-                .byte %01001010         ; g . R R
-                .byte %01001010         ; g . R R
-                .byte %01001010         ; g . R R
-                .byte %01000100         ; g . g .
+_frame          ;.byte $08,$00,$00,$00,$00,$00,$00,$00,$00
+                .byte %00001000         ; ..#...   ; ball-R
+                .byte %00000000         ; ......
+                .byte %00000000         ; ......
+                .byte %00000000         ; ......
+                .byte %00000000         ; ......
+                .byte %00000000         ; ......
+                .byte %00000000         ; ......
+                .byte %00000000         ; ......
+                .byte %00000000         ; ......
 
-                ;.byte $08,$40,$04,$08,$08,$08,$4A
-                .byte %00001000         ; . . R .   ; missile-0, 1, and 3
-                .byte %01000000         ; g . . .
-                .byte %00000100         ; . . g .
-                .byte %00001000         ; . . R .
-                .byte %00001000         ; . . R .
-                .byte %00001000         ; . . R .
-                .byte %01001010         ; g . R R
+                ;.byte $08,$4A,$4A,$4A,$44,$08,$40,$04,$08
+                .byte %00001000         ; ..#...   ; shadow, ball-R, and ball-L
+                .byte %01001010         ; .##.#.
+                .byte %01001010         ; .##.#.
+                .byte %01001010         ; .##.#.
+                .byte %01000100         ; .#.#..
+                .byte %00001000         ; ..#...
+                .byte %01000000         ; .#....
+                .byte %00000100         ; ...#..
+                .byte %00001000         ; ..#...
 
-                ;.byte $4A,$08,$40,$04,$08,$00,$08
-                .byte %01001010         ; g . R R   ; missile-0, 1, and 3
-                .byte %00001000         ; . . R .
-                .byte %01000000         ; g . . .
-                .byte %00000100         ; . . g .
-                .byte %00001000         ; . . R .
-                .byte %00000000         ; . . . .
-                .byte %00001000         ; . . R .
+                ;.byte $08,$08,$4A,$4A,$08,$40,$04,$08,$00
+                .byte %00001000         ; ..#...   ; shadow, ball-R, and ball-L
+                .byte %00001000         ; ..#...
+                .byte %01001010         ; .##.#.
+                .byte %01001010         ; .##.#.
+                .byte %00001000         ; ..#...
+                .byte %01000000         ; .#....
+                .byte %00000100         ; ...#..
+                .byte %00001000         ; ..#...
+                .byte %00000000         ; ......
 
-                ;.byte $4A,$0A,$40,$04,$00,$08,$00
-                .byte %01001010         ; g . R R   ; missile-0, 1, and 3
-                .byte %00001010         ; . . R R
-                .byte %01000000         ; g . . .
-                .byte %00000100         ; . . g .
-                .byte %00000000         ; . . . .
-                .byte %00001000         ; . . R .
-                .byte %00000000         ; . . . .
+                ;.byte $08,$4A,$0A,$40,$04,$00,$08,$00,$00
+                .byte %00001000         ; ..#...   ; shadow, ball-R, and ball-L
+                .byte %01001010         ; .##.#.
+                .byte %00001010         ; ..#.#.
+                .byte %01000000         ; .#....
+                .byte %00000100         ; ...#..
+                .byte %00000000         ; ......
+                .byte %00001000         ; ..#...
+                .byte %00000000         ; ......
+                .byte %00000000         ; ......
 
-                ;.byte $00,$44,$00,$08,$00,$00,$00
-                .byte %00000000         ; . . . .   ; missile-1 and 3
-                .byte %01000100         ; g . g .
-                .byte %00000000         ; . . . .
-                .byte %00001000         ; . . R .
-                .byte %00000000         ; . . . .
-                .byte %00000000         ; . . . .
-                .byte %00000000         ; . . . .
+                ;.byte $44,$00,$08,$00,$00,$00,$00,$00,$00
+                .byte %01000100         ; .#.#..   ;ball-R and ball-L
+                .byte %00000000         ; ......
+                .byte %00001000         ; ..#...
+                .byte %00000000         ; ......
+                .byte %00000000         ; ......
+                .byte %00000000         ; ......
+                .byte %00000000         ; ......
+                .byte %00000000         ; ......
+                .byte %00000000         ; ......
 
-                ;.byte $00,$00,$00,$08,$00,$00,$00
-                .byte %00000000         ; . . . .   ; missile-1
-                .byte %00000000         ; . . . .
-                .byte %00000000         ; . . . .
-                .byte %00001000         ; . . R .
-                .byte %00000000         ; . . . .
-                .byte %00000000         ; . . . .
-                .byte %00000000         ; . . . .
-
-
-                .byte $00,$00,$00,$00,$00
+                ;.byte $08,$00,$00,$00,$00,$00,$00,$00,$00
+                .byte %00001000         ; ..#...   ; ball-R
+                .byte %00000000         ; ......
+                .byte %00000000         ; ......
+                .byte %00000000         ; ......
+                .byte %00000000         ; ......
+                .byte %00000000         ; ......
+                .byte %00000000         ; ......
+                .byte %00000000         ; ......
+                .byte %00000000         ; ......
 
                 .endproc
