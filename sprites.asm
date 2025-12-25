@@ -39,6 +39,9 @@ ClearMissiles   .proc
                 ;;.frsSpriteClear 11      ; swing gauge
                 ;;.frsSpriteHide 11
 
+                .frsSpriteClear 12      ; splash
+                .frsSpriteHide 12
+
 ;   restore IOPAGE control
                 pla
                 sta IOPAGE_CTRL

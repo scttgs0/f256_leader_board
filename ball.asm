@@ -56,10 +56,6 @@ InitBall        .proc
 ;
 ;====================================== ;[[U]]
 MoveBall        .proc
-;!!_HPOSM1_BallR   = $0061 ;HPOSM1
-;!!_HPOSM3_BallL   = $0063 ;HPOSM3
-;---
-
                 stz isSwingAnimCounterActive    ; =FALSE
                 stz swingAnimCounter            ; =0
 
@@ -73,20 +69,16 @@ _next1          ldx #$06                        ; missile-1 (ball)
                 cmp #$03                ; missile-1?
                 bne _1                  ;   no
 
-                dec newMissileY1        ;   yes
+                dec newBallPosY         ;   yes
                 jmp _next1
 
 ; - - - - - - - - - - - - - - - - - - -
-_1              lda newMissileY1
+_1              lda newBallPosY
                 sta yPosBall
+                sta SPR(sprite_t.Y, 8)
 
-                lda newMissileX
-                ;!!clc
-                ;!!adc #$01
-                ;!!sta _HPOSM1_BallR
-
-                sbc #$01
-                ;!!sta _HPOSM3_BallL
+                lda newBallPosX
+                sta SPR(sprite_t.X, 8)
 
                 jsr ClearMissiles
 
@@ -167,11 +159,11 @@ _2              sta flags_BallVisible
 _3              lda zTransform
                 clc
                 adc yPosDeltaBall
-_4              sta newMissileY0
-                stx newMissileX
+_4              sta newBallShadowPosY
+                stx newBallPosX
 
                 lda yTransform
-                sta newMissileY1
+                sta newBallPosY
 
                 rts
                 .endproc
@@ -211,13 +203,13 @@ CalcMissilePosition .proc
                 cpx #$06
                 beq _1                  ; when [X:=6] ball
 
-                lda newMissileY0        ; when [X:=7] shadow
-                ldx newMissileX
+                lda newBallShadowPosY   ; when [X:=7] shadow
+                ldx newBallPosX
                 jmp _2
 
 ; - - - - - - - - - - - - - - - - - - -
-_1              lda newMissileY1
-                ldx newMissileX
+_1              lda newBallPosY
+                ldx newBallPosX
 
 _2              sec
                 sbc yPosDeltaBall
@@ -352,14 +344,14 @@ _1              lda IOPAGE_CTRL
                 stz IOPAGE_CTRL
 
 ; - - - - - - - - - - - - - - - - - - -
-                lda newMissileY0        ; update the new shadow vertical position
+                lda newBallShadowPosY   ; update the new shadow vertical position
                 sta yPosBallShadow
 
-                ldx newMissileX         ; move ball and shadow horizontally
+                ldx newBallPosX         ; move ball and shadow horizontally
                 stx xPosBallShadow
                 stx xPosBall
 
-                lda newMissileY1        ; update the new ball vertical position
+                lda newBallPosY         ; update the new ball vertical position
                 sta yPosBall
 
 ; - - - - - - - - - - - - - - - - - - -
@@ -507,13 +499,49 @@ _1              tax
                 lda ballController
                 bne _2
 
-                ldy yPosBall
-                lda _frame+0,X
-                ;!!sta MISL_BASE,Y
-                lda _frame+1,X
-                ;!!sta MISL_BASE-1,Y
-                lda _frame+2,X
-                ;!!sta MISL_BASE-2,Y
+                .frsSpriteShow 12        ; draw at the new position
+                .frsSpriteSetX xPosBall+32,12
+                .frsSpriteSetY yPosBall+32,12
+
+                cpx #$00
+                bne _1A
+
+                lda #<anim3cell00
+                sta SPR(sprite_t.ADDR, 12)
+                lda #>anim3cell00
+                sta SPR(sprite_t.ADDR+1, 12)
+                lda #`anim3cell00
+                sta SPR(sprite_t.ADDR+2, 12)
+                bra _2
+
+_1A             cpx #$01
+                bne _1B
+
+                lda #<anim3cell01
+                sta SPR(sprite_t.ADDR, 12)
+                lda #>anim3cell01
+                sta SPR(sprite_t.ADDR+1, 12)
+                lda #`anim3cell01
+                sta SPR(sprite_t.ADDR+2, 12)
+                bra _2
+
+_1B             cpx #$02
+                bne _1C
+
+                lda #<anim3cell02
+                sta SPR(sprite_t.ADDR, 12)
+                lda #>anim3cell02
+                sta SPR(sprite_t.ADDR+1, 12)
+                lda #`anim3cell02
+                sta SPR(sprite_t.ADDR+2, 12)
+                bra _2
+
+_1C             lda #<anim3cell03
+                sta SPR(sprite_t.ADDR, 12)
+                lda #>anim3cell03
+                sta SPR(sprite_t.ADDR+1, 12)
+                lda #`anim3cell03
+                sta SPR(sprite_t.ADDR+2, 12)
 
 _2              lda animSplashFrame
                 and #$7F                ; strip the hi-bit
@@ -525,32 +553,13 @@ _2              lda animSplashFrame
                 rts
 
 ;--------------------------------------
+;   frames
 
 ; ......  ......  .#.#..  ......
 ; ......  ..#...  ......  ......
 ; ..#...  ..#...  ..#...  .#.#..
 
 _audioControl   .byte $81,$82,$82,$81
-
-_frame          ;.byte $08,$00,$00
-                .byte %00001000         ; ..#...   ; ball-R
-                .byte %00000000         ; ......
-                .byte %00000000         ; ......
-
-                ;.byte $08,$08,$00
-                .byte %00001000         ; ..#...   ; ball-R
-                .byte %00001000         ; ..#...
-                .byte %00000000         ; ......
-
-                ;.byte $08,$00,$44
-                .byte %00001000         ; ..#...   ; ball-R and ball-L
-                .byte %00000000         ; ......
-                .byte %01000100         ; .#.#..
-
-                ;.byte $44,$00,$00
-                .byte %01000100         ; .#.#..   ; ball-R and ball-L
-                .byte %00000000         ; ......
-                .byte %00000000         ; ......
 
                 .endproc
 
@@ -583,17 +592,60 @@ _1              tax
                 lda ballController
                 bne _2
 
-                ldy yPosBall
-                lda _frame+0,X
-                ;!!sta MISL_BASE,Y
-                lda _frame+1,X
-                ;!!sta MISL_BASE-1,Y
-                lda _frame+2,X
-                ;!!sta MISL_BASE-2,Y
-                lda _frame+3,X
-                ;!!sta MISL_BASE-3,Y
-                lda _frame+4,X
-                ;!!sta MISL_BASE-4,Y
+                .frsSpriteShow 12        ; draw at the new position
+                .frsSpriteSetX xPosBall+32,12
+                .frsSpriteSetY yPosBall+32,12
+
+                cpx #$00
+                bne _1A
+
+                lda #<anim3cell04
+                sta SPR(sprite_t.ADDR, 12)
+                lda #>anim3cell04
+                sta SPR(sprite_t.ADDR+1, 12)
+                lda #`anim3cell04
+                sta SPR(sprite_t.ADDR+2, 12)
+                bra _2
+
+_1A             cpx #$01
+                bne _1B
+
+                lda #<anim3cell05
+                sta SPR(sprite_t.ADDR, 12)
+                lda #>anim3cell05
+                sta SPR(sprite_t.ADDR+1, 12)
+                lda #`anim3cell05
+                sta SPR(sprite_t.ADDR+2, 12)
+                bra _2
+
+_1B             cpx #$02
+                bne _1C
+
+                lda #<anim3cell06
+                sta SPR(sprite_t.ADDR, 12)
+                lda #>anim3cell06
+                sta SPR(sprite_t.ADDR+1, 12)
+                lda #`anim3cell06
+                sta SPR(sprite_t.ADDR+2, 12)
+                bra _2
+
+_1C             cpx #$03
+                bne _1D
+
+                lda #<anim3cell07
+                sta SPR(sprite_t.ADDR, 12)
+                lda #>anim3cell07
+                sta SPR(sprite_t.ADDR+1, 12)
+                lda #`anim3cell07
+                sta SPR(sprite_t.ADDR+2, 12)
+                bra _2
+
+_1D             lda #<anim3cell08
+                sta SPR(sprite_t.ADDR, 12)
+                lda #>anim3cell08
+                sta SPR(sprite_t.ADDR+1, 12)
+                lda #`anim3cell08
+                sta SPR(sprite_t.ADDR+2, 12)
 
 _2              lda animSplashFrame
                 and #$7F                ; strip the hi-bit
@@ -605,6 +657,7 @@ _2              lda animSplashFrame
                 rts
 
 ;--------------------------------------
+;   frames
 
 ; ......  ..#...  ......  ......  ......
 ; ......  ...#..  ..#...  ......  ......
@@ -614,41 +667,6 @@ _2              lda animSplashFrame
 
 _audioControl   .byte $81,$82,$82,$81,$81
 
-_frame          ;.byte $08,$00,$00,$00,$00
-                .byte %00001000         ; ..#...   ; ball-R
-                .byte %00000000         ; ......
-                .byte %00000000         ; ......
-                .byte %00000000         ; ......
-                .byte %00000000         ; ......
-
-                ;.byte $08,$08,$48,$04,$08
-                .byte %00001000         ; ..#...   ; ball-R and ball-L
-                .byte %00001000         ; ..#...
-                .byte %01001000         ; .##...
-                .byte %00000100         ; ...#..
-                .byte %00001000         ; ..#...
-
-                ;.byte $08,$40,$04,$08,$00
-                .byte %00001000         ; ..#...   ; ball-R and ball-L
-                .byte %01000000         ; .#....
-                .byte %00000100         ; ...#..
-                .byte %00001000         ; ..#...
-                .byte %00000000         ; ......
-
-                ;.byte $48,$04,$08,$00,$00
-                .byte %01001000         ; .##...   ; ball-R and ball-L
-                .byte %00000100         ; ...#..
-                .byte %00001000         ; ..#...
-                .byte %00000000         ; ......
-                .byte %00000000         ; ......
-
-                ;.byte $44,$00,$00,$00,$00
-                .byte %01000100         ; .#.#..   ; ball-R and ball-L
-                .byte %00000000         ; ......
-                .byte %00000000         ; ......
-                .byte %00000000         ; ......
-                .byte %00000000         ; ......
-
                 .endproc
 
 
@@ -656,9 +674,6 @@ _frame          ;.byte $08,$00,$00,$00,$00
 ;
 ;-------------------------------------- ;[[U]]
 AnimSplash_C .proc
-;!!MISL_BASE       = $0060
-;---
-
                 lda animSplashFrame     ; [0:4]
                 cmp #$85                ; max frame? (hi_bit + 5)
                 bcc _1                  ;   no
@@ -684,20 +699,60 @@ _2              tax
                 lda ballController
                 bne _3
 
-                lda _frame+0,X
-                ;!!sta MISL_BASE,Y
-                lda _frame+1,X
-                ;!!sta MISL_BASE-1,Y
-                lda _frame+2,X
-                ;!!sta MISL_BASE-2,Y
-                lda _frame+3,X
-                ;!!sta MISL_BASE-3,Y
-                lda _frame+4,X
-                ;!!sta MISL_BASE-4,Y
-                lda _frame+5,X
-                ;!!sta MISL_BASE-5,Y
-                lda _frame+6,X
-                ;!!sta MISL_BASE-6,Y
+                .frsSpriteShow 12        ; draw at the new position
+                .frsSpriteSetX xPosBall+32,12
+                .frsSpriteSetY yPosBall+32,12
+
+                cpx #$00
+                bne _2A
+
+                lda #<anim3cell09
+                sta SPR(sprite_t.ADDR, 12)
+                lda #>anim3cell09
+                sta SPR(sprite_t.ADDR+1, 12)
+                lda #`anim3cell09
+                sta SPR(sprite_t.ADDR+2, 12)
+                bra _3
+
+_2A             cpx #$01
+                bne _2B
+
+                lda #<anim3cell10
+                sta SPR(sprite_t.ADDR, 12)
+                lda #>anim3cell10
+                sta SPR(sprite_t.ADDR+1, 12)
+                lda #`anim3cell10
+                sta SPR(sprite_t.ADDR+2, 12)
+                bra _3
+
+_2B             cpx #$02
+                bne _2C
+
+                lda #<anim3cell11
+                sta SPR(sprite_t.ADDR, 12)
+                lda #>anim3cell11
+                sta SPR(sprite_t.ADDR+1, 12)
+                lda #`anim3cell11
+                sta SPR(sprite_t.ADDR+2, 12)
+                bra _3
+
+_2C             cpx #$03
+                bne _2D
+
+                lda #<anim3cell12
+                sta SPR(sprite_t.ADDR, 12)
+                lda #>anim3cell12
+                sta SPR(sprite_t.ADDR+1, 12)
+                lda #`anim3cell12
+                sta SPR(sprite_t.ADDR+2, 12)
+                bra _3
+
+_2D             lda #<anim3cell13
+                sta SPR(sprite_t.ADDR, 12)
+                lda #>anim3cell13
+                sta SPR(sprite_t.ADDR+1, 12)
+                lda #`anim3cell13
+                sta SPR(sprite_t.ADDR+2, 12)
 
 _3              lda animSplashFrame
                 and #$7F                ; strip the hi-bit
@@ -709,6 +764,7 @@ _3              lda animSplashFrame
                 rts
 
 ;--------------------------------------
+;   frames
 
 ; ......  ...#..  ......  ......  ......
 ; ......  ..#...  .#.#..  ......  ......
@@ -719,51 +775,6 @@ _3              lda animSplashFrame
 ; ..#...  ..#...  ..#...  .##...  .#.#..
 
 _audioControl   .byte $81,$82,$83,$82,$81
-
-_frame          ;.byte $08,$00,$00,$00,$00,$00,$00
-                .byte %00001000         ; ..#...   ; ball-R
-                .byte %00000000         ; ......
-                .byte %00000000         ; ......
-                .byte %00000000         ; ......
-                .byte %00000000         ; ......
-                .byte %00000000         ; ......
-                .byte %00000000         ; ......
-
-                ;.byte $08,$08,$4A,$08,$44,$08,$04
-                .byte %00001000         ; ..#...   ; shadow, ball-R, and ball-L
-                .byte %00001000         ; ..#...
-                .byte %01001010         ; .##.#.
-                .byte %00001000         ; ..#...
-                .byte %01000100         ; .#.#..
-                .byte %00001000         ; ..#...
-                .byte %00000100         ; ...#..
-
-                ;.byte $08,$48,$48,$4A,$08,$44,$00
-                .byte %00001000         ; ..#...   ; shadow, ball-R, and ball-L
-                .byte %01001000         ; .##...
-                .byte %01001000         ; .##...
-                .byte %01001010         ; .##.#.
-                .byte %00001000         ; ..#...
-                .byte %01000100         ; .#.#..
-                .byte %00000000         ; ......
-
-                ;.byte $48,$4A,$08,$40,$00,$00,$00
-                .byte %01001000         ; .##...    ; shadow, ball-R, and ball-L
-                .byte %01001010         ; .##.#.
-                .byte %00001000         ; ..#...
-                .byte %01000000         ; .#....
-                .byte %00000000         ; ......
-                .byte %00000000         ; ......
-                .byte %00000000         ; ......
-
-                ;.byte $44,$00,$00,$00,$00,$00,$00
-                .byte %01000100         ; .#.#..   ; ball-R and ball-L
-                .byte %00000000         ; ......
-                .byte %00000000         ; ......
-                .byte %00000000         ; ......
-                .byte %00000000         ; ......
-                .byte %00000000         ; ......
-                .byte %00000000         ; ......
 
                 .endproc
 
@@ -794,23 +805,75 @@ _next1          clc                     ; calculate X*9
 
 _2              tax
                 lda ballController
-                bne _3
+                beq _22
+                jmp _3
 
-                ldy yPosBall
-                lda _frame+0,X
-                ;!!sta MISL_BASE,Y
-                lda _frame+1,X
-                ;!!sta MISL_BASE-1,Y
-                lda _frame+2,X
-                ;!!sta MISL_BASE-2,Y
-                lda _frame+3,X
-                ;!!sta MISL_BASE-3,Y
-                lda _frame+4,X
-                ;!!sta MISL_BASE-4,Y
-                lda _frame+5,X
-                ;!!sta MISL_BASE-5,Y
-                lda _frame+6,X
-                ;!!sta MISL_BASE-6,Y
+; - - - - - - - - - - - - - - - - - - -
+_22             .frsSpriteShow 12        ; draw at the new position
+                .frsSpriteSetX xPosBall+32,12
+                .frsSpriteSetY yPosBall+32,12
+
+                cpx #$00
+                bne _2A
+
+                lda #<anim3cell14
+                sta SPR(sprite_t.ADDR, 12)
+                lda #>anim3cell14
+                sta SPR(sprite_t.ADDR+1, 12)
+                lda #`anim3cell14
+                sta SPR(sprite_t.ADDR+2, 12)
+                bra _3
+
+_2A             cpx #$01
+                bne _2B
+
+                lda #<anim3cell15
+                sta SPR(sprite_t.ADDR, 12)
+                lda #>anim3cell15
+                sta SPR(sprite_t.ADDR+1, 12)
+                lda #`anim3cell15
+                sta SPR(sprite_t.ADDR+2, 12)
+                bra _3
+
+_2B             cpx #$02
+                bne _2C
+
+                lda #<anim3cell16
+                sta SPR(sprite_t.ADDR, 12)
+                lda #>anim3cell16
+                sta SPR(sprite_t.ADDR+1, 12)
+                lda #`anim3cell16
+                sta SPR(sprite_t.ADDR+2, 12)
+                bra _3
+
+_2C             cpx #$03
+                bne _2D
+
+                lda #<anim3cell17
+                sta SPR(sprite_t.ADDR, 12)
+                lda #>anim3cell17
+                sta SPR(sprite_t.ADDR+1, 12)
+                lda #`anim3cell17
+                sta SPR(sprite_t.ADDR+2, 12)
+                bra _3
+
+_2D             cpx #$04
+                bne _2E
+
+                lda #<anim3cell18
+                sta SPR(sprite_t.ADDR, 12)
+                lda #>anim3cell18
+                sta SPR(sprite_t.ADDR+1, 12)
+                lda #`anim3cell18
+                sta SPR(sprite_t.ADDR+2, 12)
+                bra _3
+
+_2E             lda #<anim3cell19
+                sta SPR(sprite_t.ADDR, 12)
+                lda #>anim3cell19
+                sta SPR(sprite_t.ADDR+1, 12)
+                lda #`anim3cell19
+                sta SPR(sprite_t.ADDR+2, 12)
 
 _3              lda animSplashFrame
                 and #$7F                ; strip the hi-bit
@@ -822,6 +885,7 @@ _3              lda animSplashFrame
                 rts
 
 ;--------------------------------------
+;   frames
 
 ; ......  ..#...  ......  ......  ......  ......
 ; ......  ...#..  ..#...  ......  ......  ......
@@ -834,71 +898,5 @@ _3              lda animSplashFrame
 ; ..#...  ..#...  ..#...  ..#...  .#.#..  ..#...
 
 _audioControl   .byte $81,$82,$83,$84,$83,$82
-
-_frame          ;.byte $08,$00,$00,$00,$00,$00,$00,$00,$00
-                .byte %00001000         ; ..#...   ; ball-R
-                .byte %00000000         ; ......
-                .byte %00000000         ; ......
-                .byte %00000000         ; ......
-                .byte %00000000         ; ......
-                .byte %00000000         ; ......
-                .byte %00000000         ; ......
-                .byte %00000000         ; ......
-                .byte %00000000         ; ......
-
-                ;.byte $08,$4A,$4A,$4A,$44,$08,$40,$04,$08
-                .byte %00001000         ; ..#...   ; shadow, ball-R, and ball-L
-                .byte %01001010         ; .##.#.
-                .byte %01001010         ; .##.#.
-                .byte %01001010         ; .##.#.
-                .byte %01000100         ; .#.#..
-                .byte %00001000         ; ..#...
-                .byte %01000000         ; .#....
-                .byte %00000100         ; ...#..
-                .byte %00001000         ; ..#...
-
-                ;.byte $08,$08,$4A,$4A,$08,$40,$04,$08,$00
-                .byte %00001000         ; ..#...   ; shadow, ball-R, and ball-L
-                .byte %00001000         ; ..#...
-                .byte %01001010         ; .##.#.
-                .byte %01001010         ; .##.#.
-                .byte %00001000         ; ..#...
-                .byte %01000000         ; .#....
-                .byte %00000100         ; ...#..
-                .byte %00001000         ; ..#...
-                .byte %00000000         ; ......
-
-                ;.byte $08,$4A,$0A,$40,$04,$00,$08,$00,$00
-                .byte %00001000         ; ..#...   ; shadow, ball-R, and ball-L
-                .byte %01001010         ; .##.#.
-                .byte %00001010         ; ..#.#.
-                .byte %01000000         ; .#....
-                .byte %00000100         ; ...#..
-                .byte %00000000         ; ......
-                .byte %00001000         ; ..#...
-                .byte %00000000         ; ......
-                .byte %00000000         ; ......
-
-                ;.byte $44,$00,$08,$00,$00,$00,$00,$00,$00
-                .byte %01000100         ; .#.#..   ;ball-R and ball-L
-                .byte %00000000         ; ......
-                .byte %00001000         ; ..#...
-                .byte %00000000         ; ......
-                .byte %00000000         ; ......
-                .byte %00000000         ; ......
-                .byte %00000000         ; ......
-                .byte %00000000         ; ......
-                .byte %00000000         ; ......
-
-                ;.byte $08,$00,$00,$00,$00,$00,$00,$00,$00
-                .byte %00001000         ; ..#...   ; ball-R
-                .byte %00000000         ; ......
-                .byte %00000000         ; ......
-                .byte %00000000         ; ......
-                .byte %00000000         ; ......
-                .byte %00000000         ; ......
-                .byte %00000000         ; ......
-                .byte %00000000         ; ......
-                .byte %00000000         ; ......
 
                 .endproc

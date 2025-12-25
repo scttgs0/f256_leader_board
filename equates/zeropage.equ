@@ -6,10 +6,6 @@
 zp3D                    = $003D         ; [word]
 zp3F                    = $003F         ; [word]
 
-;!!MISL_BASE       = $0060
-;!!_HPOSM1_BallR   = $0061 ;HPOSM1
-;!!_HPOSM3_BallL   = $0063 ;HPOSM3
-
 zp82                    = $0082         ; [word]
 zp84                    = $0084         ; [word]
 

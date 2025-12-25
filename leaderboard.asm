@@ -20,6 +20,7 @@
 ;   sprint 9                ball shadow
 ;   sprint 10               aim target
 ;   sprite 11               gauge
+;   sprite 12               splash
 ;
 ;               sprint 0/1  Golfer left-half (0=front, 1=back)
 ;               sprite 2/3  Golfer right-half (2=front, 3=back)
@@ -383,6 +384,7 @@ gameFont        .include "data/FONT.inc"
                 .include "data/ANIM0_DRIVER.inc"
                 .include "data/ANIM2_CLUB.inc"
                 .include "data/ANIM1_PUTT.inc"
+                .include "data/ANIM3_SPLASH.inc"
 
 
 ;--------------------------------------

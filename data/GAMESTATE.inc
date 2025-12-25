@@ -207,9 +207,9 @@ charToPlot              .byte $00
 
 tblCourseIndexes        .fill 4,$00
 
-newMissileY0            .byte $00       ;
-newMissileY1            .byte $00       ; triplet
-newMissileX             .byte $00       ;
+newBallShadowPosY       .byte $00       ;
+newBallPosY             .byte $00       ; triplet
+newBallPosX             .byte $00       ;
 
 flagsBall_9DAF          .byte $00
 ballController          .byte $00
