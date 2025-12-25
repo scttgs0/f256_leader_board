@@ -516,16 +516,19 @@ InitSprites     .proc
                 .frsSpriteInit anim1cell00+$400, scEnable|scLUT0|scDEPTH0|scSIZE_32, 5
 
 ;   set the ball sprite (sprite-08)
-                .frsSpriteInit glyphBall, scEnable|scLUT0|scDEPTH0|scSIZE_8, 8
+                .frsSpriteInit glyphBall+$4A000, scEnable|scLUT0|scDEPTH0|scSIZE_8, 8
 
 ;   set the ball sprite (sprite-09)
-                .frsSpriteInit glyphBallShadow, scEnable|scLUT0|scDEPTH0|scSIZE_8, 9
+                .frsSpriteInit glyphBallShadow+$4A000, scEnable|scLUT0|scDEPTH0|scSIZE_8, 9
 
 ;   set aim target (sprite-10)
-                .frsSpriteInit glyphTarget, scEnable|scLUT0|scDEPTH0|scSIZE_8, 10
+                .frsSpriteInit glyphTarget+$4A000, scEnable|scLUT0|scDEPTH0|scSIZE_8, 10
 
-;   set power gauge (sprite-11)
-                .frsSpriteInit sprGauge, scEnable|scLUT0|scDEPTH0|scSIZE_32, 11
+;   set swing gauge (sprite-11)
+                .frsSpriteInit sprGauge+$4A000, scEnable|scLUT0|scDEPTH0|scSIZE_32, 11
+
+;   set splash (sprite-12)
+                .frsSpriteInit anim3cell00, scEnable|scLUT0|scDEPTH0|scSIZE_8, 12
 
 ;   restore IOPAGE control
                 pla
@@ -1110,7 +1113,6 @@ _XIT            lda #$05                ; reset
 ;--------------------------------------
 ; preserve      A
 ;               IOPAGE_CTRL
-;               MMU_CTRL
 ;======================================
 InitMMU         .proc
                 pha
