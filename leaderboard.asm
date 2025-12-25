@@ -67,6 +67,8 @@
 ;   A-Z             [$61:$7A]/[$41:$5A]
 ;   1-4             [$31:$34]/[$31:$34]
 ;   Shft,1-4        [$31:$34]/[$21,$40,$23,$24]
+;   < ,             $2C
+;   > .             $2E
 
 
 ;--------------------------------------
@@ -165,8 +167,6 @@ _next2          sta tblPlayerAbility,X
 
                 jmp NewGame
 
-;_endless        jsr ProcessEvents
-;                bra _endless
                 .endproc
 
 
@@ -232,7 +232,7 @@ Stage           .proc
 
 ;======================================
 ;
-;======================================
+;====================================== ;[[V]]
 XBPC_DrawScoreboard .proc
                 lda MMU_Block3          ; preserve
                 sta zpMMU_XBPC

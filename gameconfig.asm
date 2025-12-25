@@ -383,9 +383,9 @@ _7              sta charToPlot
 ;
 ;====================================== ;[[U]]
 LoadSupplement  .proc
-                jsr ClearSprites
+                ;;jsr ClearSprites
 
-                sei
+                ;;sei
 
 ;   restore [$4C0F:4C34] -> [$0200:0225]
 ;!!                ldx #$25
@@ -399,7 +399,7 @@ LoadSupplement  .proc
                 ;!!and #$70                ; [:=$40]
                 ;!!sta NMIEN
 
-                cli
+                ;;cli
 
 ;   read sectors [249:283] -> [$8200:92FF]
                 ;!!lda #<$8200
@@ -407,11 +407,11 @@ LoadSupplement  .proc
                 ;!!lda #>$8200
                 ;!!sta DBUFHI
 
-                lda #$22                ; sector count
-                ldx #$F9                ; sector_LO (sector 249)
-                ldy #$00                ; sector_HI
-                jsr ReadSectors
-                jsr SetInterrupts
+                ;;lda #$22                ; sector count
+                ;;ldx #$F9                ; sector_LO (sector 249)
+                ;;ldy #$00                ; sector_HI
+                ;;jsr ReadSectors
+                ;;jsr SetInterrupts
 
                 rts
                 .endproc
@@ -436,7 +436,7 @@ StartTimer16bit .proc
 
 ;======================================
 ;
-;====================================== ;[[F]]
+;====================================== ;[[V]]
 InitPlayers     .proc
                 ldx numPlayers
 _next1          lda #$00
@@ -458,7 +458,7 @@ _next1          lda #$00
 
 ;======================================
 ;
-;====================================== ;[[F]]
+;====================================== ;[[V]]
 ClearGameState  .proc
                 ldx #$00
                 txa
@@ -497,7 +497,7 @@ _next1          sta GameState_BASE,X
 
 ;--------------------------------------
 ;
-;-------------------------------------- ;[[F]]
+;-------------------------------------- ;[[V]]
 ClearScore      .proc
 ;   assign initial honor ranks based on player index
                 ldx #$03

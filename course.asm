@@ -330,7 +330,7 @@ data_1D57       .byte $00,$00,$00,$00
 
 ;--------------------------------------
 ;
-;-------------------------------------- ;[[F]]
+;-------------------------------------- ;[[V]]
 ClearVertXPtrs  .proc
                 ldx #$03
 _next1          lda data_1D57,X
@@ -709,7 +709,7 @@ wordD_course    .word $0000
 
 ;======================================
 ;
-;====================================== ;[[F]]
+;====================================== ;[[V]]
 CalcPlayerPositionDelta .proc
                 ldx activePlayer
                 lda playerWindDirection_HI,X
@@ -760,7 +760,7 @@ CalcPlayerPositionDelta .proc
 ; $9D88                 $00
 ; distanceToPinFeet3    $4831
 ; distanceToPinYards    $5E01
-;====================================== ;[[F]]
+;====================================== ;[[V]]
 CalcDistanceToPuttGreen .proc
 ;   putting green leading edge is PuttRadius distance in front of the pin location
                 ldx xPosCup_LO
@@ -815,7 +815,7 @@ distanceToPinYards      .word $0000
 ; on exit:
 ;   distanceToPinNatural
 ;   idxDistanceUnit
-;====================================== ;[[F]]
+;====================================== ;[[V]]
 ConvertDistance .proc
                 lda distanceToPinFeet+1 ; <1 foot?
                 beq _toInches           ;   yes
@@ -875,7 +875,7 @@ _toInches       lda distanceToPinFeet
 ;   Y:X         word value
 ; on exit:
 ;   Y:X         converted word value
-;====================================== ;[[F]]
+;====================================== ;[[V]]
 Convert2Positive .proc
                 bpl _XIT
 
