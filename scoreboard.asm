@@ -106,12 +106,6 @@ _scrnBackground = screen16K+320*16+32
 ;   switch to system map
                 stz IOPAGE_CTRL
 
-;   ensure edit mode
-                lda MMU_CTRL
-                pha                     ; preserve
-                ora #mmuEditMode
-                sta MMU_CTRL
-
                 lda #$10                ; [8000:9FFF]->[2_0000:2_1FFF]
                 sta zpMMU
                 sta MMU_Block4
@@ -208,10 +202,6 @@ _1              dec _height             ; completed all the rows?
                 bne _nextRow            ;   no
 
 ; - - - - - - - - - - - - - - - - - - -
-;   restore MMU control
-                pla
-                sta MMU_CTRL
-
 ;   restore IOPAGE control
                 pla
                 sta IOPAGE_CTRL
@@ -243,12 +233,6 @@ _zpFillQty      = zpD0
 
 ;   switch to system map
                 stz IOPAGE_CTRL
-
-;   ensure edit mode
-                lda MMU_CTRL
-                pha                     ; preserve
-                ora #mmuEditMode
-                sta MMU_CTRL
 
                 lda #$10                ; [8000:9FFF]->[2_0000:2_1FFF]
                 sta zpMMU
@@ -336,10 +320,6 @@ _1              dec _zpFillQty
 
 _XIT
 ; - - - - - - - - - - - - - - - - - - -
-;   restore MMU control
-                pla
-                sta MMU_CTRL
-
 ;   restore IOPAGE control
                 pla
                 sta IOPAGE_CTRL

@@ -61,12 +61,6 @@ _2              cmp #$10                ; <16?
 ;   switch to system map
                 stz IOPAGE_CTRL
 
-;   ensure edit mode
-                lda MMU_CTRL
-                pha                     ; preserve
-                ora #mmuEditMode
-                sta MMU_CTRL
-
                 lda #$10                ; [8000:9FFF]->[2_0000:2_1FFF]
                 sta zpMMU
                 sta MMU_Block4
@@ -137,10 +131,6 @@ _next4          lda (_SCREEN),Y
 
 ; - - - - - - - - - - - - - - - - - - -
 _XIT
-;   restore MMU control
-                pla
-                sta MMU_CTRL
-
 ;   restore IOPAGE control
                 pla
                 sta IOPAGE_CTRL
@@ -151,7 +141,7 @@ _XIT
 
 ;======================================
 ;
-;====================================== ;[[F]]
+;====================================== ;[[V]]
 SetWindRandom   .proc
                 .frsRandomByte
                 sta windDirection

@@ -209,12 +209,6 @@ ProcessLine     .proc
 ;   switch to system map
                 stz IOPAGE_CTRL
 
-;   ensure edit mode
-                lda MMU_CTRL
-                pha                     ; preserve
-                ora #mmuEditMode
-                sta MMU_CTRL
-
 ; - - - - - - - - - - - - - - - - - - -
 ; entry point for the wind streamer
 _ENTRY_WIND     ldy #$01                ; Y=1 (down/right)
@@ -358,10 +352,6 @@ _6              pla                     ; restore Y (accumulated distance)
                 beq _7                  ;   yes
 
 ; - - - - - - - - - - - - - - - - - - -
-;   restore MMU control
-                pla
-                sta MMU_CTRL
-
 ;   restore IOPAGE control
                 pla
                 sta IOPAGE_CTRL
@@ -1055,12 +1045,6 @@ _apply          clc
 
 ;   switch to system map
                 stz IOPAGE_CTRL
-
-;   ensure edit mode
-                lda MMU_CTRL
-                pha                     ; preserve
-                ora #mmuEditMode
-                sta MMU_CTRL
 ; - - - - - - - - - - - - - - - - - - -
 
 ;   set the MMU
@@ -1070,10 +1054,6 @@ _apply          clc
                 sta MMU_Block5
 
 ; - - - - - - - - - - - - - - - - - - -
-;   restore MMU control
-                pla
-                sta MMU_CTRL
-
 ;   restore IOPAGE control
                 pla
                 sta IOPAGE_CTRL

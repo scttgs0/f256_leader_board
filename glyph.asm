@@ -270,12 +270,6 @@ _apply          lda IOPAGE_CTRL
 ;   switch to system map
                 stz IOPAGE_CTRL
 
-;   ensure edit mode
-                lda MMU_CTRL
-                pha                     ; preserve
-                ora #mmuEditMode
-                sta MMU_CTRL
-
 ; - - - - - - - - - - - - - - - - - - -
 ;   set the MMU
                 lda zpMMU
@@ -284,10 +278,6 @@ _apply          lda IOPAGE_CTRL
                 sta MMU_Block5
 
 ; - - - - - - - - - - - - - - - - - - -
-;   restore MMU control
-                pla
-                sta MMU_CTRL
-
 ;   restore IOPAGE control
                 pla
                 sta IOPAGE_CTRL

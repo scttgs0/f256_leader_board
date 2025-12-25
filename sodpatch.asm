@@ -25,12 +25,6 @@ _scrnSodPatch   = screen16K+$0790
 ;   switch to system map
                 stz IOPAGE_CTRL
 
-;   ensure edit mode
-                lda MMU_CTRL
-                pha                     ; preserve
-                ora #mmuEditMode
-                sta MMU_CTRL
-
                 lda #$17                ; [8000:9FFF]->[2_E000:2_FFFF]
                 sta zpMMU
                 sta MMU_Block4
@@ -118,10 +112,6 @@ _2              lda _src
 
                 dec _width              ; completed all the glyphs?
                 bne _next2              ;   no
-
-;   restore MMU control
-                pla
-                sta MMU_CTRL
 
 ;   restore IOPAGE control
                 pla
