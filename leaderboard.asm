@@ -233,18 +233,54 @@ Stage           .proc
 
 ;======================================
 ;
+;======================================
+XBPC_Preserve   .proc
+                phx
+
+                ldx _idx
+                lda MMU_Block3          ; preserve
+                sta _MMU_XBPC,X
+
+                inc _idx
+
+                plx
+                rts
+
+;--------------------------------------
+
+_idx            .byte $00
+_MMU_XBPC       .fill 16,$00
+
+                .endproc
+
+
+;======================================
+;
+;======================================
+XBPC_Restore    .proc
+                phx
+
+                dec XBPC_Preserve._idx
+                ldx XBPC_Preserve._idx
+                lda XBPC_Preserve._MMU_XBPC,X
+                sta MMU_Block3
+
+                plx
+                rts
+                .endproc
+
+
+;======================================
+;
 ;====================================== ;[[V]]
 XBPC_DrawScoreboard .proc
-                lda MMU_Block3          ; preserve
-                sta zpMMU_XBPC
+                jsr XBPC_Preserve
 
                 lda #SCORE_CHUNK
                 sta MMU_Block3
 
                 jsr DrawScoreboard
-
-                lda zpMMU_XBPC          ; restore
-                sta MMU_Block3
+                jsr XBPC_Restore
 
                 rts
                 .endproc
@@ -254,16 +290,13 @@ XBPC_DrawScoreboard .proc
 ;
 ;======================================
 XBPC_DoScoreboard .proc
-                lda MMU_Block3          ; preserve
-                sta zpMMU_XBPC
+                jsr XBPC_Preserve
 
                 lda #SCORE_CHUNK
                 sta MMU_Block3
 
                 jsr DoScoreboard
-
-                lda zpMMU_XBPC          ; restore
-                sta MMU_Block3
+                jsr XBPC_Restore
 
                 rts
                 .endproc
@@ -273,16 +306,13 @@ XBPC_DoScoreboard .proc
 ;
 ;======================================
 XBPC_RenderScoreDelta .proc
-                lda MMU_Block3          ; preserve
-                sta zpMMU_XBPC
+                jsr XBPC_Preserve
 
                 lda #SCORE_CHUNK
                 sta MMU_Block3
 
                 jsr RenderScoreDelta
-
-                lda zpMMU_XBPC          ; restore
-                sta MMU_Block3
+                jsr XBPC_Restore
 
                 rts
                 .endproc
@@ -292,16 +322,13 @@ XBPC_RenderScoreDelta .proc
 ;
 ;======================================
 XBPC_FindFirstUsed .proc
-                lda MMU_Block3          ; preserve
-                sta zpMMU_XBPC
+                jsr XBPC_Preserve
 
                 lda #SCORE_CHUNK
                 sta MMU_Block3
 
                 jsr FindFirstUsed
-
-                lda zpMMU_XBPC          ; restore
-                sta MMU_Block3
+                jsr XBPC_Restore
 
                 rts
                 .endproc
@@ -311,16 +338,13 @@ XBPC_FindFirstUsed .proc
 ;
 ;======================================
 XBPC_SetNameBufPtr .proc
-                lda MMU_Block3          ; preserve
-                sta zpMMU_XBPC
+                jsr XBPC_Preserve
 
                 lda #SCORE_CHUNK
                 sta MMU_Block3
 
                 jsr SetNameBufPtr
-
-                lda zpMMU_XBPC          ; restore
-                sta MMU_Block3
+                jsr XBPC_Restore
 
                 rts
                 .endproc
@@ -330,16 +354,13 @@ XBPC_SetNameBufPtr .proc
 ;
 ;======================================
 XBPC_ConvertToArray .proc
-                lda MMU_Block3          ; preserve
-                sta zpMMU_XBPC
+                jsr XBPC_Preserve
 
                 lda #SCORE_CHUNK
                 sta MMU_Block3
 
                 jsr ConvertToArray
-
-                lda zpMMU_XBPC          ; restore
-                sta MMU_Block3
+                jsr XBPC_Restore
 
                 rts
                 .endproc
@@ -349,16 +370,13 @@ XBPC_ConvertToArray .proc
 ;
 ;======================================
 XBPC_InitPutt_2521 .proc
-                lda MMU_Block3          ; preserve
-                sta zpMMU_XBPC
+                jsr XBPC_Preserve
 
                 lda #PUTT_CHUNK
                 sta MMU_Block3
 
                 jsr InitPutt_2521
-
-                lda zpMMU_XBPC          ; restore
-                sta MMU_Block3
+                jsr XBPC_Restore
 
                 rts
                 .endproc
@@ -368,16 +386,13 @@ XBPC_InitPutt_2521 .proc
 ;
 ;======================================
 XBPC_DrawGolferPutt .proc
-                lda MMU_Block3          ; preserve
-                sta zpMMU_XBPC
+                jsr XBPC_Preserve
 
                 lda #PUTT_CHUNK
                 sta MMU_Block3
 
                 jsr DrawGolferPutt
-
-                lda zpMMU_XBPC          ; restore
-                sta MMU_Block3
+                jsr XBPC_Restore
 
                 rts
                 .endproc
@@ -387,16 +402,13 @@ XBPC_DrawGolferPutt .proc
 ;
 ;======================================
 XBPC_PuttControl .proc
-                lda MMU_Block3          ; preserve
-                sta zpMMU_XBPC
+                jsr XBPC_Preserve
 
                 lda #PUTT_CHUNK
                 sta MMU_Block3
 
                 jsr PuttControl
-
-                lda zpMMU_XBPC          ; restore
-                sta MMU_Block3
+                jsr XBPC_Restore
 
                 rts
                 .endproc
@@ -406,16 +418,13 @@ XBPC_PuttControl .proc
 ;
 ;======================================
 XBPC_Swing_3E71 .proc
-                lda MMU_Block3          ; preserve
-                sta zpMMU_XBPC
+                jsr XBPC_Preserve
 
                 lda #PUTT_CHUNK
                 sta MMU_Block3
 
                 jsr Swing_3E71
-
-                lda zpMMU_XBPC          ; restore
-                sta MMU_Block3
+                jsr XBPC_Restore
 
                 rts
                 .endproc
@@ -425,16 +434,13 @@ XBPC_Swing_3E71 .proc
 ;
 ;======================================
 XBPC_RenderHUD .proc
-                lda MMU_Block3          ; preserve
-                sta zpMMU_XBPC
+                jsr XBPC_Preserve
 
                 lda #HUD_CHUNK
                 sta MMU_Block3
 
                 jsr RenderHUD
-
-                lda zpMMU_XBPC          ; restore
-                sta MMU_Block3
+                jsr XBPC_Restore
 
                 rts
                 .endproc
@@ -444,16 +450,13 @@ XBPC_RenderHUD .proc
 ;
 ;======================================
 XBPC_RenderHUD_ENTRY1 .proc
-                lda MMU_Block3          ; preserve
-                sta zpMMU_XBPC
+                jsr XBPC_Preserve
 
                 lda #HUD_CHUNK
                 sta MMU_Block3
 
                 jsr RenderHUD._ENTRY1
-
-                lda zpMMU_XBPC          ; restore
-                sta MMU_Block3
+                jsr XBPC_Restore
 
                 rts
                 .endproc
@@ -463,16 +466,13 @@ XBPC_RenderHUD_ENTRY1 .proc
 ;
 ;======================================
 XBPC_DrawDistanceToPin_m1 .proc
-                lda MMU_Block3          ; preserve
-                sta zpMMU_XBPC
+                jsr XBPC_Preserve
 
                 lda #HUD_CHUNK
                 sta MMU_Block3
 
                 jsr DrawDistanceToPin_m1
-
-                lda zpMMU_XBPC          ; restore
-                sta MMU_Block3
+                jsr XBPC_Restore
 
                 rts
                 .endproc
@@ -482,16 +482,13 @@ XBPC_DrawDistanceToPin_m1 .proc
 ;
 ;======================================
 XBPC_DrawDistanceToPin .proc
-                lda MMU_Block3          ; preserve
-                sta zpMMU_XBPC
+                jsr XBPC_Preserve
 
                 lda #HUD_CHUNK
                 sta MMU_Block3
 
                 jsr DrawDistanceToPin
-
-                lda zpMMU_XBPC          ; restore
-                sta MMU_Block3
+                jsr XBPC_Restore
 
                 rts
                 .endproc
@@ -501,16 +498,13 @@ XBPC_DrawDistanceToPin .proc
 ;
 ;======================================
 XBPC_IncrementStrokeCount .proc
-                lda MMU_Block3          ; preserve
-                sta zpMMU_XBPC
+                jsr XBPC_Preserve
 
                 lda #HUD_CHUNK
                 sta MMU_Block3
 
                 jsr IncrementStrokeCount
-
-                lda zpMMU_XBPC          ; restore
-                sta MMU_Block3
+                jsr XBPC_Restore
 
                 rts
                 .endproc
