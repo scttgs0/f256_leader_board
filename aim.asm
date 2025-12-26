@@ -66,9 +66,23 @@ AimTarget       .proc
                 sta timerRemaining+9
 
 ; - - - - - - - - - - - - - - - - - - -
+;   clean up the stack
+                pla
+
+; - - - - - - - - - - - - - - - - - - -
 ;   entry point to skip the above ball placement.
+_SKIPBALL
+; - - - - - - - - - - - - - - - - - - -
+;   preserve IOPAGE control
+                lda IOPAGE_CTRL
+                pha
+
+;   switch to system map
+                stz IOPAGE_CTRL
+
+; - - - - - - - - - - - - - - - - - - -
 ;   when swing has begun, skip the aim target.
-_SKIPBALL       lda isSwingInProgress
+                lda isSwingInProgress
                 ora swingAnimCounter
                 beq _1
 
