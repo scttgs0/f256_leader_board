@@ -288,6 +288,73 @@ _apply          lda IOPAGE_CTRL
                 .endproc
 
 
+;--------------------------------------
+;
+;--------------------------------------
+; on entry:
+;   glyphType   '0' or '0-bar' type
+;-------------------------------------- ;[[F]]
+PlotCharArray   .proc
+_5digits        ldx #$00
+                .byte $2C               ; consume the following LDX operation
+_4digits        ldx #$01
+                .byte $2C               ; consume
+_3digits        ldx #$02
+                .byte $2C               ; consume
+_2digits        ldx #$03
+                stx idxPolygonVertex
+
+_next1          lda arr5Digits,X        ; fetch element value
+                bit glyphType           ; negative?
+                bmi _2                  ;   yes
+
+; - - - - - - - - - - - - - - - - - - -
+;   positive
+                tay
+                bne _1
+
+                cpx #$04
+                beq _2
+
+                bit glyphType
+                bvc _3
+
+                lda #$4B                ; top separator bar
+                jmp _3
+
+; - - - - - - - - - - - - - - - - - - -
+_1              lda glyphType
+                ora #$80                ; make negative
+                sta glyphType
+
+                tya
+
+; - - - - - - - - - - - - - - - - - - -
+;   negative
+_2              cmp #$0A                ; >=10?
+                bcs _3                  ;   yes
+
+                ora glyphType
+                and #$7F
+
+;   render a single glyph
+_3              jsr PlotChar
+
+                inc idxPolygonVertex
+                ldx idxPolygonVertex
+                cpx #$05
+                bcc _next1
+
+                rts
+                .endproc
+
+
+;--------------------------------------
+;--------------------------------------
+
+glyphType       .byte $00
+
+
 ;======================================
 ;
 ;--------------------------------------
