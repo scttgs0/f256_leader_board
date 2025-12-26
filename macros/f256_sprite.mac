@@ -1,6 +1,6 @@
 
 ; SPDX-FileName: f256_sprite.mac
-; SPDX-FileCopyrightText: Copyright 2023, Scott Giese
+; SPDX-FileCopyrightText: Copyright 2023-2025, Scott Giese
 ; SPDX-License-Identifier: GPL-3.0-or-later
 
 
@@ -68,27 +68,11 @@ frsSpriteClearY .macro idx
                 .endmacro
 
 
-frsSpriteGetX   .macro mem,idx
-                lda SPR(sprite_t.X, \idx)
-                sta mem
-                lda SPR(sprite_t.X+1, \idx)
-                sta mem+1
-                .endmacro
-
-
 frsSpriteSetX   .macro val,idx
                 lda #<\val
                 sta SPR(sprite_t.X, \idx)
                 lda #>\val
                 sta SPR(sprite_t.X+1, \idx)
-                .endmacro
-
-
-frsSpriteGetY   .macro mem,idx
-                lda SPR(sprite_t.Y, \idx)
-                sta mem
-                lda SPR(sprite_t.Y+1, \idx)
-                sta mem+1
                 .endmacro
 
 
