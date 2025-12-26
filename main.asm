@@ -206,7 +206,7 @@ _s2             ;!!cli                     ; enable interrupts
                 lda isDrivingRange      ; driving range?
                 bne _next1              ;   yes
 
-                jsr DrawDistanceToPin_m1
+                jsr XBPC_DrawDistanceToPin_m1
 
 _next1          jsr ChangeClub
                 jsr AimTarget._SKIPBALL
@@ -297,7 +297,7 @@ _next3          jsr SwingAnimControl
                 cmp #$13
                 bne _next3
 
-                jsr IncrementStrokeCount
+                jsr XBPC_IncrementStrokeCount
                 jsr InitStroke
 
 _2              jsr Swing_math_326F
@@ -308,8 +308,8 @@ _2              jsr Swing_math_326F
                 jsr RenderBall
 
                 lda golferSwingFrame
-                cmp #$16
-                bne _next3
+                cmp #$16                ; frame 22?
+                bne _next3              ;   no
 
                 jsr SnapLocked
 
@@ -322,7 +322,7 @@ _next4          jsr SwingAnimControl
                 jsr PositionBallShadow
 ;                ;;jsr CalcBallPixelMask
                 jsr AnimateSplash_2AC6
-                jsr Swing_3E71
+                jsr XBPC_Swing_3E71
                 ;;jsr CalcPixelMask
                 jsr RenderBall
 
@@ -420,7 +420,7 @@ _1              ldx #<$1800
                 ldx #stagePLAY
                 stx nStage
 
-                jmp DrawDistanceToPin
+                jmp XBPC_DrawDistanceToPin
 
                 .endproc
 
@@ -749,14 +749,15 @@ _anim2Addr_LO   .byte <anim2cell00,<anim2cell01,<anim2cell02,<anim2cell03
                 .byte <anim2cell14,<anim2cell15,<anim2cell16,<anim2cell17
                 .byte <anim2cell18,<anim2cell19,<anim2cell1A,<anim2cell1B
                 .byte <anim2cell1C,<anim2cell1D,<anim2cell1E,<anim2cell1F
+
 _anim2PosX      .byte $86,$7E,$7E,$76
-                .byte $66,$5E,$5E,$66
+                .byte $66,$5E,$5E,$5E
                 .byte $66,$66,$66,$66
                 .byte $76,$6E,$6E,$66
                 .byte $76,$7E,$86,$86
                 .byte $86,$8E,$6E,$6E
                 .byte $66,$6E,$76,$76
-                .byte $7E,$5E,$7E,$7E
+                .byte $7E,$7E,$7E,$7E
 _anim2PosY      .byte $D2,$D2,$D1,$CA
                 .byte $C2,$BA,$B0,$B1
                 .byte $B2,$B2,$B2,$B2
@@ -764,6 +765,6 @@ _anim2PosY      .byte $D2,$D2,$D1,$CA
                 .byte $C4,$C8,$D0,$D0
                 .byte $CE,$C8,$BA,$B5
                 .byte $B0,$B4,$B9,$B8
-                .byte $B9,$B8,$B9,$B9
+                .byte $B9,$B9,$B9,$B9
 
                 .endproc

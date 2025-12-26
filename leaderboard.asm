@@ -125,7 +125,7 @@ BOOT            ldx #$FF                ; reset the stack
                 .include "clubs.asm"
                 .include "gauge.asm"
 
-                .include "hud.asm"
+                .include "data/HUD.inc"
                 .include "playfield.asm"
                 .include "sodpatch.asm"
                 .include "render.asm"
@@ -345,6 +345,177 @@ XBPC_ConvertToArray .proc
                 .endproc
 
 
+;======================================
+;
+;======================================
+XBPC_InitPutt_2521 .proc
+                lda MMU_Block3          ; preserve
+                sta zpMMU_XBPC
+
+                lda #PUTT_CHUNK
+                sta MMU_Block3
+
+                jsr InitPutt_2521
+
+                lda zpMMU_XBPC          ; restore
+                sta MMU_Block3
+
+                rts
+                .endproc
+
+
+;======================================
+;
+;======================================
+XBPC_DrawGolferPutt .proc
+                lda MMU_Block3          ; preserve
+                sta zpMMU_XBPC
+
+                lda #PUTT_CHUNK
+                sta MMU_Block3
+
+                jsr DrawGolferPutt
+
+                lda zpMMU_XBPC          ; restore
+                sta MMU_Block3
+
+                rts
+                .endproc
+
+
+;======================================
+;
+;======================================
+XBPC_PuttControl .proc
+                lda MMU_Block3          ; preserve
+                sta zpMMU_XBPC
+
+                lda #PUTT_CHUNK
+                sta MMU_Block3
+
+                jsr PuttControl
+
+                lda zpMMU_XBPC          ; restore
+                sta MMU_Block3
+
+                rts
+                .endproc
+
+
+;======================================
+;
+;======================================
+XBPC_Swing_3E71 .proc
+                lda MMU_Block3          ; preserve
+                sta zpMMU_XBPC
+
+                lda #PUTT_CHUNK
+                sta MMU_Block3
+
+                jsr Swing_3E71
+
+                lda zpMMU_XBPC          ; restore
+                sta MMU_Block3
+
+                rts
+                .endproc
+
+
+;======================================
+;
+;======================================
+XBPC_RenderHUD .proc
+                lda MMU_Block3          ; preserve
+                sta zpMMU_XBPC
+
+                lda #HUD_CHUNK
+                sta MMU_Block3
+
+                jsr RenderHUD
+
+                lda zpMMU_XBPC          ; restore
+                sta MMU_Block3
+
+                rts
+                .endproc
+
+
+;======================================
+;
+;======================================
+XBPC_RenderHUD_ENTRY1 .proc
+                lda MMU_Block3          ; preserve
+                sta zpMMU_XBPC
+
+                lda #HUD_CHUNK
+                sta MMU_Block3
+
+                jsr RenderHUD._ENTRY1
+
+                lda zpMMU_XBPC          ; restore
+                sta MMU_Block3
+
+                rts
+                .endproc
+
+
+;======================================
+;
+;======================================
+XBPC_DrawDistanceToPin_m1 .proc
+                lda MMU_Block3          ; preserve
+                sta zpMMU_XBPC
+
+                lda #HUD_CHUNK
+                sta MMU_Block3
+
+                jsr DrawDistanceToPin_m1
+
+                lda zpMMU_XBPC          ; restore
+                sta MMU_Block3
+
+                rts
+                .endproc
+
+
+;======================================
+;
+;======================================
+XBPC_DrawDistanceToPin .proc
+                lda MMU_Block3          ; preserve
+                sta zpMMU_XBPC
+
+                lda #HUD_CHUNK
+                sta MMU_Block3
+
+                jsr DrawDistanceToPin
+
+                lda zpMMU_XBPC          ; restore
+                sta MMU_Block3
+
+                rts
+                .endproc
+
+
+;======================================
+;
+;======================================
+XBPC_IncrementStrokeCount .proc
+                lda MMU_Block3          ; preserve
+                sta zpMMU_XBPC
+
+                lda #HUD_CHUNK
+                sta MMU_Block3
+
+                jsr IncrementStrokeCount
+
+                lda zpMMU_XBPC          ; restore
+                sta MMU_Block3
+
+                rts
+                .endproc
+
+
 ;--------------------------------------
 ;--------------------------------------
                 * = $0300
@@ -444,6 +615,19 @@ PUTT_CHUNK      = (* / $2000)
 ;--------------------------------------
 
                 .include "putt.asm"
+
+
+;--------------------------------------
+;--------------------------------------
+                .endlogical
+
+                * = $5_8000
+HUD_CHUNK       = (* / $2000)
+
+                .logical $6000
+;--------------------------------------
+
+                .include "hud.asm"
 
 
 ;--------------------------------------

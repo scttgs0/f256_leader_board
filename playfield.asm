@@ -143,7 +143,7 @@ _1              lda timerIsActive       ; timer 0 active?
                 rts
 
 ; - - - - - - - - - - - - - - - - - - -
-_2              jsr DrawGolferPutt
+_2              jsr XBPC_DrawGolferPutt
 
                 inc golferSwingFrame
                 ldx golferSwingFrame
@@ -164,7 +164,7 @@ _3              lda puttAnimTimer,X     ; duration
                 cpx #$06
                 bne _4
 
-                jsr InitPutt_2521
+                jsr XBPC_InitPutt_2521
 
 _4              lda golferSwingFrame
                 cmp #$07

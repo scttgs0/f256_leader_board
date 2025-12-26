@@ -117,7 +117,7 @@ _2              ldx activePlayer
                 jsr ClearSprites
                 jsr PrepareCourse
                 jsr RenderPlayfield     ; clear course
-                jsr RenderHUD           ; course#, hole#, PAR, player summary
+                jsr XBPC_RenderHUD      ; course#, hole#, PAR, player summary
 
                 jsr RenderCourse._OUTLINE   ; draw polygon outlines
                 jsr RenderSodPatch          ; sod patch under the golfer
@@ -132,7 +132,7 @@ _2              ldx activePlayer
 
 ;   putting
                 jsr DrawWindStreamer
-                jsr PuttControl
+                jsr XBPC_PuttControl
                 jmp _4
 
 ; - - - - - - - - - - - - - - - - - - -

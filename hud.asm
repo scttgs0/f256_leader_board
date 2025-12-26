@@ -1,6 +1,8 @@
 
 ;======================================
 ;
+;--------------------------------------
+; X-Bank Procedure
 ;====================================== ;[[V]]
 RenderHUD       .proc
                 jsr RenderHUDCourse     ; draw course#
@@ -56,6 +58,8 @@ _scrnSnap       .null "SNAP"
 
 ;======================================
 ;
+;--------------------------------------
+; X-Bank Procedure
 ;====================================== ;[[V]]
 DrawDistanceToPin_m1 .proc
                 ldx #stagePLAY
@@ -70,6 +74,8 @@ DrawDistanceToPin_m1 .proc
 
 ;--------------------------------------
 ;
+;--------------------------------------
+; X-Bank Procedure
 ;-------------------------------------- ;[[V]]
 DrawDistanceToPin .proc
 _remainder      = zpD0
@@ -207,6 +213,8 @@ _extendHundreds .byte $00,$02,$05
 
 ;======================================
 ;
+;--------------------------------------
+; Private Procedure
 ;====================================== ;[[F]]
 DrawDistUnit    .proc
                 ldx #stagePLAY
@@ -235,75 +243,10 @@ _XIT            rts
                 .endproc
 
 
-;--------------------------------------
-;
-;--------------------------------------
-; on entry:
-;   glyphType   '0' or '0-bar' type
-;-------------------------------------- ;[[F]]
-PlotCharArray   .proc
-_5digits        ldx #$00
-                .byte $2C               ; consume the following LDX operation
-_4digits        ldx #$01
-                .byte $2C               ; consume
-_3digits        ldx #$02
-                .byte $2C               ; consume
-_2digits        ldx #$03
-                stx idxPolygonVertex
-
-_next1          lda arr5Digits,X        ; fetch element value
-                bit glyphType           ; negative?
-                bmi _2                  ;   yes
-
-; - - - - - - - - - - - - - - - - - - -
-;   positive
-                tay
-                bne _1
-
-                cpx #$04
-                beq _2
-
-                bit glyphType
-                bvc _3
-
-                lda #$4B                ; top separator bar
-                jmp _3
-
-; - - - - - - - - - - - - - - - - - - -
-_1              lda glyphType
-                ora #$80                ; make negative
-                sta glyphType
-
-                tya
-
-; - - - - - - - - - - - - - - - - - - -
-;   negative
-_2              cmp #$0A                ; >=10?
-                bcs _3                  ;   yes
-
-                ora glyphType
-                and #$7F
-
-;   render a single glyph
-_3              jsr PlotChar
-
-                inc idxPolygonVertex
-                ldx idxPolygonVertex
-                cpx #$05
-                bcc _next1
-
-                rts
-                .endproc
-
-
-;--------------------------------------
-;--------------------------------------
-
-glyphType       .byte $00
-
-
 ;======================================
 ;
+;--------------------------------------
+; Private Procedure
 ;====================================== ;[[V]]
 RenderHUDCourse .proc
                 ldx #stagePLAY
@@ -322,6 +265,8 @@ RenderHUDCourse .proc
 
 ;======================================
 ;
+;--------------------------------------
+; Private Procedure
 ;====================================== ;[[U]]+
 RenderHUDPlayers .proc
                 jsr RenderHUDActivePlayer  ; '>'-mark for the active player
@@ -424,6 +369,8 @@ _scrnP4Delta    .null "   "
 
 ;======================================
 ;
+;--------------------------------------
+; Private Procedure
 ;====================================== ;[[V]]
 RenderHUDActivePlayer .proc
 _idxChar        = zpD0
@@ -498,12 +445,16 @@ _XIT            rts
 
 ;======================================
 ;
+;--------------------------------------
+; Private Procedure
 ;====================================== ;[[V]]
 DoNothing4      rts
 
 
 ;======================================
 ;
+;--------------------------------------
+; X-Bank Procedure
 ;====================================== ;[[F]]
 IncrementStrokeCount .proc
                 ldx #stagePLAY
@@ -523,6 +474,8 @@ IncrementStrokeCount .proc
 
 ;======================================
 ;
+;--------------------------------------
+; Private Procedure
 ;====================================== ;[[F]]
 RenderStrokeCount .proc
                 ldx activePlayer
@@ -634,6 +587,8 @@ _tensDigit      .byte $00
 ;======================================
 ;
 ;--------------------------------------
+; Private Procedure
+;--------------------------------------
 ; examples:
 ;   $238D
 ;   wordA
@@ -666,6 +621,8 @@ CalcValuem10_Div10_x3 .proc
 
 ;======================================
 ;
+;--------------------------------------
+; Private Procedure
 ;====================================== ;[[V]]
 RenderHUDPAR    .proc
 _tens_digit     = zpD0
@@ -709,57 +666,3 @@ _setAddrPAR     lda $FFFF,X             ; [smc]
 
                 rts
                 .endproc
-
-
-;--------------------------------------
-;--------------------------------------
-
-offsetByCourse          .byte $00,$48,$90,$D8   ; =0,72,144,216     (18*4=72)
-yCoordinateByHonor      .byte $04,$08,$0C,$10   ; =4,8,12,16
-
-playerStrokes           .fill 18,$00    ; Nora=7,6,3,4,4
-                        .fill 18,$00    ; Adam=4,5,3,5,4
-                        .fill 18,$00    ; Paul=5,4,3,4,4
-                        .fill 18,$00
-
-playerScoreA_LO         .fill 4,$00     ; =$18,$15,$14,0    score LO    [offset:+72]
-playerScoreA_HI         .fill 4,$00     ; =0,0,0,0          score HI
-
-playerScoreB_LO         .fill 4,$00     ; =0,0,0,0
-playerScoreB_HI         .fill 4,$00     ; =0,0,0,0
-
-;---
-
-playerScoreRoundA_LO    .fill 4,$00     ; =$18,$15,$14,0    score LO
-playerScoreRoundA_HI    .fill 4,$00     ; =0,0,0,0          score HI
-
-playerScoreRoundB_LO    .fill 4,$00     ; =0,0,0,0
-playerScoreRoundB_HI    .fill 4,$00     ; =0,0,0,0
-
-playerScoreRoundC_LO    .fill 4,$00     ; =0,0,0,0
-playerScoreRoundC_HI    .fill 4,$00     ; =0,0,0,0
-
-playerScoreRoundD_LO    .fill 4,$00     ; =0,0,0,0
-playerScoreRoundD_HI    .fill 4,$00     ; =0,0,0,0
-
-playerScoreTotal_LO     .fill 4,$00     ; =$18,$15,$14,0    score LO
-playerScoreTotal_HI     .fill 4,$00     ; =0,0,0,0          score HI
-
-;---
-
-playerHonorA            .fill 4,$00     ; =2,1,0,0          honor rank
-playerHonorB            .fill 4,$00     ; =2,1,0,0          honor rank working copy
-playerStrokeCount       .fill 4,$00     ; =4,4,4,0          strokes this hole
-playerHonorPrior        .fill 4,$00     ; =1,2,0,0
-
-courseOffset            .word $0000     ; =$0015
-idxPlayer               .byte $00       ; =$FF
-idxDigit                .byte $00       ; =4
-tempB                   .byte $00       ; =3
-playerNames             .fill 8,$00     ; =$2E,$2F,$32,$21 (NORA)
-                        .fill 8,$00     ; =$21,$24,$21,$2D (ADAM)
-                        .fill 8,$00     ; =$30,$21,$35,$2C (PAUL)
-                        .fill 8,$00
-playerNameMaxLen        .byte $08,$08,$08,$08
-arr5Digits              .byte $00,$00,$00,$00,$00
-glyphPlusMinus          .byte $00
