@@ -142,8 +142,7 @@ _dest           = zp3F
 _idxLine        = zpCF
 ;---
 
-                lda #$00
-                sta _idxLine            ; active scanline
+                stz _idxLine            ; active scanline
 
 ;   render a single glyph line (1 of 8 lines)
 _nextRow        ldy #$00

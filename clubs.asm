@@ -259,8 +259,7 @@ SetGaugePower   .proc
                 sta EnableTimer16bit._tmrDuration_LO
                 ;!!sta AUDF2               ; 16-bit timer duration (LO)
 
-                lda #$00
-                sta gaugeValue          ; reset
+                stz gaugeValue          ; reset
 
                 jsr EnableTimer16bit
 

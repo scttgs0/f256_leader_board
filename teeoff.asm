@@ -49,8 +49,7 @@ InitStroke      .proc
                 jsr SetTimer6           ; duration: 10 ticks, activate: true
                 jsr CalcProjectile
 
-                lda #$00
-                sta unused_9D28
+                stz unused_9D28
 
                 lda #$02
                 sta unused_9D66
@@ -199,9 +198,8 @@ _4              jsr CalcTeeoff
 ;
 ;====================================== ;[[F]]
 CalcTeeoff      .proc
-                lda #$00
-                sta wordA_course
-                sta wordB_course
+                stz wordA_course
+                stz wordB_course
                 lda #>$1800
                 sta wordA_course+1
                 lda #>$0500
@@ -312,8 +310,7 @@ CalcTravelDistanceYards .proc
                 pha
 
 ; - - - - - - - - - - - - - - - - - - -
-                lda #$00
-                sta physicsY+1          ; multiplier_HI unused
+                stz physicsY+1          ; multiplier_HI unused
 
                 ldx activeClub
                 lda _data2_physicsY,X
@@ -332,8 +329,7 @@ CalcTravelDistanceYards .proc
                 pla
                 sta physicsY+1
 
-                lda #$00
-                sta dwordMath+1         ; hi-byte unused
+                stz dwordMath+1         ; hi-byte unused
 
                 ldx activeClub
                 lda _data3_physicsZ,X
@@ -523,9 +519,8 @@ _7              ldx puttY_LO            ; value:word
                 ora temp9D59_puttY_HI
                 bne _8
 
-                lda #$00
-                sta temp9D33_puttX_LO
-                sta temp9D57_puttX_HI
+                stz temp9D33_puttX_LO
+                stz temp9D57_puttX_HI
 
 _8              lda temp9D29
                 sec
@@ -547,8 +542,7 @@ _10             lda xPosBall
                 ora temp9D59_puttY_HI
                 bne _XIT1
 
-                lda #$00                ; reset
-                sta swingAnimCounter
+                stz swingAnimCounter    ; reset
 
                 lda flagsBall_9D81
                 and #$40                ; ball(bit-6) is visible?
@@ -570,9 +564,8 @@ _11             lda temp9D33_puttX_LO
                 lda temp9D59_puttY_HI
                 sta puttY_HI
 
-                lda #$00
-                sta distanceYards_LO
-                sta distanceYards_HI
+                stz distanceYards_LO
+                stz distanceYards_HI
 
                 clc
                 jmp _next1
@@ -709,9 +702,8 @@ ApplyWindAffect .proc
 _next1          lda wordB_3CBE+1
                 bpl _1
 
-                lda #$00
-                sta windDirThisHole_HI
-                sta windDirThisHole_LO
+                stz windDirThisHole_HI
+                stz windDirThisHole_LO
 
                 jmp _4
 
@@ -751,9 +743,8 @@ _3              lda tblCosine,X
                 sta wordC_3CC0
                 sty wordB_3CBE+1
 
-                lda #$00
-                sta wordB_3CBE          ; lo-byte = 0
-                sta wordC_3CC0+1        ; hi-byte = 0
+                stz wordB_3CBE          ; clear
+                stz wordC_3CC0+1
 
                 txa
                 lsr

@@ -15,8 +15,7 @@ _result         = dwordMath
 ;---
 
                 sta _multiplier
-                lda #$00                ; hi-byte unused
-                sta _multiplier+1
+                stz _multiplier+1       ; hi-byte unused
 
                 stx _value
                 sty _value+1
@@ -547,8 +546,7 @@ calcHypotenuseArea .proc
 ;   wordD
 ;====================================== ;[[V]]
 calcSquareRoot  .proc
-                lda #$00
-                sta polyVertCount
+                stz polyVertCount
 
 ;   find non-zero value
                 ldx #$03                ; two words
@@ -578,9 +576,8 @@ _2              lda #>$7FFF             ; max value
                 lda #<$7FFF
                 sta distanceToPinFeet2
 
-                lda #$00                ; clear
-                sta distanceToPinNatural2
-                sta distanceToPinNatural2+1
+                stz distanceToPinNatural2
+                stz distanceToPinNatural2+1
 
 _next2          ldx #$03                ; two words
 _next3          lda distanceToPinFeet,X ; get Feet & Natural
@@ -620,9 +617,8 @@ _next4          lda wordB_3CBE,X
                 adc #$00
                 sta tempC               ; preserve Carry-bit
 
-                lda #$00                ; clear remainder
-                sta wordC_3CC0+1
-                sta wordC_3CC0
+                stz wordC_3CC0+1        ; clear remainder
+                stz wordC_3CC0
 
                 jsr CompareForEquality
                 bcs _3

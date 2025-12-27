@@ -133,8 +133,7 @@ _next1          lda gaugeValue
                 cmp #$0F                ; at peak power?
                 bne _XIT1               ;   no
 
-                lda #$00
-                sta joystickOverride    ; no input
+                stz joystickOverride    ; no input
 
                 inc counterDemo
 

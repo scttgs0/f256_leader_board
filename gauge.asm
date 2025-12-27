@@ -46,10 +46,9 @@ _next1          lda (zpSource),Y
                 dex
                 bne _nextPage
 
-                lda #$00
-                sta swingAnimCounter    ; reset
-                sta isPowerLocked       ; =false
-                sta isSnapLocked        ; =false
+                stz swingAnimCounter    ; reset
+                stz isPowerLocked       ; =false
+                stz isSnapLocked        ; =false
 
                 rts
                 .endproc
@@ -439,8 +438,7 @@ _1              sta joystick            ; =0, no input
                 bit joystick            ; button down?
                 bne _XIT                ;   yes
 
-                lda #$00                ;   no, no input
-                sta joystick
+                stz joystick            ;   no, no-input
 
                 lda #TRUE
                 sta isPowerLocked

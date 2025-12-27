@@ -272,7 +272,7 @@ _XIT_A          lda animSplashFrame
 _FINISH         lda #$00
                 ;!!sta AUDC3
                 ;!!sta AUDF3
-                sta animSplashFrame     ; reset
+                stz animSplashFrame     ; reset
 
                 jmp ClearMissiles
 
@@ -318,8 +318,7 @@ _3              lda polyVertZ_delta
                 lda #$01
                 sta flags_9D76
 
-                lda #$00
-                sta flagsBall_9D81
+                stz flagsBall_9D81
 
 _XIT            rts
                 .endproc

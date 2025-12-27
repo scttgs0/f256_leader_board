@@ -776,9 +776,8 @@ CalcTravelDistanceFeet .proc
                 lda powerValue
                 sta dwordMath
 
-                lda #$00
-                sta physicsY
-                sta dwordMath+1         ; hi-byte unused
+                stz physicsY
+                stz dwordMath+1         ; hi-byte unused
 
                 lda #>$0400
                 sta physicsY+1
@@ -812,9 +811,8 @@ _next1          sta distanceToPinFeet,X ; two words
                 sty temp9D59_puttY_HI
                 sty puttY_HI
 
-                lda #$00                ; clear yards
-                sta distanceYards_LO
-                sta distanceYards_HI
+                stz distanceYards_LO    ; clear yards
+                stz distanceYards_HI
 
                 rts
                 .endproc

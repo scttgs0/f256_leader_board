@@ -117,10 +117,9 @@ _6              cmp #$72                ; R-key?
                 sta isDrivingRange      ; TRUE
                 sta tblPlayerAbility    ; skillAMATEUR
 
-                lda #$00
-                sta gameLength
-                sta idxActiveCourse
-                sta numPlayers
+                stz gameLength
+                stz idxActiveCourse
+                stz numPlayers
 
                 pla                     ; discard (DoConfig) return address
                 pla
@@ -837,8 +836,7 @@ _ptrName        = zpF9
                 ldx #$00
                 stx idxPlayer
 
-_nextPlayer     lda #$00
-                sta idxInputBuffer
+_nextPlayer     stz idxInputBuffer
 
                 jsr DrawDialog
                 jsr SetTimer0._32
@@ -1101,8 +1099,7 @@ _4              lda #$00                ; 18-holes
 AskCourseSelection .proc
                 jsr DrawDialog
 
-                lda #$00
-                sta tempC
+                stz tempC
 
 _next1          jsr DrawDialog
                 jsr SetTimer0._32

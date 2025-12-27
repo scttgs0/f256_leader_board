@@ -10,8 +10,7 @@ InitPutt_2521   .proc
                 lda #$18
                 sta polyVertZ_delta
 
-                lda #$00
-                sta unused_9D28
+                stz unused_9D28
 
                 lda #$02
                 sta unused_9D66
@@ -101,10 +100,9 @@ _anim1Addr_LO   .byte <anim1cell00,<anim1cell01,<anim1cell02,<anim1cell03
 ; Private Procedure
 ;====================================== ;[[F]]
 InitGolferPutt .proc
-                lda #$00
-                sta golferSwingFrame    ; reset
-                sta unused_9D74
-                sta isBackSwingAnim     ; =FALSE
+                stz golferSwingFrame    ; reset
+                stz unused_9D74
+                stz isBackSwingAnim     ; =FALSE
 
                 lda puttAnimTimer       ; duration
                 ldx #$00                ; timer 0
@@ -156,8 +154,7 @@ PuttControl     .proc
                 jsr ClearAllPlayers
                 jsr SwitchToPutt
 
-                lda #$00
-                sta flags_9D76
+                stz flags_9D76
 
                 lda #$14
                 sta timerDuration+6     ; timer 6 = 20 ticks
@@ -166,9 +163,8 @@ PuttControl     .proc
                 jsr AimTarget
                 jsr XBPC_DrawDistanceToPin_m1
 
-                lda #$00
-                sta animSplashFrame
-                sta nodeOperation       ; operPIXEL
+                stz animSplashFrame
+                stz nodeOperation       ; operPIXEL
 
                 lda #$C0                ; ball(bit-6) and shadow(bit-7) are visible
                 sta flagsBall_9D81
@@ -323,8 +319,7 @@ _DEST           = zpFD
                 rts                     ;   no
 
 ; - - - - - - - - - - - - - - - - - - -
-_1              lda #$00                ; reset power value
-                sta powerValue
+_1              stz powerValue          ; reset power value
 
                 ;!!lda #<scrnPuttPower+1   ; screen bottom [31,120]
                 ;!!sta _DEST
@@ -555,14 +550,12 @@ _5              sta puttY_LO_3FE9
                 cmp polyVertZ_delta
                 bne _7
 
-                lda #$00
-                sta flagsBall_9D81
+                stz flagsBall_9D81
 
                 jsr ClearMissiles
 
-                lda #$00
-                sta swingAnimCounter
-                sta isSwingAnimCounterActive
+                stz swingAnimCounter
+                stz isSwingAnimCounterActive
 
                 ldx activePlayer
                 lda playerDistUnit,X
@@ -580,8 +573,7 @@ _6              jsr PlaySoundPutt
                 jmp MarkPlayerInUse
 
 ; - - - - - - - - - - - - - - - - - - -
-_7              lda #$00
-                sta tempA
+_7              stz tempA
 
                 inc swingAnimCounter
 
@@ -617,9 +609,8 @@ _8              lda #$C0
                 sta temp9D35_puttY_LO
                 sta puttY_LO
 
-                lda #$00
-                sta temp9D59_puttY_HI
-                sta puttY_HI
+                stz temp9D59_puttY_HI
+                stz puttY_HI
 
                 jmp PlaySoundSwingClub
 
@@ -670,8 +661,7 @@ ResetPuttX      .proc
 
                 lsr temp9D35_puttY_LO
 
-                lda #$00
-                sta accuracyPenalty
+                stz accuracyPenalty
 
 _XIT            rts
                 .endproc

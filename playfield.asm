@@ -170,9 +170,8 @@ _4              lda golferSwingFrame
                 cmp #$07
                 bne _XIT
 
-                lda #$00                ; silence
-                ;!!sta AUDC4
-                ;!!sta AUDF4
+                ;!!stz AUDC4               ; silence
+                ;!!stz AUDF4
 
 _XIT            rts
                 .endproc
@@ -194,6 +193,7 @@ RenderPlayfield .proc
                 jsr ResetPlayfield      ; fill playfield with water
                 jsr DrawClouds          ; render clouds
                 jsr DrawMountains       ; render mountains
+                jsr SetStage2_TeeOff
 
                 rts
                 .endproc
@@ -327,8 +327,7 @@ _2              lda _dest
                 bcc _3                  ;   yes
 
 ;   end of cloud layer reached... wrap around to the beginning
-                lda #$00
-                sta _layerOffset
+                stz _layerOffset
 
                 lda #<glyphClouds       ; wrap back to the left-edge of the cloud layer
                 sta _src
@@ -480,8 +479,7 @@ _2              lda _dest
                 bcc _3                  ;   yes
 
 ;   end of mountain layer reached... wrap around to the beginning
-                lda #$00
-                sta _layerOffset
+                stz _layerOffset
 
                 lda #<glyphMountains   ; wrap back to the left-edge of the mountain layer
                 sta _src

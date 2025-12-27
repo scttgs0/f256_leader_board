@@ -404,8 +404,7 @@ RenderCourseNbr .proc
 UpdateScore     .proc
                 jsr SaveStrokes
 
-                lda #$00
-                sta courseOffset+1
+                stz courseOffset+1
 
                 ldx idxActiveCourse
                 lda offsetByCourse,X
@@ -480,8 +479,7 @@ _1              cpy #$FF
                 pla
                 sta playerScoreRoundA_LO,X
 
-                lda #$00
-                sta tempB
+                stz tempB
 
                 ldx idxPlayer
                 lda playerScoreRoundA_LO,X
@@ -518,11 +516,10 @@ _1              cpy #$FF
                 ;!!cpx PORTA
                 ;!!bvs _next6
 
-_2              lda #$00
-                sta playerHonorA
-                sta playerHonorA+1
-                sta playerHonorA+2
-                sta playerHonorA+3
+_2              stz playerHonorA
+                stz playerHonorA+1
+                stz playerHonorA+2
+                stz playerHonorA+3
 
 ;   calculate players' honor rank
                 ldy numPlayers
@@ -753,8 +750,7 @@ Render2or3Digits .proc
 _next1          ldy idxDigit
                 lda (zpF9),Y
                 sta wordB_3CBE
-                lda #$00
-                sta wordB_3CBE+1
+                stz wordB_3CBE+1
 
                 jsr ConvertToArray
                 jsr FindFirstUsed
@@ -823,8 +819,7 @@ _1              jsr GetYByHonorRank
 _next1          ldy idxDigit
                 lda (zpF9),Y
                 sta wordB_3CBE
-                lda #$00
-                sta wordB_3CBE+1
+                stz wordB_3CBE+1
 
                 jsr ConvertToArray
                 jsr FindFirstUsed
@@ -901,9 +896,8 @@ _nextHonorRank  = tempB
 _targetHonor    = tempC
 ;---
 
-                lda #$00
-                sta _targetHonor
-                sta _nextHonorRank
+                stz _targetHonor
+                stz _nextHonorRank
 
 _next1          ldx #$00
 _next2          lda playerHonorA,X

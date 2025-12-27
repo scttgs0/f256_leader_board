@@ -462,8 +462,7 @@ PreprocessVoids .proc
 
 ; - - - - - - - - - - - - - - - - - - -
 ;   look for matching pairs at the extremes (xMax/xMin)
-_nextPass       lda #$00
-                sta _nMatches
+_nextPass       stz _nMatches
 
                 ldy #$00
                 sty _vertZ              ; zMin (0)
@@ -540,9 +539,8 @@ _insertVertex   lda #$00                ; not clipped (force skip Z)
 _3              lda _vertX              ; already processed xMin?
                 beq _XIT                ;   yes
 
-                lda #$00
-                sta _vertX              ; xMin (0)
-                sta _deltaMatchPair     ; 0=current item is larger
+                stz _vertX              ; xMin (0)
+                stz _deltaMatchPair     ; 0=current item is larger
 
                 lda #$02
                 sta _clipFlag           ; expecting isMinClip

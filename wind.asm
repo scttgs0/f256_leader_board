@@ -252,8 +252,7 @@ _srcWIND_VEL    = zpFD
                 lda #$D8                ; -40
                 sta deltaWind_m40_p80
 
-                lda #$00                ; +0
-                sta deltaWind_p00_p50
+                stz deltaWind_p00_p50   ; +0
 
 ; - - - - - - - - - - - - - - - - - - -
 _ENTRY1         lda #<$0018             ; surface (24 inches)

@@ -8,15 +8,14 @@ NewGame         .proc
                 jsr DoConfig
                 jsr ClearScreen
 
-                lda #$00
-                sta activePlayer                ; first player
-                sta isSwingDisabled             ; =FALSE
-                sta isSwingInProgress           ; =FALSE
-                sta swingAnimCounter            ; =0
-                sta arrDeferredSum              ; =0
-                sta arrDeferredSum+1            ; =0
-                sta arrDeferredSum+2            ; =0
-                sta isSwingAnimCounterActive    ; =FALSE
+                stz activePlayer                ; first player
+                stz isSwingDisabled             ; =FALSE
+                stz isSwingInProgress           ; =FALSE
+                stz swingAnimCounter            ; =0
+                stz arrDeferredSum              ; =0
+                stz arrDeferredSum+1            ; =0
+                stz arrDeferredSum+2            ; =0
+                stz isSwingAnimCounterActive    ; =FALSE
 
                 lda #$3C
                 sta const_60            ; obsolete
@@ -111,8 +110,7 @@ PlayNextHole    .proc
 
 _next1          jsr SetNextPlayer
 
-                lda #$00
-                sta tickFREQ3           ; disable
+                stz tickFREQ3           ; disable
 
                 jsr ProcessStroke
                 jmp _next1
@@ -136,8 +134,7 @@ GoNextHole      .proc
 
                 jsr ClearScore._preservehistory
 
-                lda #$00
-                sta idxActiveHole       ; first hole
+                stz idxActiveHole       ; first hole
 
                 inc idxActiveCourse     ; next course
                 lda idxActiveCourse
@@ -182,10 +179,9 @@ _s2             cli                     ; enable interrupts
                 jsr ResetSwingGauge
                 jsr ShowSwingGauge
 
-                lda #$00
-                sta flags_9D76
-                sta tickFREQ3           ; disable
-                sta gaugeValue          ; reset
+                stz flags_9D76
+                stz tickFREQ3           ; disable
+                stz gaugeValue          ; reset
 
                 ldx activePlayer
                 lda playerClub,X
@@ -196,9 +192,8 @@ _s2             cli                     ; enable interrupts
                 jsr AimTarget
                 jsr InitBall
 
-                lda #$00
-                sta animSplashFrame
-                sta nodeOperation       ; operPIXEL
+                stz animSplashFrame
+                stz nodeOperation       ; operPIXEL
 
                 jsr DrawClub
 

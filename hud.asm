@@ -281,8 +281,7 @@ RenderHUDPlayers .proc
 _nextplayer     ldx idxPlayer
                 lda playerStrokeCount,X
                 sta wordB_3CBE
-                lda #$00                ; hi-byte unused
-                sta wordB_3CBE+1
+                stz wordB_3CBE+1        ; hi-byte unused
 
                 jsr XBPC_ConvertToArray
                 jsr XBPC_FindFirstUsed  ; Y result is ignored

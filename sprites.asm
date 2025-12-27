@@ -5,9 +5,8 @@
 SpriteInit      .proc
                 jsr ClearAllPlayers
 
-                lda #$00
-                sta golferSwingFrame
-                sta golferSwingFrameMax
+                stz golferSwingFrame
+                stz golferSwingFrameMax
 
                 jsr DrawGolfer
                 jmp ProcessClubSwingAnim    ; render club

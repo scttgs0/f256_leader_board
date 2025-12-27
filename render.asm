@@ -450,6 +450,165 @@ _setAddrPixelByte1
 
 
 ;======================================
+;
+;--------------------------------------
+; on entry:
+;   X           new xPos
+;   Y           new yPos
+; on exit:
+;   A           maskedPixelValue
+;======================================
+ShiftPixelMask  .proc
+_addrPixel      = zpFD
+;---
+
+                ;!!jsr GetPixelPtrMask     ; set zpFD (pixel address) and pixelMask
+
+                lda (_addrPixel),Y      ; fetch the pixel value
+                and pixelMask           ; apply the mask
+_next1          sta maskedPixelValue    ; save
+
+                lsr pixelMask           ; stop when a mask-bit hits the CARRY (i.e. too far)
+                bcs DoRTS2
+
+                lsr pixelMask           ; shift the mask
+                lsr                     ; shift the pixel value (x2)
+                lsr
+
+                jmp _next1
+
+                .endproc
+
+
+;--------------------------------------
+;
+;--------------------------------------
+DoRTS2          rts
+
+
+;======================================
+;
+;======================================
+CalcBallPixelMask .proc
+                lda lineNode1_ClipFlags
+                beq _1
+
+_XIT1           rts
+
+; - - - - - - - - - - - - - - - - - - -
+_1              lda nodeOperation       ; operPIXEL?
+                bne _4                  ;   no
+
+                ldx #$07                ; missile-1 (shadow)
+                jsr CalcMissilePosition ; result [X,Y]
+                sty yPosNewBallShadow
+                jsr ShiftPixelMask      ; result in A=maskedPixelValue
+
+                cmp #$03                ; missile-0 white?
+                beq _XIT1               ;   yes, exit
+
+                pha
+                jsr CalcPixelMask
+
+                pla
+                bit flagsBall_9D83
+                bpl _2
+
+                cmp #$00
+                beq _XIT1
+                jmp _3
+
+; - - - - - - - - - - - - - - - - - - -
+_2              ldx #$07                ; missile-1 (shadow)
+                jsr CalcMissilePosition ; result [X,Y]
+                stx zpD4
+                sty zpD4+1
+
+                stz zpCD
+
+_next1          ldx zpD4                ; x-coordinate
+                ldy zpD4+1              ; y-coordinate
+                jsr ShiftPixelMask      ; result in A=maskedPixelValue
+
+                cmp #$03                ; missile-0 white?
+                beq _XIT1               ;   yes, exit
+
+                inc zpD4
+
+                inc zpCD
+                lda zpCD
+                cmp #$0F
+                bcc _next1
+
+                ;!!ora PACTL
+
+_3              lda #operFILL
+                sta nodeOperation
+
+                stz polyVertZ_delta
+
+                ldx #xformDELTA_Z
+                jsr VertexTransform
+
+                tya
+                sec
+                sbc yPosNewBallShadow
+                sta yPosNewBallShadow
+
+                lda #$40                ; ball(bit-6) is visible
+                sta flagsBall_9D81
+
+                jmp _XIT1
+
+; - - - - - - - - - - - - - - - - - - -
+_4              cmp #$01
+                bne _5
+                jmp AdjustBallPixelMask
+
+_5              ldx #$07                        ; missile-1 (shadow)
+                jsr CalcMissilePositionAndMask  ; result in A=maskedPixelValue, [X,Y]
+
+                cmp #$03                ; missile-0 white?
+                beq _ENTRY1             ;   yes
+
+                cmp #$02                ; missile-0 green?
+                bne _XIT1               ;   no
+
+; - - - - - - - - - - - - - - - - - - -
+_ENTRY1         lda flagsBall_9D83
+                cmp #$C0                ; ball(bit-6) and shadow(bit-7) are visible?
+                bne _XIT
+
+                lda #operPIXEL
+                sta nodeOperation
+
+                lda #$18
+                sta polyVertZ_delta
+
+                lda #$C0                ; ball(bit-6) and shadow(bit-7) are visible
+                sta flagsBall_9D81
+
+                lda polyVertZ_LO
+                sec
+                sbc polyVertZ_delta
+                lda polyVertZ_HI
+                sbc #$00
+                bcs _XIT
+
+                lda #$01
+                sta flags_9D76
+
+                stz swingAnimCounter
+                stz isSwingAnimCounterActive
+
+                lda #$40                ; ball(bit-6) is visible
+                sta flagsBall_9D81
+
+_XIT            rts
+                .endproc
+
+
+;======================================
 ; Render black outline on top layer of
 ; polygon (a prerequisite for fill)
 ;====================================== ;[[V]]
@@ -868,8 +1027,7 @@ _pin            ldx xPosCup_LO
                 stx polyVertY_LO
                 sta polyVertY_HI
 
-                lda #$00
-                sta polyVertZ_HI
+                stz polyVertZ_HI
 
                 lda #COLOR_WHITE        ; flag color
                 sta pixelColor
