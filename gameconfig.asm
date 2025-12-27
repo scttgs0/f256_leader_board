@@ -11,6 +11,7 @@ _ENTRY1         jsr DrawDialog
                 jsr SetTimer0._32
 
                 jsr BeginConfig
+                ;;!!jsr InitScreenHW
 
                 jsr AskPlayerQty
                 jsr AskPlayerNames
@@ -383,9 +384,9 @@ _7              sta charToPlot
 ;
 ;====================================== ;[[U]]
 LoadSupplement  .proc
-                ;;jsr ClearSprites
+;!!                jsr ClearSprites
 
-                ;;sei
+;!!                sei
 
 ;   restore [$4C0F:4C34] -> [$0200:0225]
 ;!!                ldx #$25
@@ -395,23 +396,23 @@ LoadSupplement  .proc
 ;!!                dex
 ;!!                bpl _next1
 
-                ;!!jsr ReadPortA           ; on return, A=%1100xxxx
-                ;!!and #$70                ; [:=$40]
-                ;!!sta NMIEN
+;!!                jsr ReadPortA           ; on return, A=%1100xxxx
+;!!                and #$70                ; [:=$40]
+;!!                sta NMIEN
 
-                ;;cli
+;!!                cli
 
 ;   read sectors [249:283] -> [$8200:92FF]
-                ;!!lda #<$8200
-                ;!!sta DBUFLO
-                ;!!lda #>$8200
-                ;!!sta DBUFHI
+;!!                lda #<$8200
+;!!                sta DBUFLO
+;!!                lda #>$8200
+;!!                sta DBUFHI
 
-                ;;lda #$22                ; sector count
-                ;;ldx #$F9                ; sector_LO (sector 249)
-                ;;ldy #$00                ; sector_HI
-                ;;jsr ReadSectors
-                ;;jsr SetInterrupts
+;!!                lda #$22                ; sector count
+;!!                ldx #$F9                ; sector_LO (sector 249)
+;!!                ldy #$00                ; sector_HI
+;!!                jsr ReadSectors
+;!!                jsr SetInterrupts
 
                 rts
                 .endproc

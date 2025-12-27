@@ -29,7 +29,7 @@ xformAIM_POS        = $02
 
 operPIXEL           = $00
 operFILL            = $01
-operPOINT           = $02
+operSHADOW_BALL     = $02
 
 COLOR_BLUE          = $08
 COLOR_RUST          = $0B

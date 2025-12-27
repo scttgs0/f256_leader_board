@@ -392,6 +392,7 @@ RenderCourseNbr .proc
                 inx
                 txa
                 jmp PlotCharBCD
+
                 .endproc
 
 
