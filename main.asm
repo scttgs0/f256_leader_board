@@ -702,7 +702,7 @@ _anim0Addr_24   .byte `anim0cell00,`anim0cell01,`anim0cell02,`anim0cell03
                 .byte `anim0cell04,`anim0cell05,`anim0cell06,`anim0cell07
                 .byte `anim0cell08,`anim0cell09,`anim0cell0A,`anim0cell0B
                 .byte `anim0cell0C,`anim0cell0D,`anim0cell0E,`anim0cell0F
-                .byte `anim0cell00,`anim0cell11,`anim0cell12,`anim0cell13
+                .byte `anim0cell10,`anim0cell11,`anim0cell12,`anim0cell13
                 .byte `anim0cell14,`anim0cell15,`anim0cell16,`anim0cell17
                 .byte `anim0cell18,`anim0cell19,`anim0cell1A,`anim0cell1B
                 .byte `anim0cell1C,`anim0cell1D,`anim0cell1E,`anim0cell1F
@@ -710,7 +710,7 @@ _anim0Addr_HI   .byte >anim0cell00,>anim0cell01,>anim0cell02,>anim0cell03
                 .byte >anim0cell04,>anim0cell05,>anim0cell06,>anim0cell07
                 .byte >anim0cell08,>anim0cell09,>anim0cell0A,>anim0cell0B
                 .byte >anim0cell0C,>anim0cell0D,>anim0cell0E,>anim0cell0F
-                .byte >anim0cell00,>anim0cell11,>anim0cell12,>anim0cell13
+                .byte >anim0cell10,>anim0cell11,>anim0cell12,>anim0cell13
                 .byte >anim0cell14,>anim0cell15,>anim0cell16,>anim0cell17
                 .byte >anim0cell18,>anim0cell19,>anim0cell1A,>anim0cell1B
                 .byte >anim0cell1C,>anim0cell1D,>anim0cell1E,>anim0cell1F
@@ -718,7 +718,7 @@ _anim0Addr_LO   .byte <anim0cell00,<anim0cell01,<anim0cell02,<anim0cell03
                 .byte <anim0cell04,<anim0cell05,<anim0cell06,<anim0cell07
                 .byte <anim0cell08,<anim0cell09,<anim0cell0A,<anim0cell0B
                 .byte <anim0cell0C,<anim0cell0D,<anim0cell0E,<anim0cell0F
-                .byte <anim0cell00,<anim0cell11,<anim0cell12,<anim0cell13
+                .byte <anim0cell10,<anim0cell11,<anim0cell12,<anim0cell13
                 .byte <anim0cell14,<anim0cell15,<anim0cell16,<anim0cell17
                 .byte <anim0cell18,<anim0cell19,<anim0cell1A,<anim0cell1B
                 .byte <anim0cell1C,<anim0cell1D,<anim0cell1E,<anim0cell1F
@@ -753,7 +753,7 @@ _anim2PosX      .byte $86,$7E,$7E,$76
                 .byte $66,$66,$66,$66
                 .byte $76,$6E,$6E,$66
                 .byte $76,$7E,$86,$86
-                .byte $86,$8E,$6E,$6E
+                .byte $86,$86,$6E,$6E
                 .byte $66,$6E,$76,$76
                 .byte $7E,$7E,$7E,$7E
 _anim2PosY      .byte $D2,$D2,$D1,$CA
