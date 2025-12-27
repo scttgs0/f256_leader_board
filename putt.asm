@@ -40,24 +40,6 @@ InitPutt_2521   .proc
 ; X-Bank Procedure
 ;====================================== ;[[F]]
 DrawGolferPutt  .proc
-;   preserve IOPAGE control
-                lda IOPAGE_CTRL
-                pha
-
-;   switch to system map
-                stz IOPAGE_CTRL
-; - - - - - - - - - - - - - - - - - - -
-
-                sei
-
-                .frsSpriteShow 4        ; player top
-                .frsSpriteShow 5        ; player bottom
-
-                .frsSpriteSetX $7E,4    ; player top
-                .frsSpriteSetY $B8,4
-                .frsSpriteSetX $7E,5    ; player bottom
-                .frsSpriteSetY $D8,5
-
 ;   chose proper animation frame
                 ldy golferSwingFrame
                 ldx puttAnimIndex,Y
@@ -65,6 +47,17 @@ DrawGolferPutt  .proc
                 ldx golferSwingFrame
                 cmp #$FF
                 beq _XIT
+
+; - - - - - - - - - - - - - - - - - - -
+;   preserve IOPAGE control
+                lda IOPAGE_CTRL
+                pha
+
+;   switch to system map
+                stz IOPAGE_CTRL
+
+; - - - - - - - - - - - - - - - - - - -
+                sei
 
                 lda _anim1Addr_LO,X
                 sta SPR(sprite_t.ADDR, 4)
@@ -80,14 +73,15 @@ DrawGolferPutt  .proc
                 sta SPR(sprite_t.ADDR+2, 4)
                 sta SPR(sprite_t.ADDR+2, 5)
 
-_XIT            cli
+                cli
 
 ; - - - - - - - - - - - - - - - - - - -
 ;   restore IOPAGE control
                 pla
                 sta IOPAGE_CTRL
 
-                rts
+; - - - - - - - - - - - - - - - - - - -
+_XIT            rts
 
 ;--------------------------------------
 
@@ -116,6 +110,29 @@ InitGolferPutt .proc
                 ldx #$00                ; timer 0
                 jsr SetTimer
 
+; - - - - - - - - - - - - - - - - - - -
+;   preserve IOPAGE control
+                lda IOPAGE_CTRL
+                pha
+
+;   switch to system map
+                stz IOPAGE_CTRL
+
+; - - - - - - - - - - - - - - - - - - -
+                .frsSpriteShow 4        ; player top
+                .frsSpriteShow 5        ; player bottom
+
+                .frsSpriteSetX $7E,4    ; player top
+                .frsSpriteSetY $B8,4
+                .frsSpriteSetX $7E,5    ; player bottom
+                .frsSpriteSetY $D8,5
+
+; - - - - - - - - - - - - - - - - - - -
+;   restore IOPAGE control
+                pla
+                sta IOPAGE_CTRL
+
+; - - - - - - - - - - - - - - - - - - -
                 jmp DrawGolferPutt
 
                 .endproc

@@ -29,9 +29,10 @@ _1              ldx #$07                ; missile-1 (shadow)
                 jsr ShiftPixelMask      ; result in A=maskedPixelValue
 
                 cmp #$03
-                ;;beq CalcBallPixelMask._ENTRY1
+                bne _XIT
+                ;!!jmp CalcBallPixelMask._ENTRY1
 
-                rts
+_XIT            rts
                 .endproc
 
 
@@ -182,9 +183,9 @@ _4              sta newBallShadowPosY
 ;====================================== ;[[U]]
 CalcMissilePositionAndMask .proc
                 jsr CalcMissilePosition ; result [X,Y]
-                ;!!jmp ShiftPixelMask      ; result in A=maskedPixelValue
+                jmp ShiftPixelMask      ; result in A=maskedPixelValue
 
-                rts		; HACK:
+                ;!!rts		; HACK:
                 .endproc
 
 
@@ -230,8 +231,6 @@ _2              sec
 AnimateSplash   .proc
                 bit animSplashFrame     ; ball is visible?
                 bmi _1                  ;   yes
-
-                ;!!lsr PORTA               ;   no
 
 _XIT1           rts
 
@@ -354,6 +353,10 @@ _1              lda IOPAGE_CTRL
                 lda newBallPosY         ; update the new ball vertical position
                 sta yPosBall
 
+                .frsSpriteShow 8        ; draw at the new position   HACK:
+                .frsSpriteSetX xPosBall,8
+                .frsSpriteSetY yPosBall,8
+
 ; - - - - - - - - - - - - - - - - - - -
 ;   render the ball shadow
                 lda flags_BallVisible   ; shadow(bit-7) is visible?
@@ -376,9 +379,10 @@ _2              lda flags_BallVisible   ; ball(bit-6) is visible?
                 and flagsBall_9DAF
                 beq _XIT                ; skip when no bits
 
-                .frsSpriteShow 8        ; draw at the new position
-                .frsSpriteSetX xPosBall,8
-                .frsSpriteSetY yPosBall,8
+                ;(HACK:)
+                ;;;.frsSpriteShow 8        ; draw at the new position
+                ;;;.frsSpriteSetX xPosBall,8
+                ;;;.frsSpriteSetY yPosBall,8
 
 ; - - - - - - - - - - - - - - - - - - -
 ;   restore IOPAGE control
@@ -458,7 +462,7 @@ _next1          lda flagsBall_9D83
                 rts
 
 ; - - - - - - - - - - - - - - - - - - -
-_4              ;!!jsr ShiftPixelMask      ; result in A=maskedPixelValue
+_4              jsr ShiftPixelMask      ; result in A=maskedPixelValue
 
                 cmp #$00
                 beq _5
@@ -506,43 +510,59 @@ _1              tax
                 cpx #$00
                 bne _1A
 
+                sei
                 lda #<anim3cell00
                 sta SPR(sprite_t.ADDR, 12)
                 lda #>anim3cell00
                 sta SPR(sprite_t.ADDR+1, 12)
                 lda #`anim3cell00
                 sta SPR(sprite_t.ADDR+2, 12)
+
+                cli
                 bra _2
 
+; - - - - - - - - - - - - - - - - - - -
 _1A             cpx #$01
                 bne _1B
 
+                sei
                 lda #<anim3cell01
                 sta SPR(sprite_t.ADDR, 12)
                 lda #>anim3cell01
                 sta SPR(sprite_t.ADDR+1, 12)
                 lda #`anim3cell01
                 sta SPR(sprite_t.ADDR+2, 12)
+
+                cli
                 bra _2
 
+; - - - - - - - - - - - - - - - - - - -
 _1B             cpx #$02
                 bne _1C
 
+                sei
                 lda #<anim3cell02
                 sta SPR(sprite_t.ADDR, 12)
                 lda #>anim3cell02
                 sta SPR(sprite_t.ADDR+1, 12)
                 lda #`anim3cell02
                 sta SPR(sprite_t.ADDR+2, 12)
+
+                cli
                 bra _2
 
-_1C             lda #<anim3cell03
+; - - - - - - - - - - - - - - - - - - -
+_1C             sei
+                lda #<anim3cell03
                 sta SPR(sprite_t.ADDR, 12)
                 lda #>anim3cell03
                 sta SPR(sprite_t.ADDR+1, 12)
                 lda #`anim3cell03
                 sta SPR(sprite_t.ADDR+2, 12)
 
+                cli
+
+; - - - - - - - - - - - - - - - - - - -
 _2              lda animSplashFrame
                 and #$7F                ; strip the hi-bit
 
@@ -589,64 +609,87 @@ _next2          clc                     ; calculate X*5
                 bne _next2
 
 _1              tax
-                lda ballController
-                bne _2
 
-                .frsSpriteShow 12        ; draw at the new position
+                lda ballController
+                beq _proceed
+                jmp _2
+
+; - - - - - - - - - - - - - - - - - - -
+_proceed        .frsSpriteShow 12        ; draw at the new position
                 .frsSpriteSetX xPosBall+32,12
                 .frsSpriteSetY yPosBall+32,12
 
                 cpx #$00
                 bne _1A
 
+                sei
                 lda #<anim3cell04
                 sta SPR(sprite_t.ADDR, 12)
                 lda #>anim3cell04
                 sta SPR(sprite_t.ADDR+1, 12)
                 lda #`anim3cell04
                 sta SPR(sprite_t.ADDR+2, 12)
+
+                cli
                 bra _2
 
+; - - - - - - - - - - - - - - - - - - -
 _1A             cpx #$01
                 bne _1B
 
+                sei
                 lda #<anim3cell05
                 sta SPR(sprite_t.ADDR, 12)
                 lda #>anim3cell05
                 sta SPR(sprite_t.ADDR+1, 12)
                 lda #`anim3cell05
                 sta SPR(sprite_t.ADDR+2, 12)
+
+                cli
                 bra _2
 
+; - - - - - - - - - - - - - - - - - - -
 _1B             cpx #$02
                 bne _1C
 
+                sei
                 lda #<anim3cell06
                 sta SPR(sprite_t.ADDR, 12)
                 lda #>anim3cell06
                 sta SPR(sprite_t.ADDR+1, 12)
                 lda #`anim3cell06
                 sta SPR(sprite_t.ADDR+2, 12)
+
+                cli
                 bra _2
 
+; - - - - - - - - - - - - - - - - - - -
 _1C             cpx #$03
                 bne _1D
 
+                sei
                 lda #<anim3cell07
                 sta SPR(sprite_t.ADDR, 12)
                 lda #>anim3cell07
                 sta SPR(sprite_t.ADDR+1, 12)
                 lda #`anim3cell07
                 sta SPR(sprite_t.ADDR+2, 12)
+
+                cli
                 bra _2
 
-_1D             lda #<anim3cell08
+; - - - - - - - - - - - - - - - - - - -
+_1D             sei
+                lda #<anim3cell08
                 sta SPR(sprite_t.ADDR, 12)
                 lda #>anim3cell08
                 sta SPR(sprite_t.ADDR+1, 12)
                 lda #`anim3cell08
                 sta SPR(sprite_t.ADDR+2, 12)
 
+                cli
+
+; - - - - - - - - - - - - - - - - - - -
 _2              lda animSplashFrame
                 and #$7F                ; strip the hi-bit
                 tax
@@ -696,64 +739,87 @@ _next1          clc                     ; calculate X*7
 
 _2              tax
                 ldy yPosBall
-                lda ballController
-                bne _3
 
-                .frsSpriteShow 12        ; draw at the new position
+                lda ballController
+                beq _proceed
+                jmp _3
+
+; - - - - - - - - - - - - - - - - - - -
+_proceed        .frsSpriteShow 12        ; draw at the new position
                 .frsSpriteSetX xPosBall+32,12
                 .frsSpriteSetY yPosBall+32,12
 
                 cpx #$00
                 bne _2A
 
+                sei
                 lda #<anim3cell09
                 sta SPR(sprite_t.ADDR, 12)
                 lda #>anim3cell09
                 sta SPR(sprite_t.ADDR+1, 12)
                 lda #`anim3cell09
                 sta SPR(sprite_t.ADDR+2, 12)
+
+                cli
                 bra _3
 
+; - - - - - - - - - - - - - - - - - - -
 _2A             cpx #$01
                 bne _2B
 
+                sei
                 lda #<anim3cell10
                 sta SPR(sprite_t.ADDR, 12)
                 lda #>anim3cell10
                 sta SPR(sprite_t.ADDR+1, 12)
                 lda #`anim3cell10
                 sta SPR(sprite_t.ADDR+2, 12)
+
+                cli
                 bra _3
 
+; - - - - - - - - - - - - - - - - - - -
 _2B             cpx #$02
                 bne _2C
 
+                sei
                 lda #<anim3cell11
                 sta SPR(sprite_t.ADDR, 12)
                 lda #>anim3cell11
                 sta SPR(sprite_t.ADDR+1, 12)
                 lda #`anim3cell11
                 sta SPR(sprite_t.ADDR+2, 12)
+
+                cli
                 bra _3
 
+; - - - - - - - - - - - - - - - - - - -
 _2C             cpx #$03
                 bne _2D
 
+                sei
                 lda #<anim3cell12
                 sta SPR(sprite_t.ADDR, 12)
                 lda #>anim3cell12
                 sta SPR(sprite_t.ADDR+1, 12)
                 lda #`anim3cell12
                 sta SPR(sprite_t.ADDR+2, 12)
+
+                cli
                 bra _3
 
-_2D             lda #<anim3cell13
+; - - - - - - - - - - - - - - - - - - -
+_2D             sei
+                lda #<anim3cell13
                 sta SPR(sprite_t.ADDR, 12)
                 lda #>anim3cell13
                 sta SPR(sprite_t.ADDR+1, 12)
                 lda #`anim3cell13
                 sta SPR(sprite_t.ADDR+2, 12)
 
+                cli
+
+; - - - - - - - - - - - - - - - - - - -
 _3              lda animSplashFrame
                 and #$7F                ; strip the hi-bit
                 tax
@@ -804,77 +870,102 @@ _next1          clc                     ; calculate X*9
                 bne _next1
 
 _2              tax
+
                 lda ballController
-                beq _22
+                beq _proceed
                 jmp _3
 
 ; - - - - - - - - - - - - - - - - - - -
-_22             .frsSpriteShow 12        ; draw at the new position
+_proceed        .frsSpriteShow 12        ; draw at the new position
                 .frsSpriteSetX xPosBall+32,12
                 .frsSpriteSetY yPosBall+32,12
 
                 cpx #$00
                 bne _2A
 
+                sei
                 lda #<anim3cell14
                 sta SPR(sprite_t.ADDR, 12)
                 lda #>anim3cell14
                 sta SPR(sprite_t.ADDR+1, 12)
                 lda #`anim3cell14
                 sta SPR(sprite_t.ADDR+2, 12)
+
+                cli
                 bra _3
 
+; - - - - - - - - - - - - - - - - - - -
 _2A             cpx #$01
                 bne _2B
 
+                sei
                 lda #<anim3cell15
                 sta SPR(sprite_t.ADDR, 12)
                 lda #>anim3cell15
                 sta SPR(sprite_t.ADDR+1, 12)
                 lda #`anim3cell15
                 sta SPR(sprite_t.ADDR+2, 12)
+
+                cli
                 bra _3
 
+; - - - - - - - - - - - - - - - - - - -
 _2B             cpx #$02
                 bne _2C
 
+                sei
                 lda #<anim3cell16
                 sta SPR(sprite_t.ADDR, 12)
                 lda #>anim3cell16
                 sta SPR(sprite_t.ADDR+1, 12)
                 lda #`anim3cell16
                 sta SPR(sprite_t.ADDR+2, 12)
+
+                cli
                 bra _3
 
+; - - - - - - - - - - - - - - - - - - -
 _2C             cpx #$03
                 bne _2D
 
+                sei
                 lda #<anim3cell17
                 sta SPR(sprite_t.ADDR, 12)
                 lda #>anim3cell17
                 sta SPR(sprite_t.ADDR+1, 12)
                 lda #`anim3cell17
                 sta SPR(sprite_t.ADDR+2, 12)
+
+                cli
                 bra _3
 
+; - - - - - - - - - - - - - - - - - - -
 _2D             cpx #$04
                 bne _2E
 
+                sei
                 lda #<anim3cell18
                 sta SPR(sprite_t.ADDR, 12)
                 lda #>anim3cell18
                 sta SPR(sprite_t.ADDR+1, 12)
                 lda #`anim3cell18
                 sta SPR(sprite_t.ADDR+2, 12)
+
+                cli
                 bra _3
 
-_2E             lda #<anim3cell19
+; - - - - - - - - - - - - - - - - - - -
+_2E             sei
+                lda #<anim3cell19
                 sta SPR(sprite_t.ADDR, 12)
                 lda #>anim3cell19
                 sta SPR(sprite_t.ADDR+1, 12)
                 lda #`anim3cell19
                 sta SPR(sprite_t.ADDR+2, 12)
 
+                cli
+
+; - - - - - - - - - - - - - - - - - - -
 _3              lda animSplashFrame
                 and #$7F                ; strip the hi-bit
                 tax

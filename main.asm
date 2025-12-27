@@ -6,7 +6,6 @@ NewGame         .proc
                 jsr ResetGame
                 jsr ResetGauge
                 jsr DoConfig
-
                 jsr ClearScreen
 
                 lda #$00
@@ -156,7 +155,7 @@ GoNextHole      .proc
 MainLoop        .proc
 ; - - - - - - - - - - - - - - - - - - -
 ;   for stability control
-                ;!!sei                     ; disable interrupts
+                sei                     ; disable interrupts
 
                 lda IOPAGE_CTRL
                 beq _s0
@@ -177,9 +176,9 @@ _s1             lda MMU_Block3
                 lda #CONFIG_CHUNK       ; default to the gameconfig chunk
                 sta MMU_Block3
 
-_s2             ;!!cli                     ; enable interrupts
-; - - - - - - - - - - - - - - - - - - -
+_s2             cli                     ; enable interrupts
 
+; - - - - - - - - - - - - - - - - - - -
                 jsr ResetSwingGauge
                 jsr ShowSwingGauge
 
@@ -303,7 +302,7 @@ _next3          jsr SwingAnimControl
 _2              jsr Swing_math_326F
                 jsr DemoInput
                 jsr PositionBallShadow
-                ;;jsr CalcBallPixelMask
+                ;!!jsr CalcBallPixelMask
                 jsr AnimateSplash_2AC6
                 jsr RenderBall
 
@@ -320,10 +319,10 @@ _next4          jsr SwingAnimControl
                 jsr ProcessAudio
                 jsr Swing_math_326F
                 jsr PositionBallShadow
-;                ;;jsr CalcBallPixelMask
+                ;!!jsr CalcBallPixelMask
                 jsr AnimateSplash_2AC6
                 jsr XBPC_Swing_3E71
-                ;;jsr CalcPixelMask
+                ;!!jsr CalcPixelMask
                 jsr RenderBall
 
 _next5          jsr AnimateSplash
@@ -652,6 +651,7 @@ DrawGolfer      .proc
                 cmp #$FF
                 beq _XIT
 
+                sei
                 lda _anim0Addr_LO,X
                 sta SPR(sprite_t.ADDR, 1)
                 sta SPR(sprite_t.ADDR, 2)
@@ -665,10 +665,12 @@ DrawGolfer      .proc
                 lda _anim0Addr_24,X
                 sta SPR(sprite_t.ADDR+2, 1)
                 sta SPR(sprite_t.ADDR+2, 2)
+                cli
 
 ; - - - - - - - - - - - - - - - - - - -
                 .frsSpriteShow 0        ; club
 
+                sei
                 lda _anim2Addr_LO,X
                 sta SPR(sprite_t.ADDR, 0)
 
@@ -678,6 +680,7 @@ DrawGolfer      .proc
                 lda _anim2Addr_24,X
                 sta SPR(sprite_t.ADDR+2, 0)
 
+                cli
                 phx
                 lda _anim2PosX,X
                 ldx #$00
