@@ -148,8 +148,8 @@ ShowSwingGauge  .proc
                 stz IOPAGE_CTRL
 
                 .frsSpriteShow 11       ; swing gauge
-                .frsSpriteSetX $114,11
-                .frsSpriteSetY $C0,11
+                .frsSpriteSetX #$114,11
+                .frsSpriteSetY #$C0,11
 
 ;   restore IOPAGE control
                 pla

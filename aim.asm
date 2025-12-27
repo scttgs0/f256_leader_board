@@ -46,8 +46,8 @@ AimTarget       .proc
 
 ;   render the ball
                 .frsSpriteShow 8
-                .frsSpriteSetX xPosBall,8
-                .frsSpriteSetY yPosBall,8
+                .frsSpriteSetX_8bit xPosBall,8
+                .frsSpriteSetY_8bit yPosBall,8
 
 ; - - - - - - - - - - - - - - - - - - -
 ;   place the aim target

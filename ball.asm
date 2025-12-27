@@ -38,7 +38,7 @@ _XIT            rts
 
 ;======================================
 ;
-;====================================== ;[[F]]
+;====================================== ;[[V]]
 InitBall        .proc
                 stz flagsBall_9D81      ; reset
                 stz nodeOperation       ; =operPIXEL
@@ -326,7 +326,7 @@ _XIT            rts
 
 ;======================================
 ;
-;====================================== ;[[F]]
+;====================================== ;[[V]]
 RenderBall      .proc
                 bit animSplashFrame
                 bpl _1
@@ -352,10 +352,6 @@ _1              lda IOPAGE_CTRL
                 lda newBallPosY         ; update the new ball vertical position
                 sta yPosBall
 
-                .frsSpriteShow 8        ; draw at the new position   HACK:
-                .frsSpriteSetX xPosBall,8
-                .frsSpriteSetY yPosBall,8
-
 ; - - - - - - - - - - - - - - - - - - -
 ;   render the ball shadow
                 lda flags_BallVisible   ; shadow(bit-7) is visible?
@@ -366,8 +362,8 @@ _1              lda IOPAGE_CTRL
                 beq _2                  ; skip when no bits
 
                 .frsSpriteShow 9        ; draw at the new position
-                .frsSpriteSetX xPosBallShadow,9
-                .frsSpriteSetY yPosBallShadow,9
+                .frsSpriteSetX_8bit xPosBallShadow,9
+                .frsSpriteSetY_8bit yPosBallShadow,9
 
 ; - - - - - - - - - - - - - - - - - - -
 ;   render the ball
@@ -378,10 +374,9 @@ _2              lda flags_BallVisible   ; ball(bit-6) is visible?
                 and flagsBall_9DAF
                 beq _XIT                ; skip when no bits
 
-                ;(HACK:)
-                ;;;.frsSpriteShow 8        ; draw at the new position
-                ;;;.frsSpriteSetX xPosBall,8
-                ;;;.frsSpriteSetY yPosBall,8
+                .frsSpriteShow 8        ; draw at the new position
+                .frsSpriteSetX_8bit xPosBall,8
+                .frsSpriteSetY_8bit yPosBall,8
 
 ; - - - - - - - - - - - - - - - - - - -
 ;   restore IOPAGE control
@@ -391,7 +386,6 @@ _XIT            pla
 ; - - - - - - - - - - - - - - - - - - -
                 rts
                 .endproc
-
 
 
 ;--------------------------------------
@@ -503,8 +497,8 @@ _1              tax
                 bne _2
 
                 .frsSpriteShow 12        ; draw at the new position
-                .frsSpriteSetX xPosBall+32,12
-                .frsSpriteSetY yPosBall+32,12
+                .frsSpriteSetX_8bit xPosBall,12
+                .frsSpriteSetY_8bit yPosBall,12
 
                 cpx #$00
                 bne _1A
@@ -615,8 +609,8 @@ _1              tax
 
 ; - - - - - - - - - - - - - - - - - - -
 _proceed        .frsSpriteShow 12        ; draw at the new position
-                .frsSpriteSetX xPosBall+32,12
-                .frsSpriteSetY yPosBall+32,12
+                .frsSpriteSetX_8bit xPosBall,12
+                .frsSpriteSetY_8bit yPosBall,12
 
                 cpx #$00
                 bne _1A
@@ -745,8 +739,8 @@ _2              tax
 
 ; - - - - - - - - - - - - - - - - - - -
 _proceed        .frsSpriteShow 12        ; draw at the new position
-                .frsSpriteSetX xPosBall+32,12
-                .frsSpriteSetY yPosBall+32,12
+                .frsSpriteSetX_8bit xPosBall,12
+                .frsSpriteSetY_8bit yPosBall,12
 
                 cpx #$00
                 bne _2A
@@ -876,8 +870,8 @@ _2              tax
 
 ; - - - - - - - - - - - - - - - - - - -
 _proceed        .frsSpriteShow 12        ; draw at the new position
-                .frsSpriteSetX xPosBall+32,12
-                .frsSpriteSetY yPosBall+32,12
+                .frsSpriteSetX_8bit xPosBall,12
+                .frsSpriteSetY_8bit yPosBall,12
 
                 cpx #$00
                 bne _2A

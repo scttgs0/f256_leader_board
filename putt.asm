@@ -120,10 +120,10 @@ InitGolferPutt .proc
                 .frsSpriteShow 4        ; player top
                 .frsSpriteShow 5        ; player bottom
 
-                .frsSpriteSetX $7E,4    ; player top
-                .frsSpriteSetY $B8,4
-                .frsSpriteSetX $7E,5    ; player bottom
-                .frsSpriteSetY $D8,5
+                .frsSpriteSetX #$7E,4    ; player top
+                .frsSpriteSetY #$B8,4
+                .frsSpriteSetX #$7E,5    ; player bottom
+                .frsSpriteSetY #$D8,5
 
 ; - - - - - - - - - - - - - - - - - - -
 ;   restore IOPAGE control
@@ -184,8 +184,8 @@ _next1          jsr AimTarget._SKIPBALL
 
 ;   render the ball
                 .frsSpriteShow 8
-                .frsSpriteSetX xPosBall,8
-                .frsSpriteSetY yPosBall,8
+                .frsSpriteSetX_8bit xPosBall,8
+                .frsSpriteSetY_8bit yPosBall,8
 
 _next2          jsr BackSwingAnim
                 jsr Swing_math_326F
