@@ -90,7 +90,7 @@ _nextPixel      clc
 
                 lda #$00                ; background
                 .byte $2C
-_one            lda #$16                ; foreground
+_one            lda #$20                ; foreground
                 sta (_dest),Y
                 iny
 

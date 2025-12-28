@@ -34,7 +34,7 @@ SprColorD       .dword $00505050    ;       gauge
 SprColorE       .dword $00eeeeee    ; [1E]  ball
 SprColorF       .dword $00cccccc    ; [1F]  aim target
 
-palColor0       .dword $00080808    ; [20]
+palColor0       .dword $00c9a765    ; [20]  scoreboard text
 palColor1       .dword $006864fc
 palColor2       .dword $004898d8
 palColor3       .dword $0054a838
