@@ -7,6 +7,7 @@ DoConfig        .proc
                 jsr XBPC_DrawScoreboard
                 jsr DrawCredits
 
+; - - - - - - - - - - - - - - - - - - -
 _ENTRY1         jsr DrawDialog
                 jsr SetTimer0._32
 
@@ -18,6 +19,7 @@ _ENTRY1         jsr DrawDialog
                 jsr AskGameLength
                 jsr AskCourseSelection
 
+; - - - - - - - - - - - - - - - - - - -
 _ENTRY2         jmp ClearScore
 
                 .endproc
@@ -1009,7 +1011,7 @@ _next1          jsr GetKeycode
                 bne _1                  ;   no
 
 ;   /// P - Professional ///
-                lda #$02
+                lda #skillPRO
                 jmp _3
 
 ; - - - - - - - - - - - - - - - - - - -
@@ -1017,7 +1019,7 @@ _1              cmp #$61                ; A-key?
                 bne _2                  ;   no
 
 ;   /// A - Amateur ///
-                lda #$01
+                lda #skillAMATEUR
                 jmp _3
 
 ; - - - - - - - - - - - - - - - - - - -

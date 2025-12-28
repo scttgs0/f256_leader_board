@@ -315,7 +315,7 @@ SetGaugeSnap    .proc
                 lda #`$005847           ; $18023D8 / $005847 = $45A (1/1114 sec)
                 sta EnableTimer24bit._tmrDuration_24
 
-                lda #>$005847             
+                lda #>$005847
                 sta EnableTimer24bit._tmrDuration_HI
 
                 lda #<$005847
