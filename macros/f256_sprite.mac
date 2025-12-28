@@ -69,9 +69,17 @@ frsSpriteClearY .macro idx
 
 
 frsSpriteSetX   .macro val,idx
-                lda <\val
+                lda \val
                 sta SPR(sprite_t.X, \idx)
-                lda >\val
+                lda \val+1
+                sta SPR(sprite_t.X+1, \idx)
+                .endmacro
+
+
+frsSpriteSetX_imm .macro val,idx
+                lda #<\val
+                sta SPR(sprite_t.X, \idx)
+                lda #>\val
                 sta SPR(sprite_t.X+1, \idx)
                 .endmacro
 
@@ -85,9 +93,17 @@ frsSpriteSetX_8bit .macro val,idx
 
 
 frsSpriteSetY   .macro val,idx
-                lda <\val
+                lda \val
                 sta SPR(sprite_t.Y, \idx)
-                lda >\val
+                lda \val+1
+                sta SPR(sprite_t.Y+1, \idx)
+                .endmacro
+
+
+frsSpriteSetY_imm .macro val,idx
+                lda #<\val
+                sta SPR(sprite_t.Y, \idx)
+                lda #>\val
                 sta SPR(sprite_t.Y+1, \idx)
                 .endmacro
 

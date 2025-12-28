@@ -209,7 +209,7 @@ tblCourseIndexes        .fill 4,$00
 
 newBallShadowPosY       .byte $00       ;
 newBallPosY             .byte $00       ; triplet
-newBallPosX             .byte $00       ;
+newBallPosX             .word $0000     ;
 
 flagsBall_9DAF          .byte $00
 ballController          .byte $00

@@ -15,12 +15,13 @@ GetUserInput    .proc
 
                 txa
                 clc
-                adc xPosDeltaBall
+                adc xMarginOverscan
                 sta xPosBallShadow
+                stz xPosBallShadow+1
 
                 tya
                 clc
-                adc yPosDeltaBall
+                adc yMarginOverscan
                 sta yPosBallShadow
 
                 lda #TRUE

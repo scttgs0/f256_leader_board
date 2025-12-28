@@ -637,10 +637,10 @@ DrawGolfer      .proc
                 .frsSpriteShow 1        ; player top
                 .frsSpriteShow 2        ; player bottom
 
-                .frsSpriteSetX #$70,1    ; player top
-                .frsSpriteSetY #$B6,1
-                .frsSpriteSetX #$70,2    ; player bottom
-                .frsSpriteSetY #$D6,2
+                .frsSpriteSetX_imm $70,1    ; player top
+                .frsSpriteSetY_imm $B6,1
+                .frsSpriteSetX_imm $70,2    ; player bottom
+                .frsSpriteSetY_imm $D6,2
 
                 ldx golferSwingFrame
                 cmp #$FF

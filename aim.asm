@@ -14,7 +14,8 @@ AimTarget       .proc
 ; - - - - - - - - - - - - - - - - - - -
                 jsr ClearMissiles
 
-;   place the ball
+; - - - - - - - - - - - - - - - - - - -
+;   view-projection ball position
                 lda #<$1800
                 sta polyVertX_LO
                 lda #>$1800
@@ -33,20 +34,22 @@ AimTarget       .proc
                 ldx #xformNORMAL
                 jsr VertexTransform
 
+;   render the ball
                 txa
-                ror                     ; /2 (PORT: necessary???)
-                adc xPosDeltaBall
+                clc
+                adc xMarginOverscan
                 sta xPosBall
+                lda #$00
+                adc #$00
+                sta xPosBall+1
 
                 tya
                 clc
-                adc yPosDeltaBall
-                tay
+                adc yMarginOverscan
                 sta yPosBall
 
-;   render the ball
                 .frsSpriteShow 8
-                .frsSpriteSetX_8bit xPosBall,8
+                .frsSpriteSetX xPosBall,8
                 .frsSpriteSetY_8bit yPosBall,8
 
 ; - - - - - - - - - - - - - - - - - - -
@@ -192,24 +195,24 @@ _4              lda aimPosition_HI
 _5              ldx #xformAIM_POS
                 jsr VertexTransform
 
-; - - - - - - - - - - - - - - - - - - -
-;   render aim point
-                .frsSpriteShow 10
-
+;   render the aim target
                 txa
                 clc
-                adc xPosDeltaBall
-                sta SPR(sprite_t.X, 10)
-                lda newVertX_HI
-                sta SPR(sprite_t.X+1, 10)
+                adc xMarginOverscan
+                sta xPosTemp
+                lda #$00
+                adc #$00
+                sta xPosTemp+1
 
                 tya
                 clc
-                adc yPosDeltaBall
-                sta yPosBallShadow      ; necessary???
-                sta SPR(sprite_t.Y, 10)
-                lda #$00
-                sta SPR(sprite_t.Y+1, 10)
+                adc yMarginOverscan
+                sta yPosBallShadow
+                sta yPosTemp
+
+                .frsSpriteShow 10
+                .frsSpriteSetX xPosTemp,10
+                .frsSpriteSetY_8bit yPosTemp,10
 
 ; - - - - - - - - - - - - - - - - - - -
 ;   restore IOPAGE control

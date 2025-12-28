@@ -39,12 +39,12 @@ COLOR_WHITE         = $28
 
 ;--------------------------------------
 
-xPosBallShadow      = $0290
-xPosBall            = $0291
-xPosAimTarget       = $0292
+xPosBallShadow      = $0290             ; [word]
+xPosBall            = $0292             ; [word]
+xPosAimTarget       = $0294
 
-yPosBallShadow      = $0294
-yPosBall            = $0295
+yPosBallShadow      = $0296
+yPosBall            = $0297
 
 ;--------------------------------------
 
@@ -53,5 +53,3 @@ screen16K               = $8000         ; 2 slots [$8000:$BFFF]
 
 scrnTop                 = screen16K
 ;;scrnBottom              = $B000
-
-;--------------------------------------

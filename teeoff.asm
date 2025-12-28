@@ -531,8 +531,7 @@ _8              lda temp9D29
 _9              sta temp9D29
 
 ;   place ball shadow
-_10             lda xPosBall
-                .frsSpriteSetX_8bit xPosBall,9
+_10             .frsSpriteSetX xPosBallShadow,9
 
                 lda temp9D33_puttX_LO
                 ora temp9D57_puttX_HI

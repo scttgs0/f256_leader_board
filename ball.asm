@@ -74,15 +74,28 @@ _next1          ldx #$06                        ; missile-1 (ball)
                 jmp _next1
 
 ; - - - - - - - - - - - - - - - - - - -
-_1              lda newBallPosY
-                sta yPosBall
-                sta SPR(sprite_t.Y, 8)
+;   preserve IOPAGE control
+_1              lda IOPAGE_CTRL
+                pha
 
-                lda newBallPosX
-                sta SPR(sprite_t.X, 8)
+;   switch to system map
+                stz IOPAGE_CTRL
+
+; - - - - - - - - - - - - - - - - - - -
+                lda newBallPosY
+                sta yPosBall
+
+                .frsSpriteSetX_8bit newBallPosX,8
+                .frsSpriteSetY_8bit newBallPosY,8
 
                 jsr ClearMissiles
 
+; - - - - - - - - - - - - - - - - - - -
+;   restore IOPAGE control
+_XIT            pla
+                sta IOPAGE_CTRL
+
+; - - - - - - - - - - - - - - - - - - -
                 lda #$0C                ; duration
                 ldx #$06                ; timer 6
                 jsr SetTimer
@@ -103,8 +116,11 @@ _1              lda newBallPosY
 ;--------------------------------------
 ;--------------------------------------
 
-xPosDeltaBall   .byte $2F
-yPosDeltaBall   .byte $1F
+xMarginOverscan .byte $20
+yMarginOverscan .byte $27
+
+xPosTemp        .word $0000
+yPosTemp        .word $0000
 
 
 ;======================================
@@ -135,12 +151,18 @@ _2              sta flags_BallVisible
 
                 lda yTransform
                 clc
-                adc yPosDeltaBall
+                adc yMarginOverscan
                 sta yTransform
+
                 lda xTransform
-                lsr
-                adc xPosDeltaBall
+                ;!!lsr                     ; necessary??
+                clc
+                adc xMarginOverscan
                 tax
+                stx newBallPosX
+                lda #$00
+                adc #$00
+                sta newBallPosX+1
 
                 lda distanceYards_HI
                 ora distanceYards_LO
@@ -159,9 +181,8 @@ _2              sta flags_BallVisible
 ; - - - - - - - - - - - - - - - - - - -
 _3              lda zTransform
                 clc
-                adc yPosDeltaBall
+                adc yMarginOverscan
 _4              sta newBallShadowPosY
-                stx newBallPosX
 
                 lda yTransform
                 sta newBallPosY
@@ -213,13 +234,14 @@ _1              lda newBallPosY
                 ldx newBallPosX
 
 _2              sec
-                sbc yPosDeltaBall
+                sbc yMarginOverscan
                 tay
 
                 txa
                 sec
-                sbc xPosDeltaBall
+                sbc xMarginOverscan
                 tax
+                ; TODO: hi-byte
 
                 rts
                 .endproc
@@ -345,7 +367,10 @@ _1              lda IOPAGE_CTRL
                 lda newBallShadowPosY   ; update the new shadow vertical position
                 sta yPosBallShadow
 
-                ldx newBallPosX         ; move ball and shadow horizontally
+                ldx newBallPosX+1       ; move ball and shadow horizontally
+                stx xPosBallShadow+1
+                stx xPosBall+1
+                ldx newBallPosX
                 stx xPosBallShadow
                 stx xPosBall
 
@@ -362,7 +387,7 @@ _1              lda IOPAGE_CTRL
                 beq _2                  ; skip when no bits
 
                 .frsSpriteShow 9        ; draw at the new position
-                .frsSpriteSetX_8bit xPosBallShadow,9
+                .frsSpriteSetX xPosBallShadow,9
                 .frsSpriteSetY_8bit yPosBallShadow,9
 
 ; - - - - - - - - - - - - - - - - - - -
@@ -375,7 +400,7 @@ _2              lda flags_BallVisible   ; ball(bit-6) is visible?
                 beq _XIT                ; skip when no bits
 
                 .frsSpriteShow 8        ; draw at the new position
-                .frsSpriteSetX_8bit xPosBall,8
+                .frsSpriteSetX xPosBall,8
                 .frsSpriteSetY_8bit yPosBall,8
 
 ; - - - - - - - - - - - - - - - - - - -
@@ -497,7 +522,7 @@ _1              tax
                 bne _2
 
                 .frsSpriteShow 12        ; draw at the new position
-                .frsSpriteSetX_8bit xPosBall,12
+                .frsSpriteSetX xPosBall,12
                 .frsSpriteSetY_8bit yPosBall,12
 
                 cpx #$00
@@ -609,7 +634,7 @@ _1              tax
 
 ; - - - - - - - - - - - - - - - - - - -
 _proceed        .frsSpriteShow 12        ; draw at the new position
-                .frsSpriteSetX_8bit xPosBall,12
+                .frsSpriteSetX xPosBall,12
                 .frsSpriteSetY_8bit yPosBall,12
 
                 cpx #$00
@@ -739,7 +764,7 @@ _2              tax
 
 ; - - - - - - - - - - - - - - - - - - -
 _proceed        .frsSpriteShow 12        ; draw at the new position
-                .frsSpriteSetX_8bit xPosBall,12
+                .frsSpriteSetX xPosBall,12
                 .frsSpriteSetY_8bit yPosBall,12
 
                 cpx #$00
@@ -870,7 +895,7 @@ _2              tax
 
 ; - - - - - - - - - - - - - - - - - - -
 _proceed        .frsSpriteShow 12        ; draw at the new position
-                .frsSpriteSetX_8bit xPosBall,12
+                .frsSpriteSetX xPosBall,12
                 .frsSpriteSetY_8bit yPosBall,12
 
                 cpx #$00
