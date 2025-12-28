@@ -412,15 +412,13 @@ ps2KeybdErr         = $40
 ps2KeybdAck         = $80
 
 ;--------------------------------------
-
+;   Timer-0 @ 25.175 MHz
 TIMER0_CTRL             = $D650         ; [write-only]
 tmrcDown            = $00
 tmrcEnable          = $01
 tmrcClear           = $02
 tmrcLoad            = $04
 tmrcUp              = $08
-tmrcReClear         = $10
-tmrcReLoad          = $20
 tmrcInterrupt       = $80
 
 TIMER0_STATUS           = $D650         ; [read-only]
@@ -428,12 +426,14 @@ tmrsNotEqual        = $00
 tmrsEqual           = $01
 
 TIMER0_VALUE            = $D651         ; [long]
-TIMER0_CMP_CTRL         = $D654
-tmrccClear          = $01
-tmrccLoad           = $02
 
+TIMER0_CMP_CTRL         = $D654
+tmrccReClear        = $01
+tmrccReLoad         = $02
 TIMER0_CMP              = $D655         ; [long]
 
+; - - - - - - - - - - - - - - - - - - -
+;   Timer-1 @ 60/70 Hz (depending on resolution)
 TIMER1_CTRL             = $D658         ; [write-only]
 TIMER1_STATUS           = $D658         ; [read-only]
 TIMER1_VALUE            = $D659         ; [long]

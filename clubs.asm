@@ -223,18 +223,19 @@ _XIT            rts
 ResetGauge      .proc
                 sei
 
-                jsr DisableTimer16bit
+                jsr DisableTimer24bit
 
-                lda #>$FFF0             ; $1B4F5E / $FFF0 = $1B (1/27 sec)
-                ;!!sta AUDF1               ; 16-bit timer duration (HI)
-                sta EnableTimer16bit._tmrDuration_HI
+                lda #`$0E3A37           ; $18023D8 / $0E3A37 = $1B (1/27 sec)
+                sta EnableTimer24bit._tmrDuration_24
 
-                lda #<$FFF0
+                lda #>$0E3A37
+                sta EnableTimer24bit._tmrDuration_HI
+
+                lda #<$0E3A37
                 eor DoTimers.timer16bitMask_LO
-                ;!!sta AUDF2               ; 16-bit timer duration (LO)
-                sta EnableTimer16bit._tmrDuration_LO
+                sta EnableTimer24bit._tmrDuration_LO
 
-                jsr EnableTimer16bit
+                jsr EnableTimer24bit
 
                 lda #gaugeINACTIVE
                 sta gaugeStage
@@ -250,19 +251,20 @@ ResetGauge      .proc
 SetGaugePower   .proc
                 sei
 
-                jsr DisableTimer16bit
+                jsr DisableTimer24bit
 
-                lda #>$FFFF             ; $1B4F5E / $FFFF = $1B (1/27 sec)
-                sta EnableTimer16bit._tmrDuration_HI
-                ;!!sta AUDF1               ; 16-bit timer duration (HI)
+                lda #`$0E3A37           ; $18023D8 / $0E3A37 = $1B (1/27 sec)
+                sta EnableTimer24bit._tmrDuration_24
 
-                lda #<$FFFF
-                sta EnableTimer16bit._tmrDuration_LO
-                ;!!sta AUDF2               ; 16-bit timer duration (LO)
+                lda #>$0E3A37
+                sta EnableTimer24bit._tmrDuration_HI
+
+                lda #<$0E3A37
+                sta EnableTimer24bit._tmrDuration_LO
 
                 stz gaugeValue          ; reset
 
-                jsr EnableTimer16bit
+                jsr EnableTimer24bit
 
                 lda #gaugeASCENDING
                 sta gaugeStage          ; = Power Increasing
@@ -278,20 +280,21 @@ SetGaugePower   .proc
 SetGaugeTiming  .proc
                 sei
 
-                jsr DisableTimer16bit
+                jsr DisableTimer24bit
 
-                lda #>$865C             ; $1B4F5E / $865C = $34 (1/52 sec)
-                sta EnableTimer16bit._tmrDuration_HI
-                ;!!sta AUDF1               ; 16-bit timer duration (HI)
+                lda #`$076326           ; $18023D8 / $076326 = $34 (1/52 sec)
+                sta EnableTimer24bit._tmrDuration_24
 
-                lda #<$865C
-                sta EnableTimer16bit._tmrDuration_LO
-                ;!!sta AUDF2               ; 16-bit timer duration (LO)
+                lda #>$076326
+                sta EnableTimer24bit._tmrDuration_HI
+
+                lda #<$076326
+                sta EnableTimer24bit._tmrDuration_LO
 
                 lda #$10
                 sta gaugeValue          ; = peak power
 
-                jsr EnableTimer16bit
+                jsr EnableTimer24bit
 
                 lda #gaugeDESCENDING
                 sta gaugeStage          ; = Power Decreasing
@@ -307,20 +310,21 @@ SetGaugeTiming  .proc
 SetGaugeSnap    .proc
                 sei
 
-                jsr DisableTimer16bit
+                jsr DisableTimer24bit
 
-                lda #>$0646             ; $1B4F5E / $0646 = $45A (1/1114 sec)
-                sta EnableTimer16bit._tmrDuration_HI
-                ;!!sta AUDF1               ; 16-bit timer duration (HI)
+                lda #`$005847           ; $18023D8 / $005847 = $45A (1/1114 sec)
+                sta EnableTimer24bit._tmrDuration_24
 
-                lda #<$0646
-                sta EnableTimer16bit._tmrDuration_LO
-                ;!!sta AUDF2               ; 16-bit timer duration (LO)
+                lda #>$005847             
+                sta EnableTimer24bit._tmrDuration_HI
+
+                lda #<$005847
+                sta EnableTimer24bit._tmrDuration_LO
 
                 lda #$20
                 sta gaugeValue          ; beginning of snap
 
-                jsr EnableTimer16bit
+                jsr EnableTimer24bit
 
                 lda #gaugeSNAP
                 sta gaugeStage
@@ -336,7 +340,7 @@ SetGaugeSnap    .proc
 SyncSwingGauge  .proc
                 sei
 
-                jsr DisableTimer16bit
+                jsr DisableTimer24bit
 
                 ldx gaugeStage
                 dex                     ; clamp to range[0:2]
@@ -344,10 +348,12 @@ SyncSwingGauge  .proc
                 lda gaugeValue
                 sta cacheGaugeValue,X
 
-                lda EnableTimer16bit._tmrDuration_HI
-                sta cacheTimer16bit_HI,X
-                lda EnableTimer16bit._tmrDuration_LO
-                sta cacheTimer16bit_LO,X
+                lda EnableTimer24bit._tmrDuration_24
+                sta cacheTimer24bit_24,X
+                lda EnableTimer24bit._tmrDuration_HI
+                sta cacheTimer24bit_HI,X
+                lda EnableTimer24bit._tmrDuration_LO
+                sta cacheTimer24bit_LO,X
 
                 cpx #$02                ; =snap?
                 bne _1                  ;   no
@@ -362,11 +368,9 @@ _1              cli
 ;======================================
 ;
 ;====================================== ;[[U]]
-DisableTimer16bit .proc
-                ;!!lda POKMSK
-                ;!!and #$FD                ; disable 16-bit timer
-                ;!!sta POKMSK
-                ;!!sta IRQEN
+DisableTimer24bit .proc
+                lda #$00
+                sta TIMER0_CTRL
 
                 rts
                 .endproc
@@ -375,22 +379,25 @@ DisableTimer16bit .proc
 ;======================================
 ;
 ;====================================== ;[[U]]
-EnableTimer16bit    .proc
+EnableTimer24bit .proc
+                lda _tmrDuration_24
+                sta TIMER0_VALUE+2
                 lda _tmrDuration_HI
-                ;!!sta AUDF1               ; 16-bit timer duration (HI)
+                sta TIMER0_VALUE+1
                 lda _tmrDuration_LO
-                ;!!sta AUDF2               ; 16-bit timer duration (LO)
-                ;!!sta STIMER              ; begin countdown
+                sta TIMER0_VALUE
 
-                ;!!lda POKMSK
-                ;!!ora #$02                ; enable 16-bit timer (count down to zero)
-                ;!!sta POKMSK
-                ;!!sta IRQEN
+                lda #tmrcEnable|tmrcDown|tmrcLoad|tmrcInterrupt
+                sta TIMER0_CTRL
+
+                lda #tmrccReLoad
+                sta TIMER0_CMP_CTRL
 
                 rts
 
 ;--------------------------------------
 
+_tmrDuration_24 .byte $FF
 _tmrDuration_HI .byte $FF
 _tmrDuration_LO .byte $FF
 

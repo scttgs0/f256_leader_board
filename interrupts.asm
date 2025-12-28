@@ -29,13 +29,21 @@ irqMain         .proc
 
                 ; jsr KeyboardHandler
 
-_chkSOF         lda irq_pending
-                bit #INT00_SOF
-                beq _chkSOL
+;!!_chkTimer0      lda #INT00_TIMER0
+;!!                bit irq_pending
+;!!                beq _chkSOF
+;!!
+;!!                sta INT_PENDING_REG0
+;!!
+;!!                jsr irqTimer0
+
+_chkSOF         lda #INT00_SOF
+                bit irq_pending
+                beq _XIT
 
                 jsr irqVBIHandler
 
-_chkSOL         ;!!lda irq_pending
+;!!_chkSOL         lda irq_pending
                 ;!!bit #INT00_SOL
                 ;!!beq _XIT
 
@@ -56,8 +64,25 @@ irqMain_END     jmp (priorIRQ_BRK)
 
 
 ;~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-; Vertical Blank Interrupt (SOF)
+; Timer-0 (24-bit counter)
 ;~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ;[[F]]
+irqTimer0       .proc
+                pha
+                phx
+                phy
+
+                jsr DoSwingGauge
+
+                ply
+                plx
+                pla
+                rts
+                .endproc
+
+
+;~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+; Vertical Blank Interrupt (SOF)
+;~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ;[[V]]
 irqVBIHandler   .proc
                 pha
                 phx
@@ -65,13 +90,17 @@ irqVBIHandler   .proc
 
                 inc JIFFYCLOCK          ; increment the jiffy clock each VBI
 
-                jsr DoSwingGauge
-
                 jsr DoTimers
                 jsr SwingAnim_DeferredA
                 jsr Math_DeferredB
 
-                ply
+                ;!!lda JIFFYCLOCK
+                ;!!and #$02
+                ;!!beq _XIT
+
+                jsr DoSwingGauge
+
+_XIT            ply
                 plx
                 pla
                 rts

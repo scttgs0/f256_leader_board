@@ -33,8 +33,9 @@ golferSwingFrameMax     .byte $00
 gaugeValue              .byte $00       ; swing gauge: [0:15] power incr, [16:31] power decr/timing, [32:48] snap
 gaugeStage              .byte $00       ; swing gauge: 0=inactive, 1=ascending, 2=descending, 3=snap
 cacheGaugeValue         .fill 3,$00     ; swing gauge: 0=ascending, 1=descending, 2=snap
-cacheTimer16bit_HI      .fill 3,$00     ; swing gauge: 0=ascending, 1=descending, 2=snap
-cacheTimer16bit_LO      .fill 3,$00     ; swing gauge: 0=ascending, 1=descending, 2=snap
+cacheTimer24bit_24      .fill 3,$00     ; swing gauge: 0=ascending, 1=descending, 2=snap
+cacheTimer24bit_HI      .fill 3,$00     ; swing gauge: 0=ascending, 1=descending, 2=snap
+cacheTimer24bit_LO      .fill 3,$00     ; swing gauge: 0=ascending, 1=descending, 2=snap
 
 activePlayer            .byte $00
 tempC                   .byte $00       ; idxCourse_honor_scale_temp

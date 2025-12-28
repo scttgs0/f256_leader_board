@@ -1218,6 +1218,11 @@ InitIRQs        .proc
                 ;!!and #~INT00_SOL
                 ;!!sta INT_MASK_REG0
 
+;   enabled Timer-0
+                ;!!lda INT_MASK_REG0
+                ;!!and #~INT00_TIMER0
+                ;!!sta INT_MASK_REG0
+
 ;   enable Keyboard IRQ
                 ;!! lda INT_MASK_REG1
                 ;!! and #~INT01_VIA1
