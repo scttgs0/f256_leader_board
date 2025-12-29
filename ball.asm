@@ -206,7 +206,6 @@ CalcMissilePositionAndMask .proc
                 jsr CalcMissilePosition ; result [X,Y]
                 jmp ShiftPixelMask      ; result in A=maskedPixelValue
 
-                ;!!rts		; HACK:
                 .endproc
 
 

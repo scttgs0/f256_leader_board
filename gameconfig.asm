@@ -470,29 +470,6 @@ _next1          sta GameState_BASE,X
                 inx
                 bne _next1
 
-;   HACK:
-                ; lda #$06
-                ; sta idxActiveHole
-                ; lda #$00
-                ; sta idxActiveCourse
-                ; lda #$00
-                ; sta tblCourseIndexes
-                ; lda #unitYARDS
-                ; sta playerDistUnit
-                ; lda #skillPRO
-                ; sta tblPlayerAbility
-
-                ; putting mode
-                ; lda #TRUE
-                ; sta isTeeOffDone
-                ; lda #unitFEET
-                ; sta playerDistUnit
-                ; lda #>$0016
-                ; sta playerVertY_delta
-                ; lda #<$0016
-                ; sta playerVertY_delta+1
-;   HACK: end
-
                 rts
                 .endproc
 
@@ -552,12 +529,12 @@ ProcessESC      .proc
                 jsr GetKeycode
 
                 cmp #$BC                ; RUNSTOP-key?
-                ;;beq _1                  ;   yes       HACK: avoid issue (see below)
+                beq _1                  ;   yes
 
                 rts                     ;   no
 
 ; - - - - - - - - - - - - - - - - - - -
-;   /// RUNSTOP-key ///     ; HACK: this can cause problems because we have hacked the call structure
+;   /// RUNSTOP-key ///
 _1              pla                     ; discard (PuttControl) return address
                 pla
                 pla                     ; ??
