@@ -216,7 +216,7 @@ _next1          jsr ChangeClub
                 jsr DemoInput
                 jsr DrawClock
 
-;   HACK:
+;   HACK: developer mode to cycle through the animation cells
                 lda KEYCODE
                 cmp #$FF
                 beq _h1
@@ -224,8 +224,9 @@ _next1          jsr ChangeClub
                 cmp #','                ; '<'-key
                 bne _h0
 
-                ;;lda #TRUE
-                ;;sta isSwingInProgress
+                lda _h_frame
+                cmp #$00                ; prevent underflow
+                beq _h1
 
                 dec _h_frame
                 lda _h_frame
@@ -237,8 +238,9 @@ _next1          jsr ChangeClub
 _h0             cmp #$2F                ; '?/'-key
                 bne _h1
 
-                ;;lda #TRUE
-                ;;sta isSwingInProgress
+                lda _h_frame
+                cmp #$1F                ; prevent overflow
+                beq _h1
 
                 inc _h_frame
                 lda _h_frame
@@ -250,7 +252,7 @@ _h0             cmp #$2F                ; '?/'-key
 _h_frame        .byte $00
 
 _h1
-; end HACK::
+; end HACK:: developer mode to cycle through the animation cells
 
                 lda KEYCODE
                 cmp #$83                ; OPTION pressed?
