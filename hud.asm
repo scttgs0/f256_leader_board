@@ -270,10 +270,14 @@ RenderHUDCourse .proc
 ;====================================== ;[[U]]+
 RenderHUDPlayers .proc
                 jsr RenderHUDActivePlayer  ; '>'-mark for the active player
-                bra _hack    ; HACK:
 
                 lda #stagePLAY
                 sta nStage
+
+                lda #' '                ; not sure which players are in use yet
+                sta _scrnP2
+                sta _scrnP3
+                sta _scrnP4
 
                 lda numPlayers
                 sta idxPlayer
@@ -284,38 +288,106 @@ _nextplayer     ldx idxPlayer
                 stz wordB_3CBE+1        ; hi-byte unused
 
                 jsr XBPC_ConvertToArray
-                jsr XBPC_FindFirstUsed  ; Y result is ignored
 
-                lda #$05                ; line number [5:8]
-                clc
-                adc idxPlayer
-                tay
-                ldx #$21                ; [33,5+]
-                jsr CalcPixelAddr
+                lda #' '
+                sta _hundreds
+                sta _tens
+                sta _ones
 
-                lda #'0'                ; '0'-glyph
-                sta glyphType
-                jsr PlotCharArray._2digits
+                lda arr5Digits+2        ; is there a hundreds-digit?
+                beq _10s                ;   no
 
-                lda idxActiveCourse
-                bne _1
+                ora #'0'                ;   yes
+                sta _hundreds
 
-                lda idxActiveHole       ; first hole?
-                beq _2                  ;   yes, skip
+_10s            lda arr5Digits+3        ; is there a tens-digit?
+                beq _1s                 ;   no
 
-_1              jsr XBPC_RenderScoreDelta
+                ora #'0'                ;   yes
+                sta _tens
 
-_2              jsr DoNothing4
+_1s             lda arr5Digits+4        ; always a ones-digit
+                ora #'0'
+                sta _ones
+
+; - - - - - - - - - - - - - - - - - - -
+                lda idxPlayer
+                cmp #$00                ; player 1?
+                bne _chkP2              ;   no
+
+                lda _hundreds
+                sta _scrnP1Strokes
+                lda _tens
+                sta _scrnP1Strokes+1
+                lda _ones
+                sta _scrnP1Strokes+2
+                bra _cont
+
+; - - - - - - - - - - - - - - - - - - -
+_chkP2          cmp #$01                ; player 2?
+                bne _chkP3              ;   no
+
+                lda #'2'
+                sta _scrnP2
+
+                lda _hundreds
+                sta _scrnP2Strokes
+                lda _tens
+                sta _scrnP2Strokes+1
+                lda _ones
+                sta _scrnP2Strokes+2
+                bra _cont
+
+; - - - - - - - - - - - - - - - - - - -
+_chkP3          cmp #$02                ; player 3?
+                bne _P4                 ;   no
+
+                lda #'3'
+                sta _scrnP3
+
+                lda _hundreds
+                sta _scrnP3Strokes
+                lda _tens
+                sta _scrnP3Strokes+1
+                lda _ones
+                sta _scrnP3Strokes+2
+                bra _cont
+
+; - - - - - - - - - - - - - - - - - - -
+_P4             lda #'4'
+                sta _scrnP4
+
+                lda _hundreds           ; must be player 4
+                sta _scrnP4Strokes
+                lda _tens
+                sta _scrnP4Strokes+1
+                lda _ones
+                sta _scrnP4Strokes+2
+                bra _cont
+
+; - - - - - - - - - - - - - - - - - - -
+_cont           lda idxActiveCourse     ; first course?
+                bne _1                  ;   no, render delta
+
+                lda idxActiveHole       ; first hole (on the first course)?
+                beq _2                  ;   yes, skip delta display
+
+_1              ;;jsr XBPC_RenderScoreDelta
+
+_2              jsr DoNothing4          ; teensy delay
 
                 dec idxPlayer
-                bpl _nextplayer
-
-                rts
+                bmi _render
+                jmp _nextplayer
 
 ;--------------------------------------
-;//////////////////////
 
-_hack           .frsTextXY 31,5,$F0,RenderHUDPlayers._scrnName
+_hundreds       .text ' '
+_tens           .text ' '
+_ones           .text ' '
+
+;--------------------------------------
+_render         .frsTextXY 31,5,$F0,RenderHUDPlayers._scrnName
 
                 .frsTextXY 30,6,$F0,RenderHUDPlayers._scrnP1Active
                 .frsTextXY 31,6,$10,RenderHUDPlayers._scrnP1
@@ -341,22 +413,22 @@ _hack           .frsTextXY 31,5,$F0,RenderHUDPlayers._scrnName
 
 ;--------------------------------------
 
-_scrnName       .null "ADAM    "
+_scrnName       .null "        "
 
 _scrnP1Active   .null " "
 _scrnP1         .null "1"
-_scrnP1Strokes  .null "  0"
-_scrnP1Delta    .null " -1"
+_scrnP1Strokes  .null "   "
+_scrnP1Delta    .null "   "
 
 _scrnP2Active   .null " "
 _scrnP2         .null "2"
-_scrnP2Strokes  .null "  0"
-_scrnP2Delta    .null "  E"
+_scrnP2Strokes  .null "   "
+_scrnP2Delta    .null "   "
 
 _scrnP3Active   .null " "
 _scrnP3         .null "3"
-_scrnP3Strokes  .null "  0"
-_scrnP3Delta    .null " +1"
+_scrnP3Strokes  .null "   "
+_scrnP3Delta    .null "   "
 
 _scrnP4Active   .null " "
 _scrnP4         .null "4"
@@ -387,7 +459,7 @@ _glyphCHEVRON   = $FA
                 lda isDrivingRange      ; at driving range?
                 beq _1                  ;   no
 
-                rts                     ;   yes
+                rts                     ;   yes, skip
 
 ; - - - - - - - - - - - - - - - - - - -
 ;   render active player name
@@ -424,20 +496,24 @@ _next1          tay
                 stx RenderHUDPlayers._scrnP1Active
                 bra _XIT
 
+; - - - - - - - - - - - - - - - - - - -
 _2              cmp #$01
                 bne _3
 
                 stx RenderHUDPlayers._scrnP2Active
                 bra _XIT
 
+; - - - - - - - - - - - - - - - - - - -
 _3              cmp #$02
                 bne _4
 
                 stx RenderHUDPlayers._scrnP3Active
                 bra _XIT
 
+; - - - - - - - - - - - - - - - - - - -
 _4              stx RenderHUDPlayers._scrnP4Active
 
+; - - - - - - - - - - - - - - - - - - -
 _XIT            rts
                 .endproc
 
@@ -498,17 +574,17 @@ _2              sty _tensDigit
                 bne _3                  ;   no
 
                 lda #' '                ; clear the tens-digit placeholder
-                sta RenderHUDPlayers._scrnP1Strokes
+                sta RenderHUDPlayers._scrnP1Strokes+1
 
                 lda _tensDigit          ; is there a tens-digit?
                 beq _2A                 ;   no, skip
 
                 ora #'0'                ; convert to ascii
-                sta RenderHUDPlayers._scrnP1Strokes
+                sta RenderHUDPlayers._scrnP1Strokes+1
 
 _2A             lda _onesDigit
                 ora #'0'                ; convert to ascii
-                sta RenderHUDPlayers._scrnP1Strokes+1
+                sta RenderHUDPlayers._scrnP1Strokes+2
 
                 .frsTextXY 34,6,$10,RenderHUDPlayers._scrnP1Strokes
 
@@ -519,17 +595,17 @@ _3              cmp #$01                ; player 2?
                 bne _4                  ;   no
 
                 lda #' '                ; clear the tens-digit placeholder
-                sta RenderHUDPlayers._scrnP2Strokes
+                sta RenderHUDPlayers._scrnP2Strokes+1
 
                 lda _tensDigit          ; is there a tens-digit?
                 beq _3A                 ;   no, skip
 
                 ora #'0'                ; convert to ascii
-                sta RenderHUDPlayers._scrnP2Strokes
+                sta RenderHUDPlayers._scrnP2Strokes+1
 
 _3A             lda _onesDigit
                 ora #'0'                ; convert to ascii
-                sta RenderHUDPlayers._scrnP2Strokes+1
+                sta RenderHUDPlayers._scrnP2Strokes+2
 
                 .frsTextXY 34,7,$10,RenderHUDPlayers._scrnP2Strokes
 
@@ -540,17 +616,17 @@ _4              cmp #$02                ; player 3?
                 bne _5                  ;   no
 
                 lda #' '                ; clear the tens-digit placeholder
-                sta RenderHUDPlayers._scrnP3Strokes
+                sta RenderHUDPlayers._scrnP3Strokes+1
 
                 lda _tensDigit          ; is there a tens-digit?
                 beq _4A                 ;   no, skip
 
                 ora #'0'                ; convert to ascii
-                sta RenderHUDPlayers._scrnP3Strokes
+                sta RenderHUDPlayers._scrnP3Strokes+1
 
 _4A             lda _onesDigit
                 ora #'0'                ; convert to ascii
-                sta RenderHUDPlayers._scrnP3Strokes+1
+                sta RenderHUDPlayers._scrnP3Strokes+2
 
                 .frsTextXY 34,8,$10,RenderHUDPlayers._scrnP3Strokes
 
@@ -558,17 +634,17 @@ _4A             lda _onesDigit
 
 ; - - - - - - - - - - - - - - - - - - -
 _5              lda #' '                ; clear the tens-digit placeholder
-                sta RenderHUDPlayers._scrnP4Strokes
+                sta RenderHUDPlayers._scrnP4Strokes+1
 
                 lda _tensDigit          ; is there a tens-digit?
                 beq _5A                 ;   no, skip
 
                 ora #'0'                ; convert to ascii
-                sta RenderHUDPlayers._scrnP4Strokes
+                sta RenderHUDPlayers._scrnP4Strokes+1
 
 _5A             lda _onesDigit
                 ora #'0'                ; convert to ascii
-                sta RenderHUDPlayers._scrnP4Strokes+1
+                sta RenderHUDPlayers._scrnP4Strokes+2
 
                 .frsTextXY 34,9,$10,RenderHUDPlayers._scrnP4Strokes
 
