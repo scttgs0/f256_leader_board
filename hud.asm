@@ -586,7 +586,7 @@ _2A             lda _onesDigit
                 ora #'0'                ; convert to ascii
                 sta RenderHUDPlayers._scrnP1Strokes+2
 
-                .frsTextXY 34,6,$10,RenderHUDPlayers._scrnP1Strokes
+                .frsTextXY 33,6,$10,RenderHUDPlayers._scrnP1Strokes
 
                 jmp _XIT
 
@@ -607,7 +607,7 @@ _3A             lda _onesDigit
                 ora #'0'                ; convert to ascii
                 sta RenderHUDPlayers._scrnP2Strokes+2
 
-                .frsTextXY 34,7,$10,RenderHUDPlayers._scrnP2Strokes
+                .frsTextXY 33,7,$10,RenderHUDPlayers._scrnP2Strokes
 
                 bra _XIT
 
@@ -628,7 +628,7 @@ _4A             lda _onesDigit
                 ora #'0'                ; convert to ascii
                 sta RenderHUDPlayers._scrnP3Strokes+2
 
-                .frsTextXY 34,8,$10,RenderHUDPlayers._scrnP3Strokes
+                .frsTextXY 33,8,$10,RenderHUDPlayers._scrnP3Strokes
 
                 bra _XIT
 
@@ -646,7 +646,7 @@ _5A             lda _onesDigit
                 ora #'0'                ; convert to ascii
                 sta RenderHUDPlayers._scrnP4Strokes+2
 
-                .frsTextXY 34,9,$10,RenderHUDPlayers._scrnP4Strokes
+                .frsTextXY 33,9,$10,RenderHUDPlayers._scrnP4Strokes
 
 ; - - - - - - - - - - - - - - - - - - -
 _XIT            rts
