@@ -1,6 +1,6 @@
 
 ; SPDX-FileName: platform_f256.asm
-; SPDX-FileCopyrightText: Copyright 2023-2025, Scott Giese
+; SPDX-FileCopyrightText: Copyright 2023-2025 Scott Giese
 ; SPDX-License-Identifier: GPL-3.0-or-later
 
 
@@ -12,6 +12,7 @@
 RandomSeedQuick .proc
                 pha
 
+; - - - - - - - - - - - - - - - - - - -
 ;   preserve IOPAGE control
                 lda IOPAGE_CTRL
                 pha
@@ -19,6 +20,7 @@ RandomSeedQuick .proc
 ;   switch to system map
                 stz IOPAGE_CTRL
 
+; - - - - - - - - - - - - - - - - - - -
                 lda RTC_MIN
                 sta RNG_SEED+1
 
@@ -30,10 +32,12 @@ RandomSeedQuick .proc
                 lda #rcEnable
                 sta RNG_CTRL
 
+; - - - - - - - - - - - - - - - - - - -
 ;   restore IOPAGE control
                 pla
                 sta IOPAGE_CTRL
 
+; - - - - - - - - - - - - - - - - - - -
                 pla
                 rts
                 .endproc
@@ -47,6 +51,7 @@ RandomSeedQuick .proc
 RandomSeed      .proc
                 pha
 
+; - - - - - - - - - - - - - - - - - - -
 ;   preserve IOPAGE control
                 lda IOPAGE_CTRL
                 pha
@@ -54,6 +59,7 @@ RandomSeed      .proc
 ;   switch to system map
                 stz IOPAGE_CTRL
 
+; - - - - - - - - - - - - - - - - - - -
                 lda RTC_MIN
                 jsr Bcd2Bin
                 sta RND_MIN
@@ -102,10 +108,12 @@ RandomSeed      .proc
                 lda #rcEnable
                 sta RNG_CTRL
 
+; - - - - - - - - - - - - - - - - - - -
 ;   restore IOPAGE control
                 pla
                 sta IOPAGE_CTRL
 
+; - - - - - - - - - - - - - - - - - - -
                 pla
                 rts
                 .endproc
@@ -215,6 +223,7 @@ _hex            .text '0123456789ABCDEF'
 
                 .endproc
 
+
 ;======================================
 ; Initialize SID
 ;--------------------------------------
@@ -224,6 +233,7 @@ InitSID         .proc
                 pha
                 phx
 
+; - - - - - - - - - - - - - - - - - - -
 ;   preserve IOPAGE control
                 lda IOPAGE_CTRL
                 pha
@@ -231,6 +241,7 @@ InitSID         .proc
 ;   switch to system map
                 stz IOPAGE_CTRL
 
+; - - - - - - - - - - - - - - - - - - -
                 lda #0                  ; reset the SID registers
                 ldx #$1F
 _next1          sta SID1_BASE,X
@@ -261,10 +272,12 @@ _next1          sta SID1_BASE,X
                 sta SID1_SIGVOL
                 sta SID2_SIGVOL
 
+; - - - - - - - - - - - - - - - - - - -
 ;   restore IOPAGE control
                 pla
                 sta IOPAGE_CTRL
 
+; - - - - - - - - - - - - - - - - - - -
                 plx
                 pla
                 rts
@@ -280,6 +293,7 @@ InitPSG         .proc
                 pha
                 phx
 
+; - - - - - - - - - - - - - - - - - - -
 ;   preserve IOPAGE control
                 lda IOPAGE_CTRL
                 pha
@@ -287,6 +301,7 @@ InitPSG         .proc
 ;   switch to system map
                 stz IOPAGE_CTRL
 
+; - - - - - - - - - - - - - - - - - - -
                 lda #0                  ; reset the PSG registers
                 ldx #$07
 _next1          sta PSG1_BASE,X
@@ -295,10 +310,12 @@ _next1          sta PSG1_BASE,X
                 dex
                 bpl _next1
 
+; - - - - - - - - - - - - - - - - - - -
 ;   restore IOPAGE control
                 pla
                 sta IOPAGE_CTRL
 
+; - - - - - - - - - - - - - - - - - - -
                 plx
                 pla
                 rts
@@ -314,6 +331,7 @@ InitTextPalette .proc
                 pha
                 phy
 
+; - - - - - - - - - - - - - - - - - - -
 ;   preserve IOPAGE control
                 lda IOPAGE_CTRL
                 pha
@@ -321,6 +339,7 @@ InitTextPalette .proc
 ;   switch to system map
                 stz IOPAGE_CTRL
 
+; - - - - - - - - - - - - - - - - - - -
                 ldy #$3F
 _next1          lda _Text_CLUT,Y
                 sta FG_CHAR_LUT_PTR,Y   ; same palette for foreground and background
@@ -329,10 +348,12 @@ _next1          lda _Text_CLUT,Y
                 dey
                 bpl _next1
 
+; - - - - - - - - - - - - - - - - - - -
 ;   restore IOPAGE control
                 pla
                 sta IOPAGE_CTRL
 
+; - - - - - - - - - - - - - - - - - - -
                 ply
                 pla
                 rts
@@ -417,6 +438,7 @@ _next1          dey
 InitTiles       .proc
                 pha
 
+; - - - - - - - - - - - - - - - - - - -
 ;   preserve IOPAGE control
                 lda IOPAGE_CTRL
                 pha
@@ -424,6 +446,7 @@ InitTiles       .proc
 ;   switch to system map
                 stz IOPAGE_CTRL
 
+; - - - - - - - - - - - - - - - - - - -
 ;   define the tilesets
                 lda #<tiles             ; Set the source address
                 sta TILESET0_ADDR
@@ -463,10 +486,12 @@ InitTiles       .proc
                 lda #locLayer0_TL0
                 sta LAYER_ORDER_CTRL_0
 
+; - - - - - - - - - - - - - - - - - - -
 ;   restore IOPAGE control
                 pla
                 sta IOPAGE_CTRL
 
+; - - - - - - - - - - - - - - - - - - -
                 pla
                 rts
                 .endproc
@@ -482,6 +507,7 @@ InitTiles       .proc
 InitSprites     .proc
                 pha
 
+; - - - - - - - - - - - - - - - - - - -
 ;   preserve IOPAGE control
                 lda IOPAGE_CTRL
                 pha
@@ -489,27 +515,12 @@ InitSprites     .proc
 ;   switch to system map
                 stz IOPAGE_CTRL
 
+; - - - - - - - - - - - - - - - - - - -
 ;   set player sprites (sprite-00 & sprint-01 & sprint-02)
 ;   player animation [00]
                 .frsSpriteInit anim2cell00, scEnable|scLUT0|scDEPTH0|scSIZE_24, 0
                 .frsSpriteInit anim0cell00, scEnable|scLUT0|scDEPTH1|scSIZE_32, 1
                 .frsSpriteInit anim0cell00+$400, scEnable|scLUT0|scDEPTH1|scSIZE_32, 2
-;   player animation [01]
-                ;.frsSpriteInit anim2cell01, scEnable|scLUT0|scDEPTH0|scSIZE_24, 0
-                ;.frsSpriteInit anim0cell01, scEnable|scLUT0|scDEPTH1|scSIZE_32, 1
-                ;.frsSpriteInit anim0cell01+$400, scEnable|scLUT0|scDEPTH1|scSIZE_32, 2
-;   player animation [02]
-                ;.frsSpriteInit anim2cell02, scEnable|scLUT0|scDEPTH0|scSIZE_24, 0
-                ;.frsSpriteInit anim0cell02, scEnable|scLUT0|scDEPTH1|scSIZE_32, 1
-                ;.frsSpriteInit anim0cell02+$400, scEnable|scLUT0|scDEPTH1|scSIZE_32, 2
-;   player animation [03]
-                ;.frsSpriteInit anim2cell03, scEnable|scLUT0|scDEPTH0|scSIZE_24, 0
-                ;.frsSpriteInit anim0cell03, scEnable|scLUT0|scDEPTH1|scSIZE_32, 1
-                ;.frsSpriteInit anim0cell03+$400, scEnable|scLUT0|scDEPTH1|scSIZE_32, 2
-;   player animation [04]
-                ;.frsSpriteInit anim2cell04, scEnable|scLUT0|scDEPTH0|scSIZE_24, 0
-                ;.frsSpriteInit anim0cell04, scEnable|scLUT0|scDEPTH1|scSIZE_32, 1
-                ;.frsSpriteInit anim0cell04+$400, scEnable|scLUT0|scDEPTH1|scSIZE_32, 2
 
 ;   player putt sprite (sprite-04 & sprite-05)
                 .frsSpriteInit anim1cell00, scEnable|scLUT0|scDEPTH0|scSIZE_32, 4
@@ -530,10 +541,12 @@ InitSprites     .proc
 ;   set splash (sprite-12)
                 .frsSpriteInit anim3cell00, scEnable|scLUT0|scDEPTH0|scSIZE_8, 12
 
+; - - - - - - - - - - - - - - - - - - -
 ;   restore IOPAGE control
                 pla
                 sta IOPAGE_CTRL
 
+; - - - - - - - - - - - - - - - - - - -
                 pla
                 rts
                 .endproc
@@ -545,6 +558,7 @@ InitSprites     .proc
 ClearSprites    .proc
                 pha
 
+; - - - - - - - - - - - - - - - - - - -
 ;   preserve IOPAGE control
                 lda IOPAGE_CTRL
                 pha
@@ -552,6 +566,7 @@ ClearSprites    .proc
 ;   switch to system map
                 stz IOPAGE_CTRL
 
+; - - - - - - - - - - - - - - - - - - -
                 .frsSpriteClear 0       ; club
                 .frsSpriteHide 0
                 .frsSpriteClear 1       ; player
@@ -572,10 +587,12 @@ ClearSprites    .proc
                 .frsSpriteClear 10      ; aim target
                 .frsSpriteHide 10
 
+; - - - - - - - - - - - - - - - - - - -
 ;   restore IOPAGE control
                 pla
                 sta IOPAGE_CTRL
 
+; - - - - - - - - - - - - - - - - - - -
                 pla
                 rts
                 .endproc
@@ -587,6 +604,7 @@ ClearSprites    .proc
 InitBitmap      .proc
                 pha
 
+; - - - - - - - - - - - - - - - - - - -
 ;   preserve IOPAGE control
                 lda IOPAGE_CTRL
                 pha
@@ -594,6 +612,7 @@ InitBitmap      .proc
 ;   switch to system map
                 stz IOPAGE_CTRL
 
+; - - - - - - - - - - - - - - - - - - -
                 lda #<screenRAM         ; Set the destination address
                 sta BITMAP2_ADDR
                 lda #>screenRAM
@@ -610,10 +629,12 @@ InitBitmap      .proc
                 stz BITMAP0_CTRL        ; disabled
                 stz BITMAP1_CTRL
 
+; - - - - - - - - - - - - - - - - - - -
 ;   restore IOPAGE control
                 pla
                 sta IOPAGE_CTRL
 
+; - - - - - - - - - - - - - - - - - - -
                 pla
                 rts
                 .endproc
@@ -626,7 +647,7 @@ InitBitmap      .proc
 ;======================================
 ClearScreen     .proc
 v_QtyPages      .var $05                ; 40x30 = $4B0... 4 pages + 176 bytes
-v_EmptyText     .var $20
+v_EmptyText     .var ' '
 v_TextColor     .var $40
 ;v_QtyPages      .var $13                ; 80x60 = $12C0... 18 pages + 192 bytes
 ;v_EmptyText     .var $C7
@@ -637,6 +658,7 @@ v_TextColor     .var $40
                 phx
                 phy
 
+; - - - - - - - - - - - - - - - - - - -
 ;   preserve IOPAGE control
                 lda IOPAGE_CTRL
                 pha
@@ -645,6 +667,7 @@ v_TextColor     .var $40
                 lda #iopPage3
                 sta IOPAGE_CTRL
 
+; - - - - - - - - - - - - - - - - - - -
 ;   clear color
                 lda #<CS_COLOR_MEM_PTR
                 sta zpDest
@@ -688,10 +711,12 @@ _nextByteT      sta (zpDest),Y
                 dex
                 bne _nextPageT
 
+; - - - - - - - - - - - - - - - - - - -
 ;   restore IOPAGE control
                 pla
                 sta IOPAGE_CTRL
 
+; - - - - - - - - - - - - - - - - - - -
                 ply
                 plx
                 pla
@@ -718,10 +743,12 @@ PrintText       .proc
                 stx _x
                 sty _y
 
+; - - - - - - - - - - - - - - - - - - -
 ;   preserve IOPAGE control
                 lda IOPAGE_CTRL
                 pha
 
+; - - - - - - - - - - - - - - - - - - -
 ;   calculate destination offset
                 lda _y
                 asl
@@ -787,11 +814,11 @@ _nextChar       iny
                 bra _nextChar
 
 ; - - - - - - - - - - - - - - - - - - -
-_XIT
 ;   restore IOPAGE control
-                pla
+_XIT            pla
                 sta IOPAGE_CTRL
 
+; - - - - - - - - - - - - - - - - - - -
                 ply
                 plx
                 pla
@@ -839,6 +866,7 @@ v_RenderLine    .var 0*CharResX
                 phx
                 phy
 
+; - - - - - - - - - - - - - - - - - - -
 ;   preserve IOPAGE control
                 lda IOPAGE_CTRL
                 pha
@@ -847,6 +875,7 @@ v_RenderLine    .var 0*CharResX
                 lda #iopPage3
                 sta IOPAGE_CTRL
 
+; - - - - - - - - - - - - - - - - - - -
 ;   reset color for the 40-char line
                 ldx #$FF
                 ldy #$FF
@@ -863,11 +892,12 @@ _nextColor      inx
 
 ;   process the text
 _processText
-
+; - - - - - - - - - - - - - - - - - - -
 ;   switch to text map
                 lda #iopPage2
                 sta IOPAGE_CTRL
 
+; - - - - - - - - - - - - - - - - - - -
                 ldx #$FF
                 ldy #$FF
 _nextChar       inx
@@ -879,9 +909,6 @@ _nextChar       inx
                 beq _space
                 cmp #$20
                 beq _space
-
-                cmp #$9B
-                beq _bomb
 
                 cmp #$41
                 bcc _number
@@ -915,18 +942,12 @@ _letter         sta CS_TEXT_MEM_PTR+v_RenderLine,X
 
                 bra _nextChar
 
-_bomb           sta CS_TEXT_MEM_PTR+v_RenderLine,X
-                inx
-                inc A
-                sta CS_TEXT_MEM_PTR+v_RenderLine,X
-
-                bra _nextChar
-
-_XIT
+; - - - - - - - - - - - - - - - - - - -
 ;   restore IOPAGE control
-                pla
+_XIT            pla
                 sta IOPAGE_CTRL
 
+; - - - - - - - - - - - - - - - - - - -
                 ply
                 plx
                 pla
@@ -941,6 +962,7 @@ InitMouseGfx   .proc
                 pha
                 phy
 
+; - - - - - - - - - - - - - - - - - - -
 ;   preserve IOPAGE control
                 lda IOPAGE_CTRL
                 pha
@@ -948,6 +970,7 @@ InitMouseGfx   .proc
 ;   switch to system map
                 stz IOPAGE_CTRL
 
+; - - - - - - - - - - - - - - - - - - -
                 lda #<_mouse_pointer
                 sta zpSource
                 lda #>_mouse_pointer
@@ -965,10 +988,12 @@ _nextByte       lda (zpSource),Y
                 dey
                 bne _nextByte
 
+; - - - - - - - - - - - - - - - - - - -
 ;   restore IOPAGE control
                 pla
                 sta IOPAGE_CTRL
 
+; - - - - - - - - - - - - - - - - - - -
                 ply
                 pla
                 rts
@@ -1009,6 +1034,7 @@ InitCPUVectors  .proc
                 phx
                 phy
 
+; - - - - - - - - - - - - - - - - - - -
 ;   preserve IOPAGE control
                 lda IOPAGE_CTRL
                 pha
@@ -1016,6 +1042,7 @@ InitCPUVectors  .proc
 ;   switch to system map
                 stz IOPAGE_CTRL
 
+; - - - - - - - - - - - - - - - - - - -
 ;   capture the kernel IRQ routine address (for chaining)
                 lda #$7F
                 sta MMU_Block7
@@ -1050,10 +1077,12 @@ InitCPUVectors  .proc
                 lda #>DefaultHandler
                 sta vecIRQ_BRK+1
 
+; - - - - - - - - - - - - - - - - - - -
 ;   restore IOPAGE control
                 pla
                 sta IOPAGE_CTRL
 
+; - - - - - - - - - - - - - - - - - - -
                 ply
                 plx
                 pla
@@ -1117,6 +1146,7 @@ _XIT            lda #$05                ; reset
 InitMMU         .proc
                 pha
 
+; - - - - - - - - - - - - - - - - - - -
 ;   preserve IOPAGE control
                 lda IOPAGE_CTRL
                 pha
@@ -1124,6 +1154,7 @@ InitMMU         .proc
 ;   switch to system map
                 stz IOPAGE_CTRL
 
+; - - - - - - - - - - - - - - - - - - -
 ;   ensure edit mode
                 lda #mmuPage3|mmuEditPage3|mmuEditMode
                 sta MMU_CTRL
@@ -1154,10 +1185,12 @@ InitMMU         .proc
                 ;!!inc A                   ; [E000:FFFF]
                 ;!!sta MMU_Block7
 
+; - - - - - - - - - - - - - - - - - - -
 ;   restore IOPAGE control
                 pla
                 sta IOPAGE_CTRL
 
+; - - - - - - - - - - - - - - - - - - -
                 pla
                 rts
                 .endproc
@@ -1174,6 +1207,7 @@ InitMMU         .proc
 InitIRQs        .proc
                 pha
 
+; - - - - - - - - - - - - - - - - - - -
 ;   preserve IOPAGE control
                 lda IOPAGE_CTRL
                 pha
@@ -1181,6 +1215,7 @@ InitIRQs        .proc
 ;   switch to system map
                 stz IOPAGE_CTRL
 
+; - - - - - - - - - - - - - - - - - - -
 ;   enable IRQ handler
                 lda #<irqMain
                 sta vecIRQ_BRK
@@ -1190,6 +1225,13 @@ InitIRQs        .proc
 ;   initialize the console
                 lda #$07
                 sta CONSOL
+
+;   initialize joystick/keyboard
+                ;!!lda #$1F
+                ;!!sta InputFlags
+                ;!!sta InputFlags+1
+                ;!!stz InputType           ; =joystick
+                ;!!stz InputType+1
 
 ;   disable all IRQ
                 lda #$FF
@@ -1228,10 +1270,12 @@ InitIRQs        .proc
                 ;!! and #~INT01_VIA1
                 ;!! sta INT_MASK_REG1
 
+; - - - - - - - - - - - - - - - - - - -
 ;   restore IOPAGE control
                 pla
                 sta IOPAGE_CTRL
 
+; - - - - - - - - - - - - - - - - - - -
                 pla
                 rts
                 .endproc

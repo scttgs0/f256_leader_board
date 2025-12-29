@@ -1,6 +1,6 @@
 
 ; SPDX-FileName: f256_sprite.mac
-; SPDX-FileCopyrightText: Copyright 2023-2025, Scott Giese
+; SPDX-FileCopyrightText: Copyright 2023-2025 Scott Giese
 ; SPDX-License-Identifier: GPL-3.0-or-later
 
 
@@ -16,6 +16,7 @@ SPR             .sfunction field,idx,(SPRITE_BASE+field+(idx<<3))
 SPR_FIELD       .sfunction field,(SPRITE_BASE+field)
 
 
+;======================================
 frsSpriteInit   .macro source,attr,idx
                 lda #<\source
                 sta SPR(sprite_t.ADDR, \idx)
@@ -34,6 +35,7 @@ frsSpriteInit   .macro source,attr,idx
                 .endmacro
 
 
+;======================================
 frsSpriteShow   .macro idx
                 lda SPR(sprite_t.CTRL, \idx)
                 ora #scEnable
@@ -41,6 +43,7 @@ frsSpriteShow   .macro idx
                 .endmacro
 
 
+;======================================
 frsSpriteHide   .macro idx
                 lda SPR(sprite_t.CTRL, \idx)
                 and #~scEnable
@@ -48,6 +51,7 @@ frsSpriteHide   .macro idx
                 .endmacro
 
 
+;======================================
 frsSpriteClear  .macro idx
                 stz SPR(sprite_t.X, \idx)
                 stz SPR(sprite_t.X+1, \idx)
@@ -56,18 +60,21 @@ frsSpriteClear  .macro idx
                 .endmacro
 
 
+;======================================
 frsSpriteClearX .macro idx
                 stz SPR(sprite_t.X, \idx)
                 stz SPR(sprite_t.X+1, \idx)
                 .endmacro
 
 
+;======================================
 frsSpriteClearY .macro idx
                 stz SPR(sprite_t.Y, \idx)
                 stz SPR(sprite_t.Y+1, \idx)
                 .endmacro
 
 
+;======================================
 frsSpriteSetX   .macro val,idx
                 lda \val
                 sta SPR(sprite_t.X, \idx)
@@ -76,6 +83,7 @@ frsSpriteSetX   .macro val,idx
                 .endmacro
 
 
+;======================================
 frsSpriteSetX_imm .macro val,idx
                 lda #<\val
                 sta SPR(sprite_t.X, \idx)
@@ -84,6 +92,7 @@ frsSpriteSetX_imm .macro val,idx
                 .endmacro
 
 
+;======================================
 frsSpriteSetX_8bit .macro val,idx
                 lda \val
                 sta SPR(sprite_t.X, \idx)
@@ -92,6 +101,7 @@ frsSpriteSetX_8bit .macro val,idx
                 .endmacro
 
 
+;======================================
 frsSpriteSetY   .macro val,idx
                 lda \val
                 sta SPR(sprite_t.Y, \idx)
@@ -100,6 +110,7 @@ frsSpriteSetY   .macro val,idx
                 .endmacro
 
 
+;======================================
 frsSpriteSetY_imm .macro val,idx
                 lda #<\val
                 sta SPR(sprite_t.Y, \idx)
@@ -108,6 +119,7 @@ frsSpriteSetY_imm .macro val,idx
                 .endmacro
 
 
+;======================================
 frsSpriteSetY_8bit .macro val,idx
                 lda \val
                 sta SPR(sprite_t.Y, \idx)
@@ -116,6 +128,7 @@ frsSpriteSetY_8bit .macro val,idx
                 .endmacro
 
 
+;======================================
 frsSpriteSetX_ix .macro
                 phx
                 pha
@@ -128,6 +141,7 @@ frsSpriteSetX_ix .macro
 
                 pla
                 pha
+
                 sta $D904,X
                 stz $D905,X
 
@@ -136,6 +150,7 @@ frsSpriteSetX_ix .macro
                 .endmacro
 
 
+;======================================
 frsSpriteSetY_ix .macro
                 phx
                 pha
@@ -148,6 +163,7 @@ frsSpriteSetY_ix .macro
 
                 pla
                 pha
+
                 sta $D906,X
                 stz $D907,X
 
