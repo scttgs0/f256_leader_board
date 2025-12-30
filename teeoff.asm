@@ -543,12 +543,12 @@ _10             .frsSpriteSetX xPosBallShadow,9
 
                 stz swingAnimCounter    ; reset
 
-                lda flagsBall_9D81
+                lda mask_SwingMath
                 and #$40                ; ball(bit-6) is visible?
                 bne _XIT1
 
-                lda #$01
-                sta flags_9D76
+                lda #TRUE
+                sta isDeadBall
 
 _XIT1           rts
 

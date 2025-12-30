@@ -502,8 +502,20 @@ _1              lda nodeOperation       ; operPIXEL?
                 jsr CalcPixelMask
 
                 pla                     ; restore pixelValue
-                bit flagsBall_9D83      ; BUG: pixel values are very different in the port
-                bpl _2
+                bit mask_BallController ; BUG: pixel values are very different in the port
+                bpl _2                  ; positive when mask hi-bit is clear or color is not GREEN
+
+;   replacement code
+                ;;lda mask_BallController
+                ;;and #$80
+                ;;beq _2
+
+                ;;lda pixelValue          ; restore pixelValue
+                ;;cmp #COLOR_GREEN
+                ;;bne _2                  ; always true
+
+                ;;lda pixelValue          ; restore pixelValue
+;   end replacement code
 
                 cmp #COLOR_BLACK        ; off-screen/in cup?
                 beq _XIT1               ;   yes
@@ -545,7 +557,7 @@ _3              lda #operFILL
                 sta yPosNewBallShadow
 
                 lda #$40                ; ball(bit-6) is visible
-                sta flagsBall_9D81
+                sta mask_SwingMath
 
                 jmp _XIT1
 
@@ -564,7 +576,7 @@ _5              ldx #$07                        ; shadow
                 bne _XIT1               ;   no
 
 ; - - - - - - - - - - - - - - - - - - -
-_ENTRY1         lda flagsBall_9D83
+_ENTRY1         lda mask_BallController
                 cmp #$C0                ; ball(bit-6) and shadow(bit-7) are visible?
                 bne _XIT
 
@@ -575,7 +587,7 @@ _ENTRY1         lda flagsBall_9D83
                 sta polyVertZ_delta
 
                 lda #$C0                ; ball(bit-6) and shadow(bit-7) are visible
-                sta flagsBall_9D81
+                sta mask_SwingMath
 
                 lda polyVertZ_LO
                 sec
@@ -584,14 +596,14 @@ _ENTRY1         lda flagsBall_9D83
                 sbc #$00
                 bcs _XIT
 
-                lda #$01
-                sta flags_9D76
+                lda #TRUE
+                sta isDeadBall
 
                 stz swingAnimCounter
                 stz isSwingAnimCounterActive
 
                 lda #$40                ; ball(bit-6) is visible
-                sta flagsBall_9D81
+                sta mask_SwingMath
 
 _XIT            rts
                 .endproc

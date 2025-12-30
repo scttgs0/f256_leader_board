@@ -154,7 +154,7 @@ PuttControl     .proc
                 jsr ClearAllPlayers
                 jsr SwitchToPutt
 
-                stz flags_9D76
+                stz isDeadBall
 
                 lda #$14
                 sta timerDuration+6     ; timer 6 = 20 ticks
@@ -167,8 +167,8 @@ PuttControl     .proc
                 stz nodeOperation       ; operPIXEL
 
                 lda #$C0                ; ball(bit-6) and shadow(bit-7) are visible
-                sta flagsBall_9D81
-                sta flagsBall_9D83
+                sta mask_SwingMath
+                sta mask_BallController
                 sta flags_BallVisible
 
 _next1          jsr AimTarget._SKIPBALL
@@ -518,7 +518,7 @@ _5              sta puttY_LO_3FE9
                 cmp polyVertZ_delta
                 bne _7
 
-                stz flagsBall_9D81
+                stz mask_SwingMath
 
                 jsr ClearMissiles
 

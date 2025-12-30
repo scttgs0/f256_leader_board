@@ -179,7 +179,7 @@ _s2             cli                     ; enable interrupts
                 jsr ResetSwingGauge
                 jsr ShowSwingGauge
 
-                stz flags_9D76          ; reset
+                stz isDeadBall          ; reset
                 stz tickFREQ3           ; disable
                 stz gaugeValue          ; reset
 
@@ -207,10 +207,10 @@ _next1          jsr ChangeClub
                 jsr GetUserInput
 
                 lda #$C0                ; ball(bit-6) and shadow(bit-7) are visible
-                sta flagsBall_9D81
-                sta flagsBall_9D83
+                sta mask_SwingMath
+                sta mask_BallController
                 sta flags_BallVisible
-                sta flagsBall_9DAF
+                sta mask_SetBallFlags
 
                 jsr ProcessESC
                 jsr DemoInput
@@ -338,13 +338,13 @@ _next5          jsr AnimateSplash
 
                 jsr PlaySoundHighTone
 
-                lda #$01
-                sta flags_9D76
+                lda #TRUE
+                sta isDeadBall
 
 _3              jsr DrivingRange0
                 jsr DrivingRange1
 
-                lda flags_9D76
+                lda isDeadBall
                 ora isDrivingRange
                 beq _4
 
@@ -433,8 +433,8 @@ _XIT1           rts                     ;   no
 ; - - - - - - - - - - - - - - - - - - -
 _1              lda flags_BallVisible   ; ball(bit-6) is visible?
                 and #$40
-                and flagsBall_9D81
-                and flagsBall_9D83
+                and mask_SwingMath
+                and mask_BallController
                 beq _XIT1
 
                 ldx #$06                ; ball

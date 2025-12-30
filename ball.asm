@@ -13,7 +13,7 @@ AdjustBallPixelMask .proc
                 sta nodeOperation
 
                 lda #$C0                ; ball(bit-6) and shadow(bit-7) are visible
-                sta flagsBall_9D81
+                sta mask_SwingMath
 
                 rts
 
@@ -40,11 +40,11 @@ _XIT            rts
 ;
 ;====================================== ;[[V]]
 InitBall        .proc
-                stz flagsBall_9D81      ; reset
-                stz nodeOperation       ; =operPIXEL
-                stz flagsBall_9D83      ; reset
-                stz flagsBall_9DAF      ; reset
-                stz unused_9D82         ; reset
+                stz mask_SwingMath          ; reset
+                stz nodeOperation           ; =operPIXEL
+                stz mask_BallController     ; reset
+                stz mask_SetBallFlags       ; reset
+                stz unused_9D82             ; reset
 
                 lda polyVertZ_LO
                 sta polyVertZ_delta
@@ -61,7 +61,7 @@ MoveBall        .proc
                 stz swingAnimCounter            ; =0
 
                 lda #$80
-                sta flags_9D76
+                sta isDeadBall
                 sta animSplashFrame       ; set bit-7; splash is active (frame 0)
 
 _next1          ldx #$06                        ; ball
@@ -103,7 +103,7 @@ _XIT            pla
                 lda #$05
                 ;!!sta AUDF3
 
-                lda flagsBall_9D83      ; ignore bits[7:6]
+                lda mask_BallController ; ignore bits[7:6]
                 eor #$C0                ; 192 (zMax)
                 ora lineNode0_ClipFlags
                 sta ballController
@@ -332,7 +332,7 @@ _1              lda polyVertZ_HI
                 lda #$80                ; shadow(bit-7) is visible
                 .byte $2C               ; consume the following LDA operation
 _2              lda #$C0                ; ball(bit-6) and shadow(bit-7) are visible
-                sta flagsBall_9DAF
+                sta mask_SetBallFlags
 
                 rts
 
@@ -342,10 +342,10 @@ _splash         lda polyVertZ_delta
 
                 jsr MoveBall
 
-                lda #$01
-                sta flags_9D76
+                lda #TRUE
+                sta isDeadBall
 
-                stz flagsBall_9D81
+                stz mask_SwingMath
 
 _XIT            rts
                 .endproc
@@ -386,9 +386,9 @@ _1              lda IOPAGE_CTRL
 ;   render the ball shadow
                 lda flags_BallVisible   ; shadow(bit-7) is visible?
                 and #$80
-                and flagsBall_9D81
-                and flagsBall_9D83
-                and flagsBall_9DAF
+                and mask_SwingMath
+                and mask_BallController
+                and mask_SetBallFlags
                 beq _2                  ; skip when no bits
 
                 .frsSpriteShow 9        ; draw at the new position
@@ -399,9 +399,9 @@ _1              lda IOPAGE_CTRL
 ;   render the ball
 _2              lda flags_BallVisible   ; ball(bit-6) is visible?
                 and #$40
-                and flagsBall_9D81
-                and flagsBall_9D83
-                and flagsBall_9DAF
+                and mask_SwingMath
+                and mask_BallController
+                and mask_SetBallFlags
                 beq _XIT                ; skip when no bits
 
                 .frsSpriteShow 8        ; draw at the new position
@@ -423,7 +423,7 @@ _XIT            pla
 ;-------------------------------------- ;[[F]]
 SetFlagsBall_C0 .proc
                 lda #$C0                ; ball(bit-6) and shadow(bit-7) are visible
-                sta flagsBall_9D83
+                sta mask_BallController
 
                 rts
                 .endproc
@@ -462,15 +462,15 @@ _1              cmp #$05
                 beq _2                  ;   yes
 
                 lda #$80
-                ora flagsBall_9D83
-                sta flagsBall_9D83
+                ora mask_BallController
+                sta mask_BallController
 
                 jmp _3
 
 ; - - - - - - - - - - - - - - - - - - -
-_2              lda flagsBall_9D83
+_2              lda mask_BallController
                 and #$7F
-                sta flagsBall_9D83
+                sta mask_BallController
 
 _3              ldx #$06                ; ball
                 jsr CalcMissilePosition ; result [X,Y]
@@ -478,9 +478,9 @@ _3              ldx #$06                ; ball
                 cpy lineNode0_pairDC_DE_2
                 bcs _4
 
-_next1          lda flagsBall_9D83
+_next1          lda mask_BallController
                 ora #$40                ; ball(bit-6) is visible
-                sta flagsBall_9D83
+                sta mask_BallController
 
                 rts
 
@@ -493,9 +493,9 @@ _4              jsr FetchPixelValue     ; result in A=pixelValue
                 cmp #COLOR_RUST         ; mud?
                 bne _next1              ;   no
 
-_5              lda flagsBall_9D83
+_5              lda mask_BallController
                 and #$BF                ; ball(bit-6) is hidden
-                sta flagsBall_9D83
+                sta mask_BallController
 
                 rts
                 .endproc
