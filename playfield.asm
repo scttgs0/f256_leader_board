@@ -130,11 +130,11 @@ _ptr            = zpFD
 ;======================================
 ;
 ;====================================== ;[[U]]+
-BackSwingAnim   .proc
-                lda isBackSwingAnim     ; back swing in progress?
-                bne _1                  ;   yes
+PuttAnimControl .proc
+                lda isPuttSwingInProgress   ; animation in progress?
+                bne _1                      ;   yes
 
-                rts
+                rts                         ;   no
 
 ; - - - - - - - - - - - - - - - - - - -
 _1              lda timerIsActive       ; timer 0 active?
@@ -147,11 +147,11 @@ _2              jsr XBPC_DrawGolferPutt
 
                 inc golferSwingFrame
                 ldx golferSwingFrame
-                cpx #$0A                ; max back swing?
+                cpx #$0A                ; max frame?
                 bne _3                  ;   no
 
-                lda #FALSE              ;   yes, done
-                sta isBackSwingAnim
+                lda #FALSE              ;   yes, stop animation
+                sta isPuttSwingInProgress
 
                 rts
 
@@ -160,15 +160,16 @@ _3              lda puttAnimTimer,X     ; duration
                 ldx #$00                ; timer 0
                 jsr SetTimer
 
+;--------------------------------------
                 ldx golferSwingFrame
-                cpx #$06
-                bne _4
+                cpx #$06                ; frame 6?
+                bne _4                  ;   no
 
-                jsr XBPC_InitPutt_2521
+                jsr XBPC_InitPuttBallContact
 
 _4              lda golferSwingFrame
-                cmp #$07
-                bne _XIT
+                cmp #$07                ; frame 7?
+                bne _XIT                ;   no
 
                 ;!!stz AUDC4               ; silence
                 ;!!stz AUDF4

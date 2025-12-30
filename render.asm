@@ -490,7 +490,7 @@ _XIT1           rts
 _1              lda nodeOperation       ; operPIXEL?
                 bne _4                  ;   no
 
-                ldx #$07                ; missile-1 (shadow)
+                ldx #$07                ; shadow
                 jsr CalcMissilePosition ; result [X,Y]
                 sty yPosNewBallShadow
                 jsr FetchPixelValue     ; result in A=pixelValue
@@ -498,19 +498,19 @@ _1              lda nodeOperation       ; operPIXEL?
                 cmp #COLOR_GREEN        ; grass?
                 beq _XIT1               ;   yes, exit
 
-                pha
+                pha                     ; preserve pixelValue
                 jsr CalcPixelMask
 
-                pla
-                bit flagsBall_9D83
+                pla                     ; restore pixelValue
+                bit flagsBall_9D83      ; BUG: pixel values are very different in the port
                 bpl _2
 
-                cmp #$00
-                beq _XIT1
-                jmp _3
+                cmp #COLOR_BLACK        ; off-screen/in cup?
+                beq _XIT1               ;   yes
+                jmp _3                  ;   no
 
 ; - - - - - - - - - - - - - - - - - - -
-_2              ldx #$07                ; missile-1 (shadow)
+_2              ldx #$07                ; shadow
                 jsr CalcMissilePosition ; result [X,Y]
                 stx zpD4
                 sty zpD4+1
@@ -550,11 +550,11 @@ _3              lda #operFILL
                 jmp _XIT1
 
 ; - - - - - - - - - - - - - - - - - - -
-_4              cmp #$01
-                bne _5
+_4              cmp #operFILL           ; fill mode?
+                bne _5                  ;   no
                 jmp AdjustBallPixelMask
 
-_5              ldx #$07                        ; missile-1 (shadow)
+_5              ldx #$07                        ; shadow
                 jsr CalcMissilePositionAndFetch ; result in A=pixelValue, [X,Y]
 
                 cmp #COLOR_GREEN        ; grass?

@@ -385,13 +385,13 @@ XBPC_ConvertToArray .proc
 ;======================================
 ;
 ;======================================
-XBPC_InitPutt_2521 .proc
+XBPC_InitPuttBallContact .proc
                 jsr XBPC_Preserve
 
                 lda #PUTT_CHUNK
                 sta MMU_Block3
 
-                jsr InitPutt_2521
+                jsr InitPuttBallContact
                 jsr XBPC_Restore
 
                 rts
@@ -417,7 +417,7 @@ XBPC_DrawGolferPutt .proc
 ;======================================
 ;
 ;======================================
-XBPC_PuttControl .proc
+XBPC_PuttAnimControl .proc
                 jsr XBPC_Preserve
 
                 lda #PUTT_CHUNK
@@ -443,6 +443,39 @@ XBPC_Swing_3E71 .proc
                 jsr XBPC_Restore
 
                 rts
+                .endproc
+
+
+;======================================
+;
+;======================================
+XBPC_PuttDistance .proc
+                jsr XBPC_Preserve
+
+                lda #PUTT_CHUNK
+                sta MMU_Block3
+
+                lda _isFeet             ; unit is feet?
+                beq _2                  ;   no
+
+                .frsTextXY 30,14,$30,XBPC_PuttDistance._scrnFeet
+                bra _dist
+
+_2              .frsTextXY 30,14,$30,XBPC_PuttDistance._scrnInches
+
+_dist           .frsTextXY 37,14,$90,XBPC_PuttDistance._scrnDistVal
+
+                jsr XBPC_Restore
+
+                rts
+
+;---------------------------------------
+
+_isFeet         .byte $00
+_scrnFeet       .null " FEET     "
+_scrnInches     .null " INCHES   "
+_scrnDistVal    .null "  "
+
                 .endproc
 
 

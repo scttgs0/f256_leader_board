@@ -171,6 +171,10 @@ _6              sta _tensDigit
 
 ;--------------------------------------
 ;   draw distance to pin
+                ldx activePlayer
+                lda playerDistUnit,X
+                cmp #unitYARDS
+                bne _putt
 
                 lda #' '
                 sta RenderHUD._scrnDistVal
@@ -196,7 +200,26 @@ _8              lda _onesDigit
 
                 .frsTextXY 37,18,$90,RenderHUD._scrnDistVal
 
-                rts
+                bra _XIT
+
+;--------------------------------------
+;   Putt
+_putt           lda #' '
+                sta XBPC_PuttDistance._scrnDistVal
+
+                lda _tensDigit          ; is there a tens-digit?
+                beq _9                  ;   no, skip
+
+                ora #'0'                ; convert to ascii
+                sta XBPC_PuttDistance._scrnDistVal
+
+_9              lda _onesDigit
+                ora #'0'                ; convert to ascii
+                sta XBPC_PuttDistance._scrnDistVal+1
+
+                jsr XBPC_PuttDistance
+
+_XIT            rts
 
 ;--------------------------------------
 
@@ -233,11 +256,13 @@ DrawDistUnit    .proc
 _1              cmp #unitFEET
                 bne _2
 
-                .frsTextXY 31,18,$30,RenderHUD._scrnFeet
+                lda #TRUE
+                sta XBPC_PuttDistance._isFeet
                 bra _XIT
 
 ; - - - - - - - - - - - - - - - - - - -
-_2              .frsTextXY 31,18,$30,RenderHUD._scrnInches
+_2              lda #FALSE
+                sta XBPC_PuttDistance._isFeet
 
 _XIT            rts
                 .endproc

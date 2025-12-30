@@ -131,7 +131,7 @@ _2              ldx activePlayer
 
 ;   putting
                 ;!!jsr DrawWindStreamer  ; HACK:
-                jsr XBPC_PuttControl
+                jsr XBPC_PuttAnimControl
                 jmp _4
 
 ; - - - - - - - - - - - - - - - - - - -

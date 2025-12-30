@@ -151,7 +151,7 @@ unused_9D63             .byte $00
 puttX_HI                .byte $00
 puttY_HI                .byte $00
 unused_9D66             .byte $00
-isBackSwingAnim         .fill 3,$00
+isPuttSwingInProgress   .fill 3,$00
 offscreenPlane          .byte $00
 
 idxPlayerName

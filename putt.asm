@@ -4,7 +4,7 @@
 ;--------------------------------------
 ; X-Bank Procedure
 ;====================================== ;[[F]]
-InitPutt_2521   .proc
+InitPuttBallContact .proc
                 jsr CalcProjectile
 
                 lda #$18
@@ -39,7 +39,7 @@ InitPutt_2521   .proc
 ; X-Bank Procedure
 ;====================================== ;[[F]]
 DrawGolferPutt  .proc
-;   chose proper animation frame
+;   choose proper animation frame
                 ldy golferSwingFrame
                 ldx puttAnimIndex,Y
 
@@ -100,9 +100,9 @@ _anim1Addr_LO   .byte <anim1cell00,<anim1cell01,<anim1cell02,<anim1cell03
 ; Private Procedure
 ;====================================== ;[[F]]
 InitGolferPutt .proc
-                stz golferSwingFrame    ; reset
+                stz golferSwingFrame        ; reset
                 stz unused_9D74
-                stz isBackSwingAnim     ; =FALSE
+                stz isPuttSwingInProgress   ; =FALSE
 
                 lda puttAnimTimer       ; duration
                 ldx #$00                ; timer 0
@@ -177,7 +177,7 @@ _next1          jsr AimTarget._SKIPBALL
                 jsr DrawClock
                 jsr DemoInput
 
-                lda isBackSwingAnim
+                lda isPuttSwingInProgress
                 beq _next1              ;   no
 
                 jsr ClearMissiles
@@ -187,7 +187,7 @@ _next1          jsr AimTarget._SKIPBALL
                 .frsSpriteSetX xPosBall,8
                 .frsSpriteSetY_8bit yPosBall,8
 
-_next2          jsr BackSwingAnim
+_next2          jsr PuttAnimControl
                 jsr Swing_math_326F
                 jsr PositionBallShadow
                 jsr Swing_3E71
@@ -197,7 +197,7 @@ _next2          jsr BackSwingAnim
                 jsr DrawClock
 
                 lda swingAnimCounter
-                ora isBackSwingAnim
+                ora isPuttSwingInProgress
                 ora tickFREQ3           ; 0=disabled
                 bne _next2
 
@@ -237,8 +237,8 @@ RenderPuttGauge .proc
 
                 .frsTextXY 30,13,$30,RenderPuttGauge._scrnClub
 
-                .frsTextXY 30,14,$30,RenderPuttGauge._scrnFeet
-                .frsTextXY 37,14,$90,RenderPuttGauge._scrnDistVal
+                ;!!.frsTextXY 30,14,$30,RenderPuttGauge._scrnFeet
+                ;!!.frsTextXY 37,14,$90,RenderPuttGauge._scrnDistVal
 
                 .frsTextXY 30,15,$70,RenderPuttGauge._scrnBlank
 
@@ -286,7 +286,7 @@ _scrnClub       .null " PUTTER   "
 
 _scrnFeet       .null " FEET     "
 _scrnInches     .null " INCHES   "
-_scrnDistVal    .null "61"
+_scrnDistVal    .null "60"
 
 _scrnPowerBlank .null "       "
 _scrnPowerTop   .null $C6
@@ -405,7 +405,7 @@ _setLimit       cpx #$3F                ; [smc] at limit?
 
 ; - - - - - - - - - - - - - - - - - - -
 _4              lda #TRUE
-                sta isBackSwingAnim
+                sta isPuttSwingInProgress
 
                 rts
                 .endproc
@@ -457,7 +457,7 @@ _1              lda polyVertZ_HI
                 cpx #$C0
                 bcc _XIT1
 
-                ldx #$07                        ; missile-1 (shadow)
+                ldx #$07                        ; shadow
                 jsr CalcMissilePositionAndFetch ; result in A=pixelValue, [X,Y]
 
                 cmp #COLOR_BLACK                ; off-screen/in cup?

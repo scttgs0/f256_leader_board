@@ -437,7 +437,7 @@ _1              lda flags_BallVisible   ; ball(bit-6) is visible?
                 and flagsBall_9D83
                 beq _XIT1
 
-                ldx #$06                ; missile-1 (ball)
+                ldx #$06                ; ball
                 jsr CalcMissilePosition ; result [X,Y]
 
                 lda #COLOR_BLACK

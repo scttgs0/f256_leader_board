@@ -3,7 +3,7 @@
 ;
 ;-------------------------------------- ;[[U]]
 AdjustBallPixelMask .proc
-                ldx #$07                        ; missile-1 (shadow)
+                ldx #$07                        ; shadow
                 jsr CalcMissilePositionAndFetch ; result in A=pixelValue, [X,Y]
 
                 cmp #COLOR_GREEN
@@ -18,7 +18,7 @@ AdjustBallPixelMask .proc
                 rts
 
 ; - - - - - - - - - - - - - - - - - - -
-_1              ldx #$07                ; missile-1 (shadow)
+_1              ldx #$07                ; shadow
                 jsr CalcMissilePosition ; result [X,Y]
 
                 tya
@@ -64,7 +64,7 @@ MoveBall        .proc
                 sta flags_9D76
                 sta animSplashFrame       ; set bit-7; splash is active (frame 0)
 
-_next1          ldx #$06                        ; missile-1 (ball)
+_next1          ldx #$06                        ; ball
                 jsr CalcMissilePositionAndFetch ; result in A=pixelValue, [X,Y]
 
                 cmp #COLOR_GREEN        ; grass?
@@ -214,14 +214,14 @@ CalcMissilePositionAndFetch .proc
 ;--------------------------------------
 ; on entry:
 ;   X           =[6:7]
-;       :=6     missileY1
-;       :=7     missileY0
+;       :=6     ball (missileY1)
+;       :=7     shadow (missileY0)
 ; on exit:
 ;   X           new xPos
 ;   Y           new yPos
 ;====================================== ;[[F]]
 CalcMissilePosition .proc
-                cpx #$06
+                cpx #$06                ; ball?
                 beq _1                  ; when [X:=6] ball
 
                 lda newBallShadowPosY   ; when [X:=7] shadow
@@ -319,8 +319,8 @@ SetBallFlags    .proc
 _1              lda polyVertZ_HI
                 bne _2
 
-                lda polyVertZ_LO
-                beq _3
+                lda polyVertZ_LO        ; elevation zero?
+                beq _splash             ;   yes, we hit water
 
                 cmp #$18                ; surface layer (24 inches)?
                 bcs _2
@@ -337,7 +337,7 @@ _2              lda #$C0                ; ball(bit-6) and shadow(bit-7) are visi
                 rts
 
 ; - - - - - - - - - - - - - - - - - - -
-_3              lda polyVertZ_delta
+_splash         lda polyVertZ_delta
                 bne _XIT
 
                 jsr MoveBall
@@ -433,7 +433,7 @@ SetFlagsBall_C0 .proc
 ;
 ;====================================== ;[[F]]
 CalcPixelMask   .proc
-                ldx #$07                ; missile-1 (shadow)
+                ldx #$07                ; shadow
                 jsr CalcMissilePosition ; result [X,Y]
 
                 txa
@@ -452,7 +452,7 @@ _1              cmp #$05
                 cpy lineNode0_pairDC_DE_2
                 bcc SetFlagsBall_C0
 
-                ldx #$07                        ; missile-1 (shadow)
+                ldx #$07                        ; shadow
                 jsr CalcMissilePositionAndFetch ; result in A=pixelValue, [X,Y]
 
                 cmp #COLOR_BLACK        ; off-screen/in cup?
@@ -472,7 +472,7 @@ _2              lda flagsBall_9D83
                 and #$7F
                 sta flagsBall_9D83
 
-_3              ldx #$06                ; missile-1 (ball)
+_3              ldx #$06                ; ball
                 jsr CalcMissilePosition ; result [X,Y]
 
                 cpy lineNode0_pairDC_DE_2
@@ -494,7 +494,7 @@ _4              jsr FetchPixelValue     ; result in A=pixelValue
                 bne _next1              ;   no
 
 _5              lda flagsBall_9D83
-                and #$BF
+                and #$BF                ; ball(bit-6) is hidden
                 sta flagsBall_9D83
 
                 rts
