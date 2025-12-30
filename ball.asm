@@ -62,7 +62,7 @@ MoveBall        .proc
 
                 lda #$80
                 sta flags_9D76
-                sta animSplashFrame       ; set bit-7; ball is visible
+                sta animSplashFrame       ; set bit-7; splash is active (frame 0)
 
 _next1          ldx #$06                        ; missile-1 (ball)
                 jsr CalcMissilePositionAndMask  ; result in A=maskedPixelValue, [X,Y]
@@ -250,27 +250,27 @@ _2              sec
 ;
 ;====================================== ;[[U]]
 AnimateSplash   .proc
-                bit animSplashFrame     ; ball is visible?
-                bmi _1                  ;   yes
+                bit animSplashFrame     ; splash is active?
+                bmi _1                  ;   yes, initiate splash animation
 
-_XIT1           rts
+_XIT1           rts                     ;   no
 
 ; - - - - - - - - - - - - - - - - - - -
 _1              lda timerIsActive+6     ; timer 6 active?
                 bne _XIT1               ;   yes
 
                 inc timerIsActive+6     ;   no, make active
-                inc animSplashFrame
+                inc animSplashFrame     ;   no, =$81+
 
 ; - - - - - - - - - - - - - - - - - - -
 _ENTRY1         lda polyVertY_HI
-                cmp #10
+                cmp #>$0A00
                 bcc _XIT_D              ; very close
 
-                cmp #15
+                cmp #>$0F00
                 bcc _XIT_C
 
-                cmp #20
+                cmp #>$1400
                 bcc _XIT_B
                 jmp _XIT_A              ; very far
 
@@ -285,15 +285,15 @@ _XIT_D          jmp AnimSplash_D
 
 ; - - - - - - - - - - - - - - - - - - -
 _XIT_A          lda animSplashFrame
-                cmp #$84                ; hi-bit & frame 4
+                cmp #$84                ; hi-bit (active) & frame 4
                 bcs _FINISH
                 jmp AnimSplash_A
 
 ; - - - - - - - - - - - - - - - - - - -
-_FINISH         lda #$00
+_FINISH         lda #$00                ; clear audio
                 ;!!sta AUDC3
                 ;!!sta AUDF3
-                stz animSplashFrame     ; reset
+                stz animSplashFrame     ; disable splash
 
                 jmp ClearMissiles
 
@@ -303,11 +303,11 @@ _FINISH         lda #$00
 ;======================================
 ;
 ;====================================== ;[[F]]
-AnimateSplash_2AC6 .proc
-                lda animSplashFrame
-                beq _1
+SetBallFlags    .proc
+                lda animSplashFrame     ; splash is active?
+                beq _1                  ;   no
 
-                rts
+                rts                     ;   yes
 
 ; - - - - - - - - - - - - - - - - - - -
 _1              lda polyVertZ_HI
@@ -320,8 +320,8 @@ _1              lda polyVertZ_HI
                 bcs _2
 
                 lda nodeOperation
-                cmp #operFILL
-                bne _2
+                cmp #operFILL           ; fill mode?
+                bne _2                  ;   no
 
                 lda #$80                ; shadow(bit-7) is visible
                 .byte $2C               ; consume the following LDA operation
@@ -349,10 +349,10 @@ _XIT            rts
 ;
 ;====================================== ;[[V]]
 RenderBall      .proc
-                bit animSplashFrame
-                bpl _1
+                bit animSplashFrame     ; splash is active?
+                bpl _1                  ;   no
 
-                rts
+                rts                     ;   yes
 
 ; - - - - - - - - - - - - - - - - - - -
 ;   preserve IOPAGE control
@@ -517,6 +517,15 @@ _next1          clc                     ; calculate X*3
 
 _1              tax
 
+; - - - - - - - - - - - - - - - - - - -
+;   preserve IOPAGE control
+                lda IOPAGE_CTRL
+                pha
+
+;   switch to system map
+                stz IOPAGE_CTRL
+
+; - - - - - - - - - - - - - - - - - - -
                 lda ballController
                 bne _2
 
@@ -587,6 +596,12 @@ _2              lda animSplashFrame
                 lda _audioControl,X
                 ;!!sta AUDC3
 
+; - - - - - - - - - - - - - - - - - - -
+;   restore IOPAGE control
+_XIT            pla
+                sta IOPAGE_CTRL
+
+; - - - - - - - - - - - - - - - - - - -
                 rts
 
 ;--------------------------------------
@@ -627,6 +642,15 @@ _next2          clc                     ; calculate X*5
 
 _1              tax
 
+; - - - - - - - - - - - - - - - - - - -
+;   preserve IOPAGE control
+                lda IOPAGE_CTRL
+                pha
+
+;   switch to system map
+                stz IOPAGE_CTRL
+
+; - - - - - - - - - - - - - - - - - - -
                 lda ballController
                 beq _proceed
                 jmp _2
@@ -714,6 +738,12 @@ _2              lda animSplashFrame
                 lda _audioControl,X
                 ;!!sta AUDC3
 
+; - - - - - - - - - - - - - - - - - - -
+;   restore IOPAGE control
+_XIT            pla
+                sta IOPAGE_CTRL
+
+; - - - - - - - - - - - - - - - - - - -
                 rts
 
 ;--------------------------------------
@@ -757,6 +787,15 @@ _next1          clc                     ; calculate X*7
 _2              tax
                 ldy yPosBall
 
+; - - - - - - - - - - - - - - - - - - -
+;   preserve IOPAGE control
+                lda IOPAGE_CTRL
+                pha
+
+;   switch to system map
+                stz IOPAGE_CTRL
+
+; - - - - - - - - - - - - - - - - - - -
                 lda ballController
                 beq _proceed
                 jmp _3
@@ -844,6 +883,12 @@ _3              lda animSplashFrame
                 lda _audioControl,X
                 ;!!sta AUDC3
 
+; - - - - - - - - - - - - - - - - - - -
+;   restore IOPAGE control
+_XIT            pla
+                sta IOPAGE_CTRL
+
+; - - - - - - - - - - - - - - - - - - -
                 rts
 
 ;--------------------------------------
@@ -888,6 +933,15 @@ _next1          clc                     ; calculate X*9
 
 _2              tax
 
+; - - - - - - - - - - - - - - - - - - -
+;   preserve IOPAGE control
+                lda IOPAGE_CTRL
+                pha
+
+;   switch to system map
+                stz IOPAGE_CTRL
+
+; - - - - - - - - - - - - - - - - - - -
                 lda ballController
                 beq _proceed
                 jmp _3
@@ -990,6 +1044,12 @@ _3              lda animSplashFrame
                 lda _audioControl,X
                 ;!!sta AUDC3
 
+; - - - - - - - - - - - - - - - - - - -
+;   restore IOPAGE control
+_XIT            pla
+                sta IOPAGE_CTRL
+
+; - - - - - - - - - - - - - - - - - - -
                 rts
 
 ;--------------------------------------

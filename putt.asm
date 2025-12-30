@@ -163,7 +163,7 @@ PuttControl     .proc
                 jsr AimTarget
                 jsr XBPC_DrawDistanceToPin_m1
 
-                stz animSplashFrame
+                stz animSplashFrame     ; disable splash animation
                 stz nodeOperation       ; operPIXEL
 
                 lda #$C0                ; ball(bit-6) and shadow(bit-7) are visible

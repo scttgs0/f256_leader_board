@@ -192,7 +192,7 @@ _s2             cli                     ; enable interrupts
                 jsr AimTarget
                 jsr InitBall
 
-                stz animSplashFrame
+                stz animSplashFrame     ; disable splash animation
                 stz nodeOperation       ; operPIXEL
 
                 jsr DrawClub
@@ -300,7 +300,7 @@ _2              jsr Swing_math_326F
                 jsr DemoInput
                 jsr PositionBallShadow
                 ;!!jsr CalcBallPixelMask
-                jsr AnimateSplash_2AC6
+                jsr SetBallFlags
                 jsr RenderBall
 
                 lda golferSwingFrame
@@ -317,7 +317,7 @@ _next4          jsr SwingAnimControl
                 jsr Swing_math_326F
                 jsr PositionBallShadow
                 ;!!jsr CalcBallPixelMask
-                jsr AnimateSplash_2AC6
+                jsr SetBallFlags
                 jsr XBPC_Swing_3E71
                 ;!!jsr CalcPixelMask
                 jsr RenderBall
@@ -329,8 +329,8 @@ _next5          jsr AnimateSplash
                 lda swingAnimCounter
                 bne _next4
 
-                lda animSplashFrame
-                bne _next5
+                lda animSplashFrame     ; splash active?
+                bne _next5              ;   yes
 
                 lda #$40
                 bit flags_BallVisible   ; ball(bit-6) is visible?
