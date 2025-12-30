@@ -130,7 +130,7 @@ _2              ldx activePlayer
                 bcs _3                  ;   not putting
 
 ;   putting
-                jsr DrawWindStreamer
+                ;!!jsr DrawWindStreamer  ; HACK:
                 jsr XBPC_PuttControl
                 jmp _4
 
