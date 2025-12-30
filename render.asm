@@ -462,6 +462,7 @@ ShiftPixelMask  .proc
 _addrPixel      = zpFD
 ;---
 
+                rts     ; HACK:
                 ;!!jsr GetPixelPtrMask     ; set zpFD (pixel address) and pixelMask
 
                 lda (_addrPixel),Y      ; fetch the pixel value

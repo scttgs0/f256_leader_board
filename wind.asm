@@ -157,7 +157,7 @@ SetWindRandom   .proc
 
 ;======================================
 ;
-;====================================== ;[[F]]
+;====================================== ;[[U]]
 DoWindStreamer  .proc
                 ldx activePlayer
                 lda #$00
@@ -197,7 +197,7 @@ _1              sty windVelThisHole
                 lda #$03                ; [override] color=dark gray
                 sta DrawWindStreamer._setColor1+1
 
-                jsr DrawWindStreamer._ENTRY1
+                ;!!jsr DrawWindStreamer._ENTRY1    ; HACK:
 
                 ;;lda #>$00F0             ; [default] xMax [240]
                 ;;sta ProcessLine._setMaxX_HI+1
@@ -331,7 +331,7 @@ _setColor1      lda #COLOR_BLACK        ; (wind velocity pole)
                 sbc deltaWind_p00_p50
                 sta lineNode1_VertZ_LO
 
-                jsr ProcessLine._ENTRY_WIND
+                jsr ProcessLine._ENTRY_WIND     ; BUG:
 
 ; - - - - - - - - - - - - - - - - - - -
                 lda lineNode0_VertZ_LO
@@ -342,7 +342,7 @@ _setColor1      lda #COLOR_BLACK        ; (wind velocity pole)
                 lda #COLOR_BLUE         ; (wind direction streamer)
                 sta pixelColor
 
-                jsr ProcessLine._ENTRY_WIND
+                jsr ProcessLine._ENTRY_WIND     ; BUG:
 
 ; - - - - - - - - - - - - - - - - - - -
                 lda windVelThisHole

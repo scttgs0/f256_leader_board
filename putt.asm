@@ -418,39 +418,7 @@ _4              lda #TRUE
 ;====================================== ;[[U]]
 SwitchToPutt    .proc
                 jsr ClearSwingGauge
-
-                rts
-;_line           = zpD2
-;_src            = zpD4
-;;---
-;
-;                lda #$0B                ; line being rendered
-;                sta _line
-;
-;                lda #<_puttPower        ; SRC
-;                sta _src
-;                lda #>_puttPower
-;                sta _src+1
-;
-;                jsr XBPC_RenderHUD_ENTRY1  ; redraw top portion of HUD
-;                jmp RenderPuttGauge        ; draw bottom portion of HUD
-;
-;;--------------------------------------
-;
-;_puttPower      .text '          '
-;                .text ' PUTTER   '
-;                .text '          '      ; distance to cup goes here
-;                .text '          '
-;
-;                .text '          '      ; 1-foot gauge goes here
-;                .text $00,$00,$00,'[POWER '
-;                .text $00,$00,$00,'\      '
-;                .text $00,$00,$00,'\      '
-;                .text $00,$00,$00,'\      '
-;                .text $00,$00,$00,'\      '
-;                .text $00,$00,$00,'\      '
-;                .text $00,$00,$00,'\      '
-;                .text $00,$00,$00,']      '
+                jmp RenderPuttGauge        ; draw bottom portion of HUD
 
                 .endproc
 
