@@ -373,7 +373,7 @@ _1              lda IOPAGE_CTRL
                 stx xPosBallShadow
                 stx xPosBall
 
-                lda newBallPosY         ; update the new ball vertical position
+                lda newBallPosY         ; update the ball's new vertical position
                 sta yPosBall
 
 ; - - - - - - - - - - - - - - - - - - -
@@ -604,7 +604,7 @@ _audioControl   .byte $81,$82,$82,$81
 ;--------------------------------------
 ;
 ;-------------------------------------- ;[[U]]
-AnimSplash_B .proc
+AnimSplash_B    .proc
                 lda animSplashFrame     ; [0:4]
                 cmp #$85                ; max frame? (hi-bit + 5)
                 bcc _next1              ;   no
@@ -733,7 +733,7 @@ _audioControl   .byte $81,$82,$82,$81,$81
 ;--------------------------------------
 ;
 ;-------------------------------------- ;[[U]]
-AnimSplash_C .proc
+AnimSplash_C    .proc
                 lda animSplashFrame     ; [0:4]
                 cmp #$85                ; max frame? (hi_bit + 5)
                 bcc _1                  ;   no
@@ -865,7 +865,7 @@ _audioControl   .byte $81,$82,$83,$82,$81
 ;--------------------------------------
 ;
 ;-------------------------------------- ;[[U]]
-AnimSplash_D .proc
+AnimSplash_D    .proc
                 lda animSplashFrame     ; [0:5]
                 cmp #$86                ; max frame? (hi-bit + 6)
                 bcc _1                  ;   no

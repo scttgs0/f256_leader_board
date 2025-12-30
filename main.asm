@@ -8,7 +8,7 @@ NewGame         .proc
                 jsr DoConfig
                 jsr ClearScreen
 
-                stz activePlayer                ; first player
+                stz activePlayer                ; =first player
                 stz isSwingDisabled             ; =FALSE
                 stz isSwingInProgress           ; =FALSE
                 stz swingAnimCounter            ; =0
@@ -179,7 +179,7 @@ _s2             cli                     ; enable interrupts
                 jsr ResetSwingGauge
                 jsr ShowSwingGauge
 
-                stz flags_9D76
+                stz flags_9D76          ; reset
                 stz tickFREQ3           ; disable
                 stz gaugeValue          ; reset
 
@@ -255,7 +255,7 @@ _h1
 ; end HACK:: developer mode to cycle through the animation cells
 
                 lda KEYCODE
-                cmp #$83                ; OPTION pressed?
+                cmp #$83                ; <F3> pressed?
                 bne _1                  ;   no
 
 ;   /// OPTION ///

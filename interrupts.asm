@@ -71,6 +71,8 @@ irqTimer0       .proc
                 phx
                 phy
 
+		; TODO: disable timer-2
+
                 jsr DoSwingGauge
 
                 ply
@@ -200,7 +202,7 @@ _XIT            rts
 
 _jiffyCount         .byte $00
 
-timer16bitMask_LO   .byte $12,$00
+timer16bitMask_LO   .byte $12,$00   ; TODO:
 
                 .endproc
 

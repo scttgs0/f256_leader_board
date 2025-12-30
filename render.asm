@@ -457,7 +457,7 @@ _setAddrPixelByte1
 ;   Y           new yPos
 ; on exit:
 ;   A           maskedPixelValue
-;======================================
+;====================================== ;[[U]]
 ShiftPixelMask  .proc
 _addrPixel      = zpFD
 ;---
@@ -1132,7 +1132,7 @@ _1              cpx #xformDELTA_Z
 ;   operation #1 = deltaZ
 _2              lda polyVertZ_delta
                 sta polyVertZ_LO_2
-                stz polyVertZ_HI_2
+                stz polyVertZ_HI_2      ; hi-byte unused
 
                 jmp Project3DVertex
 

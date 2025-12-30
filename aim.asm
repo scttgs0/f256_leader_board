@@ -195,6 +195,7 @@ _4              lda aimPosition_HI
 _5              ldx #xformAIM_POS
                 jsr VertexTransform
 
+; - - - - - - - - - - - - - - - - - - -
 ;   render the aim target
                 txa
                 clc

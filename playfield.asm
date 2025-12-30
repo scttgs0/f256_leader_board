@@ -347,6 +347,7 @@ _3              dec _width              ; completed all the cloud glyphs?
                 pla
                 sta IOPAGE_CTRL
 
+; - - - - - - - - - - - - - - - - - - -
                 rts
                 .endproc
 
@@ -499,5 +500,6 @@ _3              dec _width              ; completed all the mountain glyphs?
                 pla
                 sta IOPAGE_CTRL
 
+; - - - - - - - - - - - - - - - - - - -
                 rts
                 .endproc

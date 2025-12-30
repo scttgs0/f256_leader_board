@@ -660,7 +660,7 @@ _tensDigit      .byte $00
 
 
 ;======================================
-;
+; <obsolete>???
 ;--------------------------------------
 ; Private Procedure
 ;--------------------------------------
@@ -669,7 +669,7 @@ _tensDigit      .byte $00
 ;   wordA
 ;   wordB
 ;   wordC
-;====================================== ;[[F]] <obsolete>???
+;====================================== ;[[F]]
 CalcValuem10_Div10_x3 .proc
                 ldx activePlayer
                 lda playerWindDirection_HI,X

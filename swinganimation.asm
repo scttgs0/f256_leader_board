@@ -10,6 +10,8 @@ _mask           = zpC5
 _keyframe       = zpD7
 ;---
 
+                rts  ; HACK:
+
                 ldy #$00                ; active keyframe for club animation [$00:1F]
                 lda clubAnimPtr
                 sta _keyframe
@@ -110,6 +112,8 @@ _XIT            rts
 
 
 ;======================================
+; <<obsolete>>
+;--------------------------------------
 ; Preserve an area of the screen, that
 ; is overwritten by the club animation,
 ; to facilitate erasure of the keyframe
@@ -117,10 +121,12 @@ _XIT            rts
 ; build table of byte values from the
 ; screen locations specified in table
 ; tblClubKeyframes
-;====================================== ;[[F]]  obsolete
+;====================================== ;[[F]]
 PreserveScreenPatch .proc
 _screen         = zpC3
 ;---
+
+                rts  ; HACK:
 
                 ldx #$00
                 ldy #$00
