@@ -267,7 +267,7 @@ RenderHUDCourse .proc
 ;
 ;--------------------------------------
 ; Private Procedure
-;====================================== ;[[U]]+
+;====================================== ;[[V]]
 RenderHUDPlayers .proc
                 jsr RenderHUDActivePlayer  ; '>'-mark for the active player
 
@@ -370,9 +370,12 @@ _cont           lda idxActiveCourse     ; first course?
                 bne _1                  ;   no, render delta
 
                 lda idxActiveHole       ; first hole (on the first course)?
-                beq _2                  ;   yes, skip delta display
+                beq _1                  ;   yes, skip delta display
 
-_1              ;;jsr XBPC_RenderScoreDelta
+_1              jsr XBPC_CalcScoreDelta
+
+                ldx idxPlayer
+                jsr _arrayForDisplay
 
 _2              jsr DoNothing4          ; teensy delay
 
@@ -386,30 +389,93 @@ _hundreds       .text ' '
 _tens           .text ' '
 _ones           .text ' '
 
-;--------------------------------------
+
+; = = = = = = = = = = = = = = = = = = =
+;
+; = = = = = = = = = = = = = = = = = = = ;[[V]]
 _render         .frsTextXY 31,5,$F0,RenderHUDPlayers._scrnName
 
                 .frsTextXY 30,6,$F0,RenderHUDPlayers._scrnP1Active
                 .frsTextXY 31,6,$10,RenderHUDPlayers._scrnP1
                 .frsTextXY 33,6,$10,RenderHUDPlayers._scrnP1Strokes
-                .frsTextXY 37,6,$30,RenderHUDPlayers._scrnP1Delta
+                .frsTextXY_varColor 37,6,RenderHUDPlayers._colorP1Delta,RenderHUDPlayers._scrnP1Delta
 
                 .frsTextXY 30,7,$F0,RenderHUDPlayers._scrnP2Active
                 .frsTextXY 31,7,$F0,RenderHUDPlayers._scrnP2
                 .frsTextXY 33,7,$10,RenderHUDPlayers._scrnP2Strokes
-                .frsTextXY 37,7,$80,RenderHUDPlayers._scrnP2Delta
+                .frsTextXY_varColor 37,7,RenderHUDPlayers._colorP2Delta,RenderHUDPlayers._scrnP2Delta
 
                 .frsTextXY 30,8,$F0,RenderHUDPlayers._scrnP3Active
                 .frsTextXY 31,8,$10,RenderHUDPlayers._scrnP3
                 .frsTextXY 33,8,$10,RenderHUDPlayers._scrnP3Strokes
-                .frsTextXY 37,8,$F0,RenderHUDPlayers._scrnP3Delta
+                .frsTextXY_varColor 37,8,RenderHUDPlayers._colorP3Delta,RenderHUDPlayers._scrnP3Delta
 
                 .frsTextXY 30,9,$F0,RenderHUDPlayers._scrnP4Active
                 .frsTextXY 31,9,$10,RenderHUDPlayers._scrnP4
                 .frsTextXY 33,9,$10,RenderHUDPlayers._scrnP4Strokes
-                .frsTextXY 37,9,$10,RenderHUDPlayers._scrnP4Delta
+                .frsTextXY_varColor 37,9,RenderHUDPlayers._colorP4Delta,RenderHUDPlayers._scrnP4Delta
 
                 rts
+
+
+; = = = = = = = = = = = = = = = = = = =
+;
+; = = = = = = = = = = = = = = = = = = = ;[[V]]
+_arrayForDisplay .proc
+                lda #$00
+                cpx #$00
+                beq _1
+
+_calcOffset     clc
+                adc #13
+
+                dex
+                bne _calcOffset
+
+_1              tax
+
+                lda arr5Digits+2    ; skip digit when zero
+                beq _tens
+
+                cmp #' '            ; skip conversion if non-numeric
+                bcs _2
+
+                ora #'0'            ; convert to ascii
+_2              sta RenderHUDPlayers._scrnP1Delta,X
+
+_tens           lda arr5Digits+3
+                beq _ones
+
+                cmp #' '            ; skip conversion if non-numeric
+                bcs _3
+
+                ora #'0'            ; convert to ascii
+_3              sta RenderHUDPlayers._scrnP1Delta+1,X
+
+_ones           lda arr5Digits+4
+                cmp #' '            ; skip conversion if non-numeric
+                bcs _4
+
+                ora #'0'            ; convert to ascii
+_4              sta RenderHUDPlayers._scrnP1Delta+2,X
+
+                lda glyphPlusMinus
+                cmp #'-'
+                beq _under
+
+                cmp #'+'
+                beq _over
+                bra _even
+
+_under          lda #$30
+                .byte $2C
+_over           lda #$F0
+                .byte $2C
+_even           lda #$80
+                sta RenderHUDPlayers._colorP1Delta,X
+
+                rts
+                .endproc
 
 ;--------------------------------------
 
@@ -419,21 +485,25 @@ _scrnP1Active   .null " "
 _scrnP1         .null "1"
 _scrnP1Strokes  .null "   "
 _scrnP1Delta    .null "   "
+_colorP1Delta   .byte $00               ; color: under=$30, even=$80, over=$F0
 
 _scrnP2Active   .null " "
 _scrnP2         .null "2"
 _scrnP2Strokes  .null "   "
 _scrnP2Delta    .null "   "
+_colorP2Delta   .byte $00
 
 _scrnP3Active   .null " "
 _scrnP3         .null "3"
 _scrnP3Strokes  .null "   "
 _scrnP3Delta    .null "   "
+_colorP3Delta   .byte $00
 
 _scrnP4Active   .null " "
 _scrnP4         .null "4"
 _scrnP4Strokes  .null "   "
 _scrnP4Delta    .null "   "
+_colorP4Delta   .byte $00
 
                 .endproc
 

@@ -53,3 +53,17 @@ frsTextXY       .macro x,y,color,msg
                 lda #\color
                 jsr PrintText
                 .endmacro
+
+
+;======================================
+frsTextXY_varColor .macro x,y,color,msg
+                lda #<\msg
+                sta zpSource
+                lda #>\msg
+                sta zpSource+1
+
+                ldx #\x
+                ldy #\y
+                lda \color
+                jsr PrintText
+                .endmacro

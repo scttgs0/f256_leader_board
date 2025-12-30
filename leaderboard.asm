@@ -305,6 +305,22 @@ XBPC_DoScoreboard .proc
 ;======================================
 ;
 ;======================================
+XBPC_CalcScoreDelta .proc
+                jsr XBPC_Preserve
+
+                lda #SCORE_CHUNK
+                sta MMU_Block3
+
+                jsr CalcScoreDelta
+                jsr XBPC_Restore
+
+                rts
+                .endproc
+
+
+;======================================
+;
+;======================================
 XBPC_RenderScoreDelta .proc
                 jsr XBPC_Preserve
 

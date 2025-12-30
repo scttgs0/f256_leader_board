@@ -590,7 +590,7 @@ _XIT            rts
 ;--------------------------------------
 ; X-Bank Procedure
 ;====================================== ;[[V]]
-RenderScoreDelta .proc
+CalcScoreDelta  .proc
 ;   clear array
                 ldx #$04
                 lda #$00
@@ -645,7 +645,7 @@ _2              lda courseOffset
 _3              lda #'E'
                 sta arr5Digits+4
 
-                jmp _5
+                jmp _XIT
 
 ; - - - - - - - - - - - - - - - - - - -
 _4              jsr ConvertToArray
@@ -654,7 +654,19 @@ _4              jsr ConvertToArray
                 lda glyphPlusMinus
                 sta arr5Digits,Y
 
-_5              lda nStage
+_XIT            rts
+                .endproc
+
+
+;======================================
+;
+;--------------------------------------
+; X-Bank Procedure
+;====================================== ;[[V]]
+RenderScoreDelta .proc
+                jsr CalcScoreDelta
+
+                lda nStage
                 cmp #stageCONFIG
                 bne _6
 
@@ -662,7 +674,7 @@ _5              lda nStage
 ;   nStage is stageCONFIG
                 jsr GetYByHonorRank
 
-                ldx #$0D                ; [13,???]
+                ldx #$0D                ; [13,Y]
                 jsr CalcPixelAddr
 
                 lda #'0'
