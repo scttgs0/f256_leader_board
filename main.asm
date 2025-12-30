@@ -299,7 +299,7 @@ _next3          jsr SwingAnimControl
 _2              jsr Swing_math_326F
                 jsr DemoInput
                 jsr PositionBallShadow
-                ;!!jsr CalcBallPixelMask
+                jsr CalcBallPixelMask
                 jsr SetBallFlags
                 jsr RenderBall
 
@@ -316,10 +316,10 @@ _next4          jsr SwingAnimControl
                 jsr ProcessAudio
                 jsr Swing_math_326F
                 jsr PositionBallShadow
-                ;!!jsr CalcBallPixelMask
+                jsr CalcBallPixelMask
                 jsr SetBallFlags
                 jsr XBPC_Swing_3E71
-                ;!!jsr CalcPixelMask
+                jsr CalcPixelMask
                 jsr RenderBall
 
 _next5          jsr AnimateSplash

@@ -4,9 +4,9 @@
 ;-------------------------------------- ;[[U]]
 AdjustBallPixelMask .proc
                 ldx #$07                        ; missile-1 (shadow)
-                jsr CalcMissilePositionAndMask  ; result in A=maskedPixelValue, [X,Y]
+                jsr CalcMissilePositionAndFetch ; result in A=pixelValue, [X,Y]
 
-                cmp #$03                ; missile-0 white?
+                cmp #COLOR_GREEN
                 beq _1                  ;   yes
 
                 lda #operSHADOW_BALL
@@ -26,11 +26,11 @@ _1              ldx #$07                ; missile-1 (shadow)
                 sbc yPosNewBallShadow
                 tay
 
-                jsr ShiftPixelMask      ; result in A=maskedPixelValue
+                jsr FetchPixelValue     ; result in A=pixelValue
 
-                cmp #$03
-                bne _XIT
-                ;!!jmp CalcBallPixelMask._ENTRY1
+                cmp #COLOR_GREEN        ; grass?
+                bne _XIT                ;   no
+                jmp CalcBallPixelMask._ENTRY1
 
 _XIT            rts
                 .endproc
@@ -65,9 +65,9 @@ MoveBall        .proc
                 sta animSplashFrame       ; set bit-7; splash is active (frame 0)
 
 _next1          ldx #$06                        ; missile-1 (ball)
-                jsr CalcMissilePositionAndMask  ; result in A=maskedPixelValue, [X,Y]
+                jsr CalcMissilePositionAndFetch ; result in A=pixelValue, [X,Y]
 
-                cmp #$03                ; missile-1?
+                cmp #COLOR_GREEN        ; grass?
                 bne _1                  ;   no
 
                 dec newBallPosY         ;   yes
@@ -199,12 +199,12 @@ _4              sta newBallShadowPosY
 ;       :=6     ball (missileY1)
 ;       :=7     shadow (missileY0)
 ; on exit:
-;   A           maskedPixelValue
+;   A           pixelValue
 ;   X,Y         [X,Y]
 ;====================================== ;[[U]]
-CalcMissilePositionAndMask .proc
+CalcMissilePositionAndFetch .proc
                 jsr CalcMissilePosition ; result [X,Y]
-                jmp ShiftPixelMask      ; result in A=maskedPixelValue
+                jmp FetchPixelValue     ; result in A=pixelValue
 
                 .endproc
 
@@ -302,6 +302,12 @@ _FINISH         lda #$00                ; clear audio
 
 ;======================================
 ;
+;--------------------------------------
+; on entry:
+;   animSplashFrame
+;   nodeOperation
+;   polyVertZ_LO/HI
+;   polyVertZ_delta
 ;====================================== ;[[F]]
 SetBallFlags    .proc
                 lda animSplashFrame     ; splash is active?
@@ -425,7 +431,7 @@ SetFlagsBall_C0 .proc
 
 ;======================================
 ;
-;====================================== ;[[U]]
+;====================================== ;[[F]]
 CalcPixelMask   .proc
                 ldx #$07                ; missile-1 (shadow)
                 jsr CalcMissilePosition ; result [X,Y]
@@ -447,12 +453,12 @@ _1              cmp #$05
                 bcc SetFlagsBall_C0
 
                 ldx #$07                        ; missile-1 (shadow)
-                jsr CalcMissilePositionAndMask  ; result in A=maskedPixelValue, [X,Y]
+                jsr CalcMissilePositionAndFetch ; result in A=pixelValue, [X,Y]
 
-                cmp #$00                ; no missile date?
-                beq _2                  ;   none
+                cmp #COLOR_BLACK        ; off-screen/in cup?
+                beq _2                  ;   yes
 
-                cmp #$02                ; missile-0?
+                cmp #COLOR_RUST         ; mud?
                 beq _2                  ;   yes
 
                 lda #$80
@@ -479,13 +485,13 @@ _next1          lda flagsBall_9D83
                 rts
 
 ; - - - - - - - - - - - - - - - - - - -
-_4              jsr ShiftPixelMask      ; result in A=maskedPixelValue
+_4              jsr FetchPixelValue     ; result in A=pixelValue
 
-                cmp #$00
-                beq _5
+                cmp #COLOR_BLACK        ; off-screen/in cup?
+                beq _5                  ;   yes
 
-                cmp #$02
-                bne _next1
+                cmp #COLOR_RUST         ; mud?
+                bne _next1              ;   no
 
 _5              lda flagsBall_9D83
                 and #$BF

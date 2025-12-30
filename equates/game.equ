@@ -31,9 +31,9 @@ operPIXEL           = $00
 operFILL            = $01
 operSHADOW_BALL     = $02
 
-COLOR_BLUE          = $08
-COLOR_RUST          = $0B
-COLOR_GREEN         = $0D
+COLOR_BLUE          = $08               ; atari=$01
+COLOR_RUST          = $0B               ; atari=$02
+COLOR_GREEN         = $0D               ; atari=$03
 COLOR_BLACK         = $00
 COLOR_WHITE         = $28
 

@@ -456,28 +456,18 @@ _setAddrPixelByte1
 ;   X           new xPos
 ;   Y           new yPos
 ; on exit:
-;   A           maskedPixelValue
-;====================================== ;[[U]]
-ShiftPixelMask  .proc
+;   A           pixelValue
+;====================================== ;[[F]]
+FetchPixelValue .proc
 _addrPixel      = zpFD
 ;---
 
-                rts     ; HACK:
-                ;!!jsr GetPixelPtrMask     ; set zpFD (pixel address) and pixelMask
+                jsr GetPixelPtr_zp
 
                 lda (_addrPixel),Y      ; fetch the pixel value
-                and pixelMask           ; apply the mask
-_next1          sta maskedPixelValue    ; save
+                sta pixelValue          ; save
 
-                lsr pixelMask           ; stop when a mask-bit hits the CARRY (i.e. too far)
-                bcs DoRTS2
-
-                lsr pixelMask           ; shift the mask
-                lsr                     ; shift the pixel value (x2)
-                lsr
-
-                jmp _next1
-
+                rts
                 .endproc
 
 
@@ -489,7 +479,7 @@ DoRTS2          rts
 
 ;======================================
 ;
-;======================================
+;====================================== ;[[F]]
 CalcBallPixelMask .proc
                 lda lineNode1_ClipFlags
                 beq _1
@@ -503,9 +493,9 @@ _1              lda nodeOperation       ; operPIXEL?
                 ldx #$07                ; missile-1 (shadow)
                 jsr CalcMissilePosition ; result [X,Y]
                 sty yPosNewBallShadow
-                jsr ShiftPixelMask      ; result in A=maskedPixelValue
+                jsr FetchPixelValue     ; result in A=pixelValue
 
-                cmp #$03                ; missile-0 white?
+                cmp #COLOR_GREEN        ; grass?
                 beq _XIT1               ;   yes, exit
 
                 pha
@@ -529,9 +519,9 @@ _2              ldx #$07                ; missile-1 (shadow)
 
 _next1          ldx zpD4                ; x-coordinate
                 ldy zpD4+1              ; y-coordinate
-                jsr ShiftPixelMask      ; result in A=maskedPixelValue
+                jsr FetchPixelValue     ; result in A=pixelValue
 
-                cmp #$03                ; missile-0 white?
+                cmp #COLOR_GREEN        ; grass?
                 beq _XIT1               ;   yes, exit
 
                 inc zpD4
@@ -540,8 +530,6 @@ _next1          ldx zpD4                ; x-coordinate
                 lda zpCD
                 cmp #$0F
                 bcc _next1
-
-                ;!!ora PACTL
 
 _3              lda #operFILL
                 sta nodeOperation
@@ -567,12 +555,12 @@ _4              cmp #$01
                 jmp AdjustBallPixelMask
 
 _5              ldx #$07                        ; missile-1 (shadow)
-                jsr CalcMissilePositionAndMask  ; result in A=maskedPixelValue, [X,Y]
+                jsr CalcMissilePositionAndFetch ; result in A=pixelValue, [X,Y]
 
-                cmp #$03                ; missile-0 white?
+                cmp #COLOR_GREEN        ; grass?
                 beq _ENTRY1             ;   yes
 
-                cmp #$02                ; missile-0 green?
+                cmp #COLOR_RUST         ; mud?
                 bne _XIT1               ;   no
 
 ; - - - - - - - - - - - - - - - - - - -

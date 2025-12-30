@@ -458,10 +458,10 @@ _1              lda polyVertZ_HI
                 bcc _XIT1
 
                 ldx #$07                        ; missile-1 (shadow)
-                jsr CalcMissilePositionAndMask  ; result in A=maskedPixelValue, [X,Y]
+                jsr CalcMissilePositionAndFetch ; result in A=pixelValue, [X,Y]
 
-                cmp #$00
-                bne _XIT1
+                cmp #COLOR_BLACK                ; off-screen/in cup?
+                bne _XIT1                       ;   no
 
                 lda xPosCup_LO
                 sec
@@ -680,4 +680,4 @@ cupPosX_HI_2_3FEB           .byte $00
 
 lineNode1_WorkB_27DC_2      .byte $00
 lineNode1_pairDC_DE_HI_2    .byte $00
-maskedPixelValue            .byte $00
+pixelValue                  .byte $00

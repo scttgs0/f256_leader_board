@@ -39,7 +39,7 @@ cacheTimer24bit_LO      .fill 3,$00     ; swing gauge: 0=ascending, 1=descending
 
 activePlayer            .byte $00
 tempC                   .byte $00       ; idxCourse_honor_scale_temp
-pixelMask               .byte $00
+pixelMask               .byte $FF
 strokeCount             .byte $00
 holeOnesDigit           .byte $00
 
